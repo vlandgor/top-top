@@ -1,0 +1,125 @@
+// Shared data types. Everything in core/, levels/ and game/rules.ts is pure (no DOM), so the
+// game, the solver and the tests all run the exact same rules.
+
+export interface Vec { x: number; y: number }
+
+/** 1 = clockwise on screen, -1 = counterclockwise */
+export type Turn = 1 | -1;
+
+export type Mode = "destination" | "collect" | "sequence" | "survival" | "waves";
+
+/** Which way a grid-wide sweep travels. "all" hits every tile at once. */
+export type SweepDir = "down" | "up" | "left" | "right" | "diag" | "antidiag" | "all";
+
+// ---- level definitions, as authored in src/levels/ --------------------------------------
+
+export interface SentryDef {
+  /** waypoints "x,y x,y ..."; straight or 45° segments, one tile per beat */
+  path: string;
+  /** walk back along the path instead of looping from the last point to the first */
+  pingpong?: boolean;
+  /** start this many beats into the path */
+  phase?: number;
+}
+
+export interface SweepDef {
+  dir: SweepDir;
+  /** beat the front reaches the first lane */
+  start: number;
+  /** beats between repeats; 0 or absent = once */
+  every?: number;
+  /** how many times it repeats (default: forever when `every` is set) */
+  count?: number;
+  /** beats per lane: 1 = the front moves one row per beat, 0 = every lane at once */
+  speed?: number;
+  /** beats of warning glow before a tile turns lethal */
+  warn?: number;
+  /** beats a tile stays lethal */
+  lethal?: number;
+  /**
+   * safe lanes across the sweep: columns for down/up/all, rows for left/right, and for
+   * diag/antidiag the diagonal channel (diag: x - y + height - 1, antidiag: x + y).
+   * One list for every pass, or a list of lists to cycle through, one per pass.
+   */
+  gaps?: number[] | number[][];
+  /** the gaps move this many lanes each repeat */
+  gapShift?: number;
+}
+
+export interface LevelDef {
+  id: string;
+  name: string;
+  mode: Mode;
+  /**
+   * The board, one string per row, top first.
+   *   .  floor        A  planted boot (anchor)   B  swinging boot (mover)
+   *   G  goal         o  collectible             1-9  sequence collectibles
+   */
+  map: string[];
+  /** ticks per beat (a tick is TICK_MS). hazards step once per beat. default 4 */
+  beat?: number;
+  sentries?: SentryDef[];
+  sweeps?: SweepDef[];
+  /** survival: beats to stay alive. waves: optional time limit (not used yet) */
+  survive?: number;
+  /** waves: collectibles needed to clear the level */
+  need?: number;
+  /** waves: what each pass of sweep 0 leaves behind, one "x,y x,y" string per pass (cycled) */
+  drops?: string[];
+  /** a one-line tip shown on the level's first attempt */
+  hint?: string;
+}
+
+// ---- parsed level ------------------------------------------------------------------------
+
+export interface Item {
+  x: number; y: number;
+  /** 0 = any order, 1.. = sequence position */
+  order: number;
+  /** beats during which it can be picked up: [from, until) */
+  from: number; until: number;
+}
+
+export interface Sentry { tiles: Vec[]; phase: number }
+
+export interface Sweep extends Required<Omit<SweepDef, "gaps">> { gaps: number[][] }
+
+export interface Level {
+  def: LevelDef;
+  w: number; h: number;
+  /** [anchor, mover] at the start */
+  start: [Vec, Vec];
+  goal: Vec | null;
+  items: Item[];
+  sentries: Sentry[];
+  sweeps: Sweep[];
+  beat: number;
+  survive: number;
+  need: number;
+  /** how many items have an order (sequence mode) */
+  ordered: number;
+  /** item indices by tile (y * w + x), so a pickup check only looks where the boots are */
+  itemsAt: Map<number, number[]>;
+}
+
+// ---- a run of one level ------------------------------------------------------------------
+
+export type RunStatus = "play" | "dead" | "won";
+
+export interface Run {
+  lv: Level;
+  tick: number;
+  /** the two boots; boots[anchor] is planted, the other swings */
+  boots: [Vec, Vec];
+  anchor: 0 | 1;
+  taken: boolean[];
+  got: number;
+  nextOrder: number;
+  status: RunStatus;
+  cause: "" | "sentry" | "sweep" | "order";
+  lastTurn: Turn;
+  lastMoveTick: number;
+  moves: number;
+  /** set by the last swing when the planted boot had to shuffle off an edge */
+  shuffled: boolean;
+}

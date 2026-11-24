@@ -1,0 +1,94 @@
+apply plugin: 'com.android.application'
+
+// Versions and release signing come from the environment, so CI can set them and no
+// secret ever lives in the repository. Local builds fall back to safe defaults and
+// produce an unsigned release.
+def env = { String name, String fallback -> System.getenv(name) ?: fallback }
+def releaseKeystore = System.getenv("ANDROID_KEYSTORE_PATH")
+
+android {
+    namespace = "com.playcebo.toptop"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "com.playcebo.toptop"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode Integer.parseInt(env("VERSION_CODE", "1"))
+        versionName env("VERSION_NAME", "1.0.0")
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // the launcher name; the dev build overrides it so it can't be mistaken for the real app
+        manifestPlaceholders = [appLabel: "@string/app_name"]
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        release {
+            if (releaseKeystore) {
+                storeFile file(releaseKeystore)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (releaseKeystore) {
+                signingConfig signingConfigs.release
+            }
+        }
+        // "Top Top Dev": installs next to the real app and loads the game from GitHub Pages,
+        // so every push to main reaches the phone the next time the app opens.
+        // tools/dev-shell.mjs writes its Capacitor config into src/dev/assets/.
+        dev {
+            initWith release
+            applicationIdSuffix ".dev"
+            versionNameSuffix "-dev"
+            debuggable true                       // chrome://inspect works on the WebView
+            manifestPlaceholders = [appLabel: "Top Top Dev"]
+            // the same key on every build, so a new dev APK installs over the old one
+            signingConfig releaseKeystore ? signingConfigs.release : signingConfigs.debug
+            matchingFallbacks = ["release"]
+        }
+    }
+}
+
+// every build is named after the game and its version, e.g.
+// top-top-1.0.0-120-release.aab, top-top-1.0.0-120-release.apk, top-top-1.0.0-120-debug.apk
+base {
+    archivesName = "top-top-${android.defaultConfig.versionName}-${android.defaultConfig.versionCode}"
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

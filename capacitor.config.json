@@ -1,0 +1,14 @@
+{
+  "appId": "com.playcebo.toptop",
+  "appName": "Top Top",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#05080a"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "disable",
+      "hidden": true
+    }
+  }
+}

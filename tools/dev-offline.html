@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Top Top Dev loads the game from GitHub Pages. Capacitor shows this page when that fails.
+     tools/dev-shell.mjs copies it into the dev build as offline.html. -->
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Top Top Dev</title>
+<style>
+  html,body{margin:0;height:100%;background:#05080a;color:#cfd8ea;font:16px/1.4 system-ui,sans-serif}
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;box-sizing:border-box}
+  b{color:#fff;font-size:20px}
+  button{background:#19e3c8;color:#031412;border:0;border-radius:12px;padding:14px 32px;font:600 17px system-ui,sans-serif}
+  small{opacity:.55}
+</style>
+</head>
+<body>
+  <b>Top Top Dev</b>
+  <div>Couldn't load the latest build.<br>Check your connection.</div>
+  <button id="retry">Retry</button>
+  <small id="url"></small>
+<script>
+  // tools/dev-shell.mjs fills in the address when it copies this page into the dev build
+  var url="__DEV_URL__";
+  document.getElementById("url").textContent=url;
+  document.getElementById("retry").onclick=function(){ location.href=url; };
+</script>
+</body>
+</html>

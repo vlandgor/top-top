@@ -1,0 +1,189 @@
+# Builds the Android app on every push and pull request.
+#
+# Always: a debug APK you can install directly on a phone.
+# When signing secrets are set: a signed release AAB (for Google Play) and APK.
+# Always: "Top Top Dev", which loads the game from GitHub Pages (see dev-web.yml). On
+# main it is published as the `dev` pre-release, at a download link that never changes.
+#
+# Secrets (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64    your upload keystore, base64-encoded
+#   ANDROID_KEYSTORE_PASSWORD  keystore password
+#   ANDROID_KEY_ALIAS          key alias inside the keystore
+#   ANDROID_KEY_PASSWORD       key password
+name: Android build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Version name shown to players, e.g. 1.0.1 (blank = package.json version)"
+        required: false
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # publishing the dev APK to the `dev` pre-release
+    env:
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # game rules, and a solver that proves every level can be beaten
+      - name: Test
+        run: npm test
+
+      # strict type-check, then the Vite production build into dist/
+      - name: Type-check and build the game
+        run: npm run build
+
+      - name: Copy the game into the Android project
+        run: npx cap sync android
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # versionCode must increase with every upload to Play, so it follows the run number
+      - name: Set version
+        run: |
+          NAME="${{ github.event.inputs.version_name }}"
+          [ -z "$NAME" ] && NAME=$(node -p "require('./package.json').version")
+          echo "VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
+          echo "Building $NAME (code $((100 + GITHUB_RUN_NUMBER)))"
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+
+      # fail the build if the APK is missing the game or has the wrong settings
+      - name: Check the APK
+        run: |
+          APK=$(ls android/app/build/outputs/apk/debug/*.apk | head -1)
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -1)
+          unzip -l "$APK" | grep -q "assets/public/index.html" || { echo "::error title=APK check::The game is missing from the APK"; exit 1; }
+          unzip -p "$APK" assets/public/index.html | grep -q "Top Top" || { echo "::error title=APK check::Bundled index.html is not the game"; exit 1; }
+          PKG=$("$AAPT" dump badging "$APK" | grep -o "package: name='[^']*' versionCode='[^']*' versionName='[^']*'")
+          SDK=$("$AAPT" dump badging "$APK" | grep -o "targetSdkVersion:'[^']*'")
+          ORIENT=$("$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -o "screenOrientation(0x[0-9a-f]*)=(type 0x10)0x[0-9a-f]*" | head -1)
+          case "$ORIENT" in *0x1) ORIENT=portrait;; *) ORIENT="NOT portrait ($ORIENT)";; esac
+          unzip -l "$APK" | grep -q "assets/public/assets/index-.*\.js" || { echo "::error title=APK check::The game bundle is missing from the APK"; exit 1; }
+          echo "::notice title=APK check::$(basename "$APK"): $PKG $SDK, $ORIENT, game bundled, $(du -h "$APK" | cut -f1)"
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: top-top-debug-${{ env.VERSION_NAME }}-${{ env.VERSION_CODE }}
+          path: android/app/build/outputs/apk/debug/*.apk
+
+      # the secret is pasted from a clipboard, often with Windows line endings or wrapping:
+      # drop all whitespace before decoding, then open the keystore with the alias and
+      # passwords so a wrong secret fails here with a clear message instead of deep in Gradle
+      - name: Decode upload keystore
+        if: env.KEYSTORE_B64 != ''
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          KS="$RUNNER_TEMP/upload.keystore"
+          if ! printf '%s' "$KEYSTORE_B64" | tr -d ' \t\r\n' | base64 --decode > "$KS" 2>/dev/null; then
+            echo "::error title=Signing::ANDROID_KEYSTORE_BASE64 is not valid base64 ($(printf '%s' "$KEYSTORE_B64" | tr -d ' \t\r\n' | wc -c) characters). Copy the keystore again with the PowerShell command in the README and re-save the secret."
+            exit 1
+          fi
+          if ! keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD" >/dev/null 2>&1; then
+            echo "::error title=Signing::The keystore decoded ($(stat -c%s "$KS") bytes) but ANDROID_KEYSTORE_PASSWORD does not open it, or the file is not a keystore."
+            exit 1
+          fi
+          if ! keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "::error title=Signing::The keystore opens, but it has no key named ANDROID_KEY_ALIAS. Aliases in it: $(keytool -list -keystore "$KS" -storepass "$ANDROID_KEYSTORE_PASSWORD" 2>/dev/null | grep -oE '^[^,]+, ' | tr -d ', ' | paste -sd ' ')"
+            exit 1
+          fi
+          echo "ANDROID_KEYSTORE_PATH=$KS" >> "$GITHUB_ENV"
+          echo "::notice title=Signing::Upload keystore OK (alias $ANDROID_KEY_ALIAS)"
+
+      - name: Build signed release AAB and APK
+        if: env.KEYSTORE_B64 != ''
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew bundleRelease assembleRelease --no-daemon
+
+      - name: Upload release builds
+        if: env.KEYSTORE_B64 != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: top-top-release-${{ env.VERSION_NAME }}-${{ env.VERSION_CODE }}
+          path: |
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/outputs/apk/release/*.apk
+
+      # same native app, but it opens https://vlandgor.github.io/top-top/ instead of the
+      # bundled game, so pushes to main reach it without reinstalling. signed with the upload
+      # key when the secrets are set, so each new dev APK installs over the last one
+      - name: Build Top Top Dev APK
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          node ../tools/dev-shell.mjs
+          ./gradlew assembleDev --no-daemon
+
+      - name: Check the dev APK
+        run: |
+          APK=$(ls android/app/build/outputs/apk/dev/*.apk | head -1)
+          AAPT=$(ls "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -1)
+          BADGE=$("$AAPT" dump badging "$APK")
+          echo "$BADGE" | grep -q "package: name='com.playcebo.toptop.dev'" || { echo "::error title=Dev APK check::Wrong package name"; exit 1; }
+          echo "$BADGE" | grep -q "application-label:'Top Top Dev'" || { echo "::error title=Dev APK check::App is not named Top Top Dev"; exit 1; }
+          URL=$(unzip -p "$APK" assets/capacitor.config.json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log((JSON.parse(s).server||{}).url||''))")
+          [ -n "$URL" ] || { echo "::error title=Dev APK check::No server url, the dev app would play the bundled game"; exit 1; }
+          unzip -l "$APK" | grep -q "assets/public/offline.html" || { echo "::error title=Dev APK check::offline.html is missing"; exit 1; }
+          SIGNED="debug key"; [ -n "$KEYSTORE_B64" ] && SIGNED="upload key"
+          cp "$APK" "$RUNNER_TEMP/top-top-dev.apk"
+          echo "::notice title=Dev APK check::$(basename "$APK"): Top Top Dev, loads $URL, signed with the $SIGNED, $(du -h "$APK" | cut -f1)"
+
+      - name: Upload dev APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: top-top-dev-${{ env.VERSION_NAME }}-${{ env.VERSION_CODE }}
+          path: android/app/build/outputs/apk/dev/*.apk
+
+      # one fixed link for the phone:
+      # https://github.com/vlandgor/top-top/releases/download/dev/top-top-dev.apk
+      - name: Publish the dev APK
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git tag -f dev && git push -f origin refs/tags/dev
+          NOTES="Top Top Dev, built from ${GITHUB_SHA::7} (${VERSION_NAME}, code ${VERSION_CODE}).
+
+          Install it once. It loads the newest build from main every time it opens, so you only need a new APK when the Android side changes (plugins, permissions, icons)."
+          gh release view dev >/dev/null 2>&1 || gh release create dev --prerelease --title "Top Top Dev" --notes "$NOTES"
+          gh release upload dev "$RUNNER_TEMP/top-top-dev.apk" --clobber
+          gh release edit dev --prerelease --notes "$NOTES"
+
+      - name: Remove keystore
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.keystore"

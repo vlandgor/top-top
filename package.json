@@ -1,0 +1,32 @@
+{
+  "name": "top-top",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Top Top by Playcebo Games: TypeScript + Vite, wrapped for Android with Capacitor",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "solve": "vite-node tools/solve.ts",
+    "sync": "npm run build && cap sync",
+    "android:debug": "npm run build && cap sync android && cd android && ./gradlew assembleDebug",
+    "android:release": "npm run build && cap sync android && cd android && ./gradlew bundleRelease",
+    "android:dev": "npm run build && cap sync android && node tools/dev-shell.mjs && cd android && ./gradlew assembleDev",
+    "build:devweb": "VITE_CHANNEL=dev vite build && node -e \"require('fs').writeFileSync('dist/version.json', JSON.stringify({commit: process.env.VITE_COMMIT || 'local'}))\""
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "@types/node": "^22.20.5",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.6",
+    "vitest": "^3.2.7"
+  },
+  "type": "module"
+}
