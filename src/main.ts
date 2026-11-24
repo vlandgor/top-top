@@ -21,6 +21,15 @@ function loop(ts: number){
   requestAnimationFrame(loop);
 }
 
+// landscape only: also ask the browser to lock it (works in the app and in fullscreen browsers;
+// elsewhere it is refused and the "turn your phone" screen covers portrait)
+function lockLandscape(){
+  const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+  o?.lock?.("landscape").catch(() => {});
+}
+lockLandscape();
+window.addEventListener("pointerdown", lockLandscape, { once: true });
+
 initAudio(); initCanvas(); initControls(); initMenus(); initNative(); initDev();
 resize(); goMenu();
 requestAnimationFrame(loop);

@@ -28,6 +28,9 @@ export function initDev(){
   tag.textContent = "DEV · " + COMMIT;
   tag.className = "devtag";
   document.getElementById("sMenu")?.appendChild(tag);
+  // an older Top Top Dev install was locked to portrait and can't turn: say what to do
+  const rot = document.querySelector("#rotate span");
+  if (rot && window.Capacitor) rot.textContent = "If the app won't turn, reinstall Top Top Dev from the dev release";
 
   const App = window.Capacitor?.Plugins?.App;
   if (App?.addListener) App.addListener("resume", checkForUpdate);

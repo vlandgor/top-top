@@ -1,5 +1,6 @@
 package com.playcebo.toptop;
 
+import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
@@ -13,6 +14,9 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Landscape only, from the first frame. The manifest says the same; asking again here
+        // covers launchers and OEM skins that start the activity before applying it.
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         super.onCreate(savedInstanceState);
         goFullscreen();
     }
