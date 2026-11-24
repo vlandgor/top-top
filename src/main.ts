@@ -6,7 +6,7 @@ import { initDev } from "./platform/dev";
 import { initNative } from "./platform/native";
 import { initCanvas, resize } from "./render/canvas";
 import { draw, drawLogo } from "./render/draw";
-import { $, goMenu, initMenus, syncHud } from "./ui/menus";
+import { $, drawModePreview, goMenu, initMenus, syncHud } from "./ui/menus";
 
 // boot: wire inputs and screens, then run the frame loop. Game time moves in fixed ticks
 // inside update(); drawing happens once per animation frame.
@@ -18,6 +18,7 @@ function loop(ts: number){
   draw();
   syncHud();
   if ($("sMenu").classList.contains("on")) drawLogo(logo, ts / 1000);
+  drawModePreview();
   requestAnimationFrame(loop);
 }
 

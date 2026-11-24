@@ -6,12 +6,45 @@ import type { LevelDef, Mode } from "../core/types";
 // tests/levels.test.ts runs the solver on every level: an impossible level fails the build.
 // ---------------------------------------------------------------------------
 
-export const MODES: { id: Mode; name: string; blurb: string }[] = [
-  { id: "destination", name: "Destination", blurb: "Walk the boots to the goal" },
-  { id: "collect", name: "Collect All", blurb: "Pick up every light" },
-  { id: "sequence", name: "Sequence", blurb: "Collect in order. One wrong step and you restart" },
-  { id: "survival", name: "Survival", blurb: "Stay alive until the clock runs out" },
-  { id: "waves", name: "Waves", blurb: "Grab what each wave leaves, then get clear of the next" },
+export interface ModeInfo {
+  id: Mode;
+  name: string;
+  /** one line, for lists */
+  blurb: string;
+  /** a few sentences for the mode screen */
+  about: string;
+  /** the level shown, hazards running, as the mode's preview */
+  preview: string;
+  /** still being designed */
+  wip?: boolean;
+}
+
+export const MODES: ModeInfo[] = [
+  {
+    id: "destination", name: "Destination", preview: "d3",
+    blurb: "Walk the boots to the goal",
+    about: "Get either boot onto the glowing goal. Read the sentries, time your presses and find the way through.",
+  },
+  {
+    id: "collect", name: "Collect All", preview: "c2",
+    blurb: "Pick up every light",
+    about: "Every light on the board has to be picked up, in any order, by either boot. Plan a route that touches them all.",
+  },
+  {
+    id: "sequence", name: "Sequence", preview: "s2",
+    blurb: "Collect in order",
+    about: "The lights are numbered. Pick them up in order: touch the wrong one and the level restarts.",
+  },
+  {
+    id: "survival", name: "Survival", preview: "r2",
+    blurb: "Stay alive until the clock runs out",
+    about: "No goal, just a clock. The floor keeps lighting up red; stay on the safe tiles until time runs out.",
+  },
+  {
+    id: "waves", name: "Waves", preview: "w1", wip: true,
+    blurb: "Grab what each wave leaves, then get clear",
+    about: "A wave sweeps down the board again and again. Each one leaves lights behind it; grab them before the next wave washes them away.",
+  },
 ];
 
 export const LEVELS: LevelDef[] = [

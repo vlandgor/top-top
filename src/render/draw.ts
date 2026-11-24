@@ -2,13 +2,19 @@ import type { Boot, Level, Run, Vec } from "../core/types";
 import { sentryAt, sweepAt } from "../game/hazards";
 import { inBounds, itemLive, nextTile } from "../game/rules";
 import { RETRY_MS, S, tickF } from "../game/session";
-import { ctx, view } from "./canvas";
+import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
 import { ACCENT, C, rgba } from "./theme";
 
 // ---------------------------------------------------------------------------
 // DRAW — one frame of the board, seen from straight above like an LED dance floor.
+// The same code draws the game and the small previews on the mode screen: a Frame says
+// which run, at what time, and whether it is the live game (with swing and death effects).
 // ---------------------------------------------------------------------------
+
+interface Frame { r: Run; tf: number; now: number; live: boolean }
+let F: Frame;
+let ctx: CanvasRenderingContext2D = mainCtx;
 
 const SWING_S = 0.09;              // seconds a swing takes to draw
 const HUD_TOP = 64, BOTTOM = 30;   // room for the HUD chips and the hint line
@@ -17,10 +23,10 @@ interface Layout { s: number; ox: number; oy: number }
 let L: Layout = { s: 40, ox: 0, oy: 0 };
 const heading = [-Math.PI / 2, -Math.PI / 2];   // the way each boot faces, eased toward its next tile
 
-function layout(lv: Level): Layout {
-  const availW = view.w - 20, availH = view.h - HUD_TOP - BOTTOM;
-  const s = Math.floor(Math.min(availW / lv.w, availH / lv.h, 76));
-  return { s, ox: Math.round((view.w - s * lv.w) / 2), oy: Math.round(HUD_TOP + (availH - s * lv.h) / 2) };
+/** the largest square tiles that fit the board in a box */
+function layoutIn(lv: Level, x: number, y: number, w: number, h: number, max: number): Layout {
+  const s = Math.floor(Math.min(w / lv.w, h / lv.h, max));
+  return { s, ox: Math.round(x + (w - s * lv.w) / 2), oy: Math.round(y + (h - s * lv.h) / 2) };
 }
 const cx = (x: number) => L.ox + (x + 0.5) * L.s;
 const cy = (y: number) => L.oy + (y + 0.5) * L.s;
@@ -46,11 +52,11 @@ function outline(x: number, y: number, color: string, width: number, inset = 0.1
 const ease = (k: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, k)), 3);
 
 export function draw(){
+  ctx = mainCtx;
   ctx.fillStyle = C.bg; ctx.fillRect(0, 0, view.w, view.h);
   const r = S.run; if (!r) return;
-  const lv = r.lv; L = layout(lv);
-  const accent = ACCENT[lv.def.mode];
-  const tf = tickF(), beatF = tf / lv.beat, beat = Math.floor(beatF), frac = beatF - beat;
+  F = { r, tf: tickF(), now: S.now, live: true };
+  L = layoutIn(r.lv, 10, HUD_TOP, view.w - 20, view.h - HUD_TOP - BOTTOM, 76);
   const dead = r.status === "dead", deadK = dead ? Math.min(1, (S.now - S.deadAt) / (RETRY_MS / 1000)) : 0;
 
   ctx.save();
@@ -58,18 +64,38 @@ export function draw(){
     const a = (0.4 - deadK) * 10;
     ctx.translate(Math.sin(S.now * 90) * a, Math.cos(S.now * 70) * a);
   }
+  drawBoard(dead);
+  ctx.restore();
+  if (dead) { ctx.fillStyle = rgba(C.hazard, 0.28 * (1 - deadK)); ctx.fillRect(0, 0, view.w, view.h); }
+  if (r.status === "won") drawWin(r, ACCENT[r.lv.def.mode]);
+}
 
+/**
+ * A preview of a level into any canvas: the board with its hazards running on their real
+ * schedule (no boots). `t` is seconds since the preview started; it loops every `loop` seconds.
+ */
+export function drawPreview(c: CanvasRenderingContext2D, w: number, h: number, r: Run, t: number, tickMs: number, loop = 12){
+  ctx = c;
+  ctx.clearRect(0, 0, w, h);
+  F = { r, tf: ((t % loop) * 1000) / tickMs, now: t, live: false };
+  r.tick = Math.floor(F.tf);
+  L = layoutIn(r.lv, 4, 4, w - 8, h - 8, 60);
+  drawBoard(false);
+  ctx = mainCtx;
+}
+
+function drawBoard(dead: boolean){
+  const r = F.r, lv = r.lv, accent = ACCENT[lv.def.mode];
+  const beatF = F.tf / lv.beat, beat = Math.floor(beatF), frac = beatF - beat;
   drawFloor(lv, frac, accent);
   drawSweeps(lv, beatF);
   drawItems(r, beat, accent);
   if (lv.goal) drawGoal(lv.goal, accent);
   drawSentries(lv, beat, frac);
+  // previews show the level and its hazards only: still boots would just stand in the danger
+  if (!F.live) return;
   if (r.status === "play") drawNext(r, accent);
   drawBoots(r, dead);
-
-  ctx.restore();
-  if (dead) { ctx.fillStyle = rgba(C.hazard, 0.28 * (1 - deadK)); ctx.fillRect(0, 0, view.w, view.h); }
-  if (r.status === "won") drawWin(r, accent);
 }
 
 // ---- floor -------------------------------------------------------------------------------
@@ -98,7 +124,7 @@ function drawSweeps(lv: Level, beatF: number){
     }
     if (lethal) { panel(x, y, C.hazard, L.s * 0.5, 0.08); continue; }
     if (warn > 0) {
-      const flick = warn > 0.66 ? 0.5 + 0.5 * Math.sin(S.now * 40) : 1;
+      const flick = warn > 0.66 ? 0.5 + 0.5 * Math.sin(F.now * 40) : 1;
       panel(x, y, rgba(C.hazard, (0.1 + 0.4 * warn) * flick), 0, 0.17);
       outline(x, y, rgba(C.hazard, 0.25 + 0.5 * warn), 1.5, 0.08);
     }
@@ -121,7 +147,7 @@ function drawSentries(lv: Level, beat: number, frac: number){
 
 // ---- goal and pickups --------------------------------------------------------------------
 function drawGoal(g: Vec, accent: string){
-  const t = S.now;
+  const t = F.now;
   for (let i = 0; i < 3; i++) {
     const k = ((t * 0.8 + i / 3) % 1);
     outline(g.x, g.y, rgba(accent, 0.9 * (1 - k)), 2, 0.42 - 0.34 * k);
@@ -134,7 +160,7 @@ function drawItems(r: Run, beat: number, accent: string){
   lv.items.forEach((it, i) => {
     const x = cx(it.x), y = cy(it.y), s = L.s;
     if (r.taken[i]) {                                // pop when picked up
-      const k = (S.now - (S.pickedAt.get(i) ?? -9)) / 0.3;
+      const k = F.live ? (F.now - (S.pickedAt.get(i) ?? -9)) / 0.3 : 1;
       if (k < 1) {
         ctx.beginPath(); ctx.arc(x, y, s * (0.18 + 0.35 * k), 0, Math.PI * 2);
         ctx.lineWidth = 3 * (1 - k); ctx.strokeStyle = rgba(accent, 1 - k); ctx.stroke();
@@ -157,8 +183,8 @@ function drawItems(r: Run, beat: number, accent: string){
     }
     // a glowing orb; in Waves it blinks when the next wave is about to wash it away
     const leaving = it.until !== Infinity && it.until - beat <= 2;
-    const a = leaving ? 0.45 + 0.55 * Math.abs(Math.sin(S.now * 9)) : 1;
-    const bob = 1 + 0.08 * Math.sin(S.now * 5 + i);
+    const a = leaving ? 0.45 + 0.55 * Math.abs(Math.sin(F.now * 9)) : 1;
+    const bob = 1 + 0.08 * Math.sin(F.now * 5 + i);
     ctx.shadowColor = accent; ctx.shadowBlur = s * 0.45;
     ctx.beginPath(); ctx.arc(x, y, s * 0.15 * bob, 0, Math.PI * 2);
     ctx.fillStyle = rgba(accent, a); ctx.fill();
@@ -193,9 +219,9 @@ function drawBoots(r: Run, dead: boolean){
   const s = L.s;
   const pos: Vec[] = [{ x: cx(r.boots[0].x), y: cy(r.boots[0].y) }, { x: cx(r.boots[1].x), y: cy(r.boots[1].y) }];
   let lift = -1, liftK = 0;
-  const an = S.anim;
+  const an = F.live ? S.anim : null;
   if (an) {
-    const k = (S.now - an.t0) / SWING_S;
+    const k = (F.now - an.t0) / SWING_S;
     if (k < 1) {
       if (an.blocked) {                                // a bump toward the edge and back
         const b = Math.sin(Math.PI * Math.min(1, k * 1.4)) * 0.22;
@@ -219,11 +245,12 @@ function drawBoots(r: Run, dead: boolean){
     let dh = want - heading[who];
     while (dh > Math.PI) dh -= Math.PI * 2; while (dh < -Math.PI) dh += Math.PI * 2;
     heading[who] += dh * 0.35;
+    const face = F.live ? heading[who] : want;
     const st: BootStyle = dead
       ? { body: "#ff8a95", edge: C.hazard, detail: "#7a1520", glow: C.hazard, glowSize: s * 0.5 }
       : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: s * (who === lift ? 0.6 : 0.3) };
     const scale = 1 + (who === lift ? 0.18 * liftK : 0);
-    drawBoot(ctx, pos[who].x, pos[who].y, heading[who] + Math.PI / 2, who === 0, s * 0.7 * scale, st);
+    drawBoot(ctx, pos[who].x, pos[who].y, face + Math.PI / 2, who === 0, s * 0.7 * scale, st);
   }
 }
 

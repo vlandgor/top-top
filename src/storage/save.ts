@@ -6,6 +6,8 @@ export interface Save {
   /** best clear per level: fewest presses, then fewest ticks */
   done?: Record<string, { presses: number; ticks: number }>;
   attempts?: Record<string, number>;
+  /** the game mode last chosen on the modes screen */
+  lastMode?: "destination" | "collect" | "sequence" | "survival" | "waves";
   /** 0 = sound off */
   sfx?: number;
 }

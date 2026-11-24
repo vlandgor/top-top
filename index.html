@@ -42,9 +42,37 @@
       </div>
     </section>
 
+    <!-- choose a game mode: the list on the left, the chosen mode on the right -->
+    <section class="screen top" id="sModes">
+      <div class="bar"><button class="back" id="bModesBack" aria-label="Back">‹</button><h2>Game modes</h2></div>
+      <div class="split">
+        <div id="modeList"></div>
+        <div id="modeInfo">
+          <canvas id="modePreview"></canvas>
+          <div class="info">
+            <div class="eyebrow" id="miTag"></div>
+            <h3 id="miName"></h3>
+            <p id="miAbout"></p>
+            <div class="chips" id="miChips"></div>
+            <div class="mstats">
+              <div><b id="miCleared">0/0</b><span>cleared</span></div>
+              <div><b id="miAttempts">0</b><span>attempts</span></div>
+              <div><b id="miBest">–</b><span>best time</span></div>
+            </div>
+            <button class="btn" id="bModeSelect">Select</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- the levels of one mode -->
     <section class="screen top" id="sLevels">
-      <div class="bar"><button class="back" id="bLevelsBack" aria-label="Back">‹</button><h2>Levels</h2></div>
-      <div id="levelList"></div>
+      <div class="bar">
+        <button class="back" id="bLevelsBack" aria-label="Back">‹</button>
+        <h2 id="lvTitle">Levels</h2>
+        <div class="sub" id="lvProgress"></div>
+      </div>
+      <div id="levelGrid"></div>
     </section>
 
     <section class="screen" id="sHow">
