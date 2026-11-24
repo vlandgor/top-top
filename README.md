@@ -1,9 +1,10 @@
 # Top Top
 
-A minimalist puzzle-arcade game by Playcebo Games. You don't steer a character: you steer a
-pair of boots that are always stuck next to each other. One boot stays planted, the other
-swings around it, clockwise or counterclockwise. Plan the chain of swings, read the hazard
-patterns, and walk the boots heel to heel across a neon dance floor.
+A minimalist puzzle-arcade game by Playcebo Games, played in landscape. You don't steer a
+character: you steer a pair of boots that are always stuck next to each other. Each button
+swings its boot around the other one; the left boot turns clockwise, the right one
+counterclockwise, and bumping the edge turns both around (the Chick Mates movement). Plan the
+presses, read the hazard patterns, and walk the boots heel to heel across a neon dance floor.
 
 Written in TypeScript and built with Vite. No engine: graphics are drawn on a 2D canvas and
 audio is synthesised with Web Audio, all in code. The design is in
@@ -18,20 +19,20 @@ npm ci
 npm run dev        # local server with hot reload
 npm test           # rules tests, and the solver proving every level can be beaten
 npm run build      # strict type-check, then a production build into dist/
-npm run solve      # level design: fewest swings and time for each level (npm run solve d3 r2)
+npm run solve      # level design: fewest presses and time for each level (npm run solve d3 r2)
 ```
 
-On a desktop: ← / A swings counterclockwise, → / D clockwise, R restarts, Esc pauses.
-On a phone: the two buttons under the board, or tap the left / right half of the board.
+On a desktop: A / ← presses the left boot, D / → the right one, R restarts, Esc pauses.
+On a phone: the button on each side of the board, or tap the left / right half of the board.
 
 ## Repository layout
 
 | Path | What it is |
 |---|---|
-| `index.html` | The page: canvas, HUD, the two swing buttons and the menu screens. |
+| `index.html` | The page: canvas, HUD, the two boot buttons and the menu screens. |
 | `src/main.ts` | Boot and the frame loop. |
 | `src/core/` | Data types and the eight directions. |
-| `src/game/rules.ts` | **The game rules**, as pure functions: swing, edge shuffle, ticks, pickups, deaths, wins. |
+| `src/game/rules.ts` | **The game rules**, as pure functions: the Chick Mates movement, ticks, pickups, deaths, wins. |
 | `src/game/hazards.ts` | Where danger is at any beat: sentries and grid-wide sweeps. Pure and deterministic. |
 | `src/game/solver.ts` | Breadth-first solver over the rules. Proves levels are beatable; meant for the level editor too. |
 | `src/game/session.ts` | The live game around the rules: real time, input buffering, instant retry, attempts. |
@@ -52,7 +53,7 @@ Levels live in `src/levels/levels.ts`. A level is a map plus a list of hazards:
 {
   id: "d3", name: "Patrol", mode: "destination",
   map: [
-    "...G...",            // .  floor     A  planted boot   B  swinging boot
+    "...G...",            // .  floor     A  left boot      B  right boot
     ".......",            // G  goal      o  collectible    1-9  sequence order
     "..AB...",
   ],
@@ -61,9 +62,9 @@ Levels live in `src/levels/levels.ts`. A level is a map plus a list of hazards:
 }
 ```
 
-`npm test` parses every level and runs the solver on it at a human pace (at most one swing
+`npm test` parses every level and runs the solver on it at a human pace (at most one press
 every two ticks). A level that can't be beaten, or that kills you on the first tick, fails the
-build. `npm run solve` shows how many swings and beats each level takes.
+build. `npm run solve` shows how many presses and beats each level takes.
 
 ## Android
 

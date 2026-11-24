@@ -1,40 +1,51 @@
 import { describe, expect, it } from "vitest";
 import type { LevelDef } from "../src/core/types";
 import { parseLevel, sentryTiles } from "../src/levels/parse";
-import { advance, newRun, swing } from "../src/game/rules";
+import { advance, newRun, press } from "../src/game/rules";
 
 const open = (map: string[], extra: Partial<LevelDef> = {}) =>
   parseLevel({ id: "t", name: "t", mode: "destination", map, ...extra });
 
-describe("swinging", () => {
-  it("swings the mover one place around the anchor, then plants it", () => {
-    const r = newRun(open(["....", ".AB.", "...."]));
-    swing(r, 1);                               // B at east of A swings clockwise to south-east
-    expect(r.boots[1]).toEqual({ x: 2, y: 2 });
-    expect(r.boots[0]).toEqual({ x: 1, y: 1 });
-    expect(r.anchor).toBe(1);                  // B is planted now, A swings next
+// Movement is Chick Mates' (chick-mates-sandbox applyJump); these pin it down.
+describe("movement", () => {
+  it("swings the pressed boot one place around the other: the left boot clockwise", () => {
+    const r = newRun(open([".....", ".AB..", "....."]));
+    press(r, 0);                               // A is west of B; clockwise next is north-west
+    expect(r.boots[0]).toEqual({ x: 1, y: 0 });
+    expect(r.boots[1]).toEqual({ x: 2, y: 1 });
   });
 
-  it("walks: alternating directions moves the pair sideways one row per two taps", () => {
+  it("the right boot turns counterclockwise", () => {
+    const r = newRun(open([".....", ".AB..", "....."]));
+    press(r, 1);                               // B is east of A; counterclockwise next is north-east
+    expect(r.boots[1]).toEqual({ x: 2, y: 0 });
+  });
+
+  it("walks: alternating presses move the pair", () => {
     const r = newRun(open([".....", ".....", ".AB..", ".....", "....."]));
-    swing(r, 1); advance(r); swing(r, -1);
-    expect(r.boots).toEqual([{ x: 1, y: 3 }, { x: 2, y: 3 }]);
+    press(r, 0); advance(r);                   // A -> 1,1 (NW of B)
+    press(r, 1); advance(r);                   // B, at SE of A, counterclockwise -> E of A: 2,1
+    expect(r.boots).toEqual([{ x: 1, y: 1 }, { x: 2, y: 1 }]);
   });
 
-  it("allows one swing per tick", () => {
+  it("allows one press per tick", () => {
     const r = newRun(open(["....", ".AB.", "...."]));
-    expect(swing(r, 1)).toBe(true);
-    expect(swing(r, 1)).toBe(false);
+    expect(press(r, 0)).toBe(true);
+    expect(press(r, 1)).toBe(false);
     advance(r);
-    expect(swing(r, 1)).toBe(true);
+    expect(press(r, 1)).toBe(true);
   });
 
-  it("shuffles the planted boot inward at the edge", () => {
+  it("blocked by the edge: the boot stays and both boots flip direction", () => {
     const r = newRun(open(["AB..", "....", "...."]));
-    swing(r, -1);                              // B would go to north-east of A: off the board
-    expect(r.shuffled).toBe(true);
+    press(r, 0);                               // A clockwise from west of B -> north-west: off the board
+    expect(r.boots[0]).toEqual({ x: 0, y: 0 });
+    expect(r.cw).toEqual([false, true]);
+    expect(r.last).toEqual({ boot: 0, result: "blocked" });
+    expect(r.moves).toBe(1);                   // the press still counts
+    advance(r);
+    press(r, 0);                               // now counterclockwise: south-west of B
     expect(r.boots[0]).toEqual({ x: 0, y: 1 });
-    expect(r.boots[1]).toEqual({ x: 1, y: 0 });
   });
 });
 
@@ -50,14 +61,14 @@ describe("hazards and goals", () => {
 
   it("wins on reaching the goal", () => {
     const r = newRun(open(["..G.", ".AB.", "...."]));
-    swing(r, -1);
+    press(r, 1);                               // B counterclockwise -> north-east of A: 2,0
     expect(r.status).toBe("won");
   });
 
   it("restarts on a wrong step in a sequence", () => {
     const lv = parseLevel({ id: "t", name: "t", mode: "sequence", map: ["..2.", ".AB.", "..1."] });
     const r = newRun(lv);
-    swing(r, -1);                              // onto 2 before 1
+    press(r, 1);                               // onto 2 before 1
     expect(r.status).toBe("dead");
     expect(r.cause).toBe("order");
   });

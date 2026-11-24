@@ -16,7 +16,8 @@ function show(id: string | null){
   document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
   $("ui").classList.toggle("on", !!id);
   const inLevel = !id || id === "sPause" || id === "sWin";
-  $("pads").classList.toggle("off", !inLevel);
+  $("bLeft").classList.toggle("off", !inLevel);
+  $("bRight").classList.toggle("off", !inLevel);
   $("hud").classList.toggle("off", !inLevel);
 }
 const on = (id: string, fn: () => void) => $(id).addEventListener("click", () => { sfx("click"); fn(); });
@@ -92,6 +93,11 @@ export function syncHud(){
     ? Math.max(0, (b - a) * r.lv.beat * TICK_MS / 1000).toFixed(0) + "s"
     : r.lv.def.mode === "destination" ? (r.tick * TICK_MS / 1000).toFixed(1) + "s" : `${a}/${b}`;
   const el = $("hGoalVal"); if (el.textContent !== v) el.textContent = v;
+  // each button shows which way its boot turns right now; hitting the edge flips both
+  for (const [id, cw] of [["bLeft", r.cw[0]], ["bRight", r.cw[1]]] as const) {
+    const sp = $(id).querySelector("span")!, g = cw ? "↻" : "↺";
+    if (sp.textContent !== g) sp.textContent = g;
+  }
   const at = $("attempt"), label = `Attempt ${S.attempt}`;
   if (at.textContent !== label) at.textContent = label;
   at.classList.toggle("on", S.screen === "play" && r.tick < 12 && S.attempt > 1);

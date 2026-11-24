@@ -1,21 +1,21 @@
-import type { Level, Run, Turn } from "../core/types";
+import type { Level, Run } from "../core/types";
 import { beatOf } from "./hazards";
-import { advance, itemLive, newRun, swing } from "./rules";
+import { advance, itemLive, newRun, press } from "./rules";
 
 // ---------------------------------------------------------------------------
-// SOLVER — breadth-first search over every tick: at each one the player can wait or swing
-// either way. Proves a level can be beaten and finds the shortest way (fewest ticks, then
-// fewest swings). Used by the tests today, and meant for the level editor later, to refuse
+// SOLVER — breadth-first search over every tick: at each one the player can wait or press
+// either boot. Proves a level can be beaten and finds the shortest way (fewest ticks, then
+// fewest presses). Used by the tests today, and meant for the level editor later, to refuse
 // levels nobody can finish.
 // ---------------------------------------------------------------------------
 
-/** one action per tick: 0 wait, 1 clockwise, -1 counterclockwise */
-export type Action = 0 | Turn;
+/** one action per tick: 0 wait, 1 press the left boot, 2 press the right boot */
+export type Action = 0 | 1 | 2;
 
-export interface Solution { actions: Action[]; ticks: number; swings: number }
+export interface Solution { actions: Action[]; ticks: number; presses: number }
 
 function clone(r: Run): Run {
-  return { ...r, boots: [{ ...r.boots[0] }, { ...r.boots[1] }], taken: r.taken.slice() };
+  return { ...r, boots: [{ ...r.boots[0] }, { ...r.boots[1] }], cw: [r.cw[0], r.cw[1]], taken: r.taken.slice() };
 }
 
 // only the pickups on the board right now can still change anything, so only they go in the key
@@ -27,8 +27,8 @@ function liveItems(lv: Level, beat: number): number[] {
   return l;
 }
 function key(r: Run): string {
-  const a = r.boots[r.anchor], m = r.boots[1 - r.anchor];
-  let k = `${a.x},${a.y},${m.x},${m.y},${r.got},${Math.min(r.tick - r.lastMoveTick, 9)},`;
+  const a = r.boots[0], b = r.boots[1];
+  let k = `${a.x},${a.y},${b.x},${b.y},${+r.cw[0]}${+r.cw[1]},${r.got},${Math.min(r.tick - r.lastMoveTick, 9)},`;
   for (const i of liveItems(r.lv, beatOf(r.lv, r.tick))) k += r.taken[i] ? "1" : "0";
   return k;
 }
@@ -36,40 +36,40 @@ function key(r: Run): string {
 export interface SolveOpts {
   /** give up after this many ticks */
   maxTicks?: number;
-  /** ticks that must pass between swings. 1 = as fast as the game allows; 2 = a human pace */
+  /** ticks that must pass between presses. 1 = as fast as the game allows; 2 = a human pace */
   cooldown?: number;
 }
 
 export function solve(lv: Level, opts: SolveOpts = {}): Solution | null {
   const maxTicks = opts.maxTicks ?? 1200, cooldown = opts.cooldown ?? 1;
   const start = newRun(lv);
-  if (start.status === "won") return { actions: [], ticks: 0, swings: 0 };
+  if (start.status === "won") return { actions: [], ticks: 0, presses: 0 };
   if (start.status === "dead") return null;
   // nodes link back to their parent instead of copying the path at every tick
-  type Node = { r: Run; parent: Node | null; act: Action; swings: number };
+  type Node = { r: Run; parent: Node | null; act: Action; presses: number };
   const pathOf = (n: Node): Action[] => { const p: Action[] = []; for (let c: Node | null = n; c && c.parent; c = c.parent) p.push(c.act); return p.reverse(); };
-  let layer: Node[] = [{ r: start, parent: null, act: 0, swings: 0 }];
+  let layer: Node[] = [{ r: start, parent: null, act: 0, presses: 0 }];
   for (let t = 0; t < maxTicks && layer.length; t++) {
     const next = new Map<string, Node>();
     let winner: Node | null = null;
     for (const n of layer) {
-      for (const act of [0, 1, -1] as Action[]) {
+      for (const act of [0, 1, 2] as Action[]) {
         if (act && n.r.lastMoveTick >= 0 && n.r.tick - n.r.lastMoveTick < cooldown) continue;
         const r = clone(n.r);
-        if (act) swing(r, act);
+        if (act) press(r, act === 1 ? 0 : 1);
         if (r.status === "play") advance(r);
         if (r.status === "dead") continue;
-        const node: Node = { r, parent: n, act, swings: n.swings + (act ? 1 : 0) };
+        const node: Node = { r, parent: n, act, presses: n.presses + (act ? 1 : 0) };
         if (r.status === "won") {
-          if (!winner || node.swings < winner.swings) winner = node;
+          if (!winner || node.presses < winner.presses) winner = node;
           continue;
         }
         const k = key(r);
         const old = next.get(k);
-        if (!old || node.swings < old.swings) next.set(k, node);
+        if (!old || node.presses < old.presses) next.set(k, node);
       }
     }
-    if (winner) { const actions = pathOf(winner); return { actions, ticks: actions.length, swings: winner.swings }; }
+    if (winner) { const actions = pathOf(winner); return { actions, ticks: actions.length, presses: winner.presses }; }
     layer = [...next.values()];
   }
   return null;
@@ -80,7 +80,7 @@ export function replay(lv: Level, actions: Action[]): Run {
   const r = newRun(lv);
   for (const a of actions) {
     if (r.status !== "play") break;
-    if (a) swing(r, a);
+    if (a) press(r, a === 1 ? 0 : 1);
     if (r.status === "play") advance(r);
   }
   return r;

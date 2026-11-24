@@ -1,7 +1,6 @@
-import { dirBetween, DIRS, rot } from "../core/dirs";
-import type { Level, Run, Turn, Vec } from "../core/types";
+import type { Boot, Level, Run, Vec } from "../core/types";
 import { sentryAt, sweepAt } from "../game/hazards";
-import { itemLive, swingTarget } from "../game/rules";
+import { inBounds, itemLive, nextTile } from "../game/rules";
 import { RETRY_MS, S, tickF } from "../game/session";
 import { ctx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
@@ -12,11 +11,11 @@ import { ACCENT, C, rgba } from "./theme";
 // ---------------------------------------------------------------------------
 
 const SWING_S = 0.09;              // seconds a swing takes to draw
-const HUD_TOP = 78, BOTTOM = 34;   // room for the HUD chips and the hint line
+const HUD_TOP = 64, BOTTOM = 30;   // room for the HUD chips and the hint line
 
 interface Layout { s: number; ox: number; oy: number }
 let L: Layout = { s: 40, ox: 0, oy: 0 };
-let heading = -Math.PI / 2;        // the way the boots face, eased toward the target each frame
+const heading = [-Math.PI / 2, -Math.PI / 2];   // the way each boot faces, eased toward its next tile
 
 function layout(lv: Level): Layout {
   const availW = view.w - 20, availH = view.h - HUD_TOP - BOTTOM;
@@ -65,7 +64,7 @@ export function draw(){
   drawItems(r, beat, accent);
   if (lv.goal) drawGoal(lv.goal, accent);
   drawSentries(lv, beat, frac);
-  if (r.status === "play") drawGhosts(r, accent);
+  if (r.status === "play") drawNext(r, accent);
   drawBoots(r, dead);
 
   ctx.restore();
@@ -169,94 +168,68 @@ function drawItems(r: Run, beat: number, accent: string){
   });
 }
 
-// ---- where the next tap goes -------------------------------------------------------------
-function drawGhosts(r: Run, accent: string){
-  const a = r.boots[r.anchor], m = r.boots[1 - r.anchor];
-  const natural = -r.lastTurn as Turn;
-  for (const turn of [-1, 1] as Turn[]) {
-    const t = swingTarget(r.lv, a, m, turn);
-    const strong = turn === natural;
-    outline(t.mover.x, t.mover.y, rgba(accent, strong ? 0.6 : 0.3), strong ? 2 : 1.5, 0.14, [L.s * 0.1, L.s * 0.07]);
-    if (t.shuffled) {                                 // at the edge: show where the planted boot will shuffle
-      const x0 = cx(a.x), y0 = cy(a.y), x1 = cx(t.anchor.x), y1 = cy(t.anchor.y);
-      const k = 0.62, hx = x0 + (x1 - x0) * k, hy = y0 + (y1 - y0) * k, ang = Math.atan2(y1 - y0, x1 - x0), h = L.s * 0.1;
-      ctx.beginPath(); ctx.moveTo(x0 + (x1 - x0) * 0.32, y0 + (y1 - y0) * 0.32); ctx.lineTo(hx, hy);
-      ctx.moveTo(hx + Math.cos(ang + 2.5) * h, hy + Math.sin(ang + 2.5) * h); ctx.lineTo(hx, hy);
-      ctx.lineTo(hx + Math.cos(ang - 2.5) * h, hy + Math.sin(ang - 2.5) * h);
-      ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.strokeStyle = rgba(accent, strong ? 0.7 : 0.4); ctx.stroke();
+// ---- where each button sends its boot ----------------------------------------------------
+const LABEL = ["L", "R"];
+function drawNext(r: Run, accent: string){
+  for (const who of [0, 1] as Boot[]) {
+    const t = nextTile(r, who), p = r.boots[who];
+    if (inBounds(r.lv, t)) {
+      outline(t.x, t.y, rgba(accent, 0.5), 1.5, 0.14, [L.s * 0.1, L.s * 0.07]);
+      ctx.fillStyle = rgba(accent, 0.7);
+      ctx.font = `800 ${Math.round(L.s * 0.24)}px ui-sans-serif,system-ui,sans-serif`;
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(LABEL[who], cx(t.x), cy(t.y));
+    } else {
+      // the edge is in the way: pressing this boot only turns both boots around
+      const ex = cx(p.x) + (t.x - p.x) * L.s * 0.5, ey = cy(p.y) + (t.y - p.y) * L.s * 0.5;
+      ctx.beginPath(); ctx.arc(ex, ey, L.s * 0.09, 0, Math.PI * 2);
+      ctx.fillStyle = rgba(accent, 0.35); ctx.fill();
     }
-    ctx.fillStyle = rgba(accent, strong ? 0.75 : 0.4);
-    ctx.font = `700 ${Math.round(L.s * 0.26)}px ui-sans-serif,system-ui,sans-serif`;
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(turn === 1 ? "↻" : "↺", cx(t.mover.x), cy(t.mover.y));
   }
 }
 
 // ---- the boots ---------------------------------------------------------------------------
-/** they face across the line between them, toward where an alternating (walking) tap goes */
-function targetHeading(r: Run): number {
-  const a = r.boots[r.anchor], m = r.boots[1 - r.anchor];
-  const d = dirBetween(a, m), natural = -r.lastTurn;
-  const tgt = DIRS[rot(d, natural)];
-  const v = DIRS[d];
-  let px = -v.y, py = v.x;                           // perpendicular to the pair
-  if (px * (tgt.x - v.x) + py * (tgt.y - v.y) < 0) { px = -px; py = -py; }
-  return Math.atan2(py, px);
-}
-
 function drawBoots(r: Run, dead: boolean){
   const s = L.s;
-  // positions, with the swing animated as an arc around the planted boot
   const pos: Vec[] = [{ x: cx(r.boots[0].x), y: cy(r.boots[0].y) }, { x: cx(r.boots[1].x), y: cy(r.boots[1].y) }];
-  let lift = 0, liftIdx = -1;
+  let lift = -1, liftK = 0;
   const an = S.anim;
   if (an) {
     const k = (S.now - an.t0) / SWING_S;
     if (k < 1) {
-      const e = ease(k);
-      const shift = an.shuffleFrom ? { x: r.boots[1 - an.idx].x - an.pivot.x, y: r.boots[1 - an.idx].y - an.pivot.y } : { x: 0, y: 0 };
-      const end = { x: an.to.x - shift.x, y: an.to.y - shift.y };
-      const a0 = Math.atan2(an.from.y - an.pivot.y, an.from.x - an.pivot.x);
-      let a1 = Math.atan2(end.y - an.pivot.y, end.x - an.pivot.x);
-      if (a1 - a0 > Math.PI) a1 -= Math.PI * 2; if (a0 - a1 > Math.PI) a1 += Math.PI * 2;
-      const r0 = Math.hypot(an.from.x - an.pivot.x, an.from.y - an.pivot.y), r1 = Math.hypot(end.x - an.pivot.x, end.y - an.pivot.y);
-      const ang = a0 + (a1 - a0) * e, rad = r0 + (r1 - r0) * e;
-      pos[an.idx] = { x: cx(an.pivot.x + Math.cos(ang) * rad + shift.x * e), y: cy(an.pivot.y + Math.sin(ang) * rad + shift.y * e) };
-      pos[1 - an.idx] = { x: cx(an.pivot.x + shift.x * e), y: cy(an.pivot.y + shift.y * e) };
-      lift = Math.sin(Math.PI * k); liftIdx = an.idx;
+      if (an.blocked) {                                // a bump toward the edge and back
+        const b = Math.sin(Math.PI * Math.min(1, k * 1.4)) * 0.22;
+        pos[an.idx] = { x: cx(an.from.x + (an.blocked.x - an.from.x) * b), y: cy(an.from.y + (an.blocked.y - an.from.y) * b) };
+      } else {                                         // an arc around the other boot
+        const e = ease(k);
+        const a0 = Math.atan2(an.from.y - an.pivot.y, an.from.x - an.pivot.x);
+        let a1 = Math.atan2(an.to.y - an.pivot.y, an.to.x - an.pivot.x);
+        if (a1 - a0 > Math.PI) a1 -= Math.PI * 2; if (a0 - a1 > Math.PI) a1 += Math.PI * 2;
+        const r0 = Math.hypot(an.from.x - an.pivot.x, an.from.y - an.pivot.y), r1 = Math.hypot(an.to.x - an.pivot.x, an.to.y - an.pivot.y);
+        const ang = a0 + (a1 - a0) * e, rad = r0 + (r1 - r0) * e;
+        pos[an.idx] = { x: cx(an.pivot.x + Math.cos(ang) * rad), y: cy(an.pivot.y + Math.sin(ang) * rad) };
+        lift = an.idx; liftK = Math.sin(Math.PI * k);
+      }
     }
   }
-  // ease the facing
-  const want = targetHeading(r);
-  let dh = want - heading;
-  while (dh > Math.PI) dh -= Math.PI * 2; while (dh < -Math.PI) dh += Math.PI * 2;
-  heading += dh * Math.min(1, 0.35);
-
-  // the planted boot sits on a ring; the swinging one is lit
-  const pl = pos[r.anchor];
-  ctx.beginPath(); ctx.arc(pl.x, pl.y, s * 0.38, 0, Math.PI * 2);
-  ctx.lineWidth = 2; ctx.strokeStyle = rgba(C.teal, dead ? 0 : 0.45); ctx.stroke();
-
-  const hx = Math.cos(heading), hy = Math.sin(heading);
-  const mid = { x: (pos[0].x + pos[1].x) / 2, y: (pos[0].y + pos[1].y) / 2 };
-  for (let i = 0; i < 2; i++) {
-    const p = pos[i];
-    // the boot on the left of the heading is the left boot
-    const left = (hx * (p.y - mid.y) - hy * (p.x - mid.x)) < 0;
-    const mover = i !== r.anchor;
+  for (const who of [0, 1] as Boot[]) {
+    // each boot faces the tile its button sends it to
+    const p = r.boots[who], t = nextTile(r, who);
+    const want = Math.atan2(t.y - p.y, t.x - p.x);
+    let dh = want - heading[who];
+    while (dh > Math.PI) dh -= Math.PI * 2; while (dh < -Math.PI) dh += Math.PI * 2;
+    heading[who] += dh * 0.35;
     const st: BootStyle = dead
       ? { body: "#ff8a95", edge: C.hazard, detail: "#7a1520", glow: C.hazard, glowSize: s * 0.5 }
-      : mover
-        ? { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: s * 0.45 }
-        : { body: "#8fcfc5", edge: "#3fb6a5", detail: "#2c6e66", glow: "rgba(0,0,0,0)", glowSize: 0 };
-    const scale = 1 + (i === liftIdx ? 0.18 * lift : 0);
-    drawBoot(ctx, p.x, p.y, heading + Math.PI / 2, left, s * 0.7 * scale, st);
+      : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: s * (who === lift ? 0.6 : 0.3) };
+    const scale = 1 + (who === lift ? 0.18 * liftK : 0);
+    drawBoot(ctx, pos[who].x, pos[who].y, heading[who] + Math.PI / 2, who === 0, s * 0.7 * scale, st);
   }
 }
 
 function drawWin(r: Run, accent: string){
   const k = Math.min(1, (S.now - S.wonAt) / 0.7);
-  const p = r.boots[r.anchor];
+  const p = r.boots[r.last?.boot ?? 0];
   for (let i = 0; i < 3; i++) {
     const kk = Math.max(0, k - i * 0.15);
     ctx.beginPath(); ctx.arc(cx(p.x), cy(p.y), L.s * (0.5 + kk * 5), 0, Math.PI * 2);
@@ -280,7 +253,6 @@ export function drawLogo(c: CanvasRenderingContext2D, t: number){
   const px = ox + s * 1.5, py = oy + s * 0.5;
   const sw = Math.sin(t * 2.4) * Math.PI / 4;
   const mx = px + Math.cos(sw) * s, my = py + Math.sin(sw) * s;
-  c.beginPath(); c.arc(px, py, s * 0.36, 0, Math.PI * 2); c.strokeStyle = rgba(C.teal, 0.45); c.lineWidth = 2; c.stroke();
-  drawBoot(c, px, py, 0, true, 40, { body: "#8fcfc5", edge: "#3fb6a5", detail: "#2c6e66", glow: "rgba(0,0,0,0)", glowSize: 0 });
+  drawBoot(c, px, py, 0, true, 40, { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: 8 });
   drawBoot(c, mx, my, sw, false, 40, { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: 18 });
 }

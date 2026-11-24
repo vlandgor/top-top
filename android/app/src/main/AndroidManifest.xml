@@ -15,7 +15,7 @@
             android:label="${appLabel}"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait"
+            android:screenOrientation="sensorLandscape"
             android:exported="true">
 
             <intent-filter>
@@ -40,8 +40,8 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- screenOrientation="portrait" makes Play assume portrait is a required hardware feature,
-         which hides the app from devices that don't report it (some tablets, Chromebooks, PCs, XR).
-         The game still runs locked to portrait; this only stops Play from filtering those devices. -->
-    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
+    <!-- a landscape screenOrientation makes Play assume landscape is a required hardware feature,
+         which hides the app from devices that don't report it. The game still runs in landscape
+         (either way up); this only stops Play from filtering those devices. -->
+    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
 </manifest>

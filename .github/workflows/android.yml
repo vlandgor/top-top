@@ -82,7 +82,8 @@ jobs:
           PKG=$("$AAPT" dump badging "$APK" | grep -o "package: name='[^']*' versionCode='[^']*' versionName='[^']*'")
           SDK=$("$AAPT" dump badging "$APK" | grep -o "targetSdkVersion:'[^']*'")
           ORIENT=$("$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -o "screenOrientation(0x[0-9a-f]*)=(type 0x10)0x[0-9a-f]*" | head -1)
-          case "$ORIENT" in *0x1) ORIENT=portrait;; *) ORIENT="NOT portrait ($ORIENT)";; esac
+          # 0x6 = sensorLandscape: landscape, either way up
+          case "$ORIENT" in *0x6) ORIENT=landscape;; *) echo "::error title=APK check::Not locked to landscape ($ORIENT)"; exit 1;; esac
           unzip -l "$APK" | grep -q "assets/public/assets/index-.*\.js" || { echo "::error title=APK check::The game bundle is missing from the APK"; exit 1; }
           echo "::notice title=APK check::$(basename "$APK"): $PKG $SDK, $ORIENT, game bundled, $(du -h "$APK" | cut -f1)"
 

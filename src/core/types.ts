@@ -3,8 +3,8 @@
 
 export interface Vec { x: number; y: number }
 
-/** 1 = clockwise on screen, -1 = counterclockwise */
-export type Turn = 1 | -1;
+/** which boot: 0 = the left boot (starts clockwise), 1 = the right boot (starts counterclockwise) */
+export type Boot = 0 | 1;
 
 export type Mode = "destination" | "collect" | "sequence" | "survival" | "waves";
 
@@ -52,7 +52,7 @@ export interface LevelDef {
   mode: Mode;
   /**
    * The board, one string per row, top first.
-   *   .  floor        A  planted boot (anchor)   B  swinging boot (mover)
+   *   .  floor        A  left boot (turns clockwise)   B  right boot (turns counterclockwise)
    *   G  goal         o  collectible             1-9  sequence collectibles
    */
   map: string[];
@@ -87,7 +87,7 @@ export interface Sweep extends Required<Omit<SweepDef, "gaps">> { gaps: number[]
 export interface Level {
   def: LevelDef;
   w: number; h: number;
-  /** [anchor, mover] at the start */
+  /** [left boot, right boot] at the start */
   start: [Vec, Vec];
   goal: Vec | null;
   items: Item[];
@@ -109,17 +109,17 @@ export type RunStatus = "play" | "dead" | "won";
 export interface Run {
   lv: Level;
   tick: number;
-  /** the two boots; boots[anchor] is planted, the other swings */
+  /** the two boots: 0 left, 1 right. Whichever is pressed swings around the other */
   boots: [Vec, Vec];
-  anchor: 0 | 1;
+  /** each boot's turn direction: true = clockwise. A blocked swing flips both */
+  cw: [boolean, boolean];
   taken: boolean[];
   got: number;
   nextOrder: number;
   status: RunStatus;
   cause: "" | "sentry" | "sweep" | "order";
-  lastTurn: Turn;
   lastMoveTick: number;
   moves: number;
-  /** set by the last swing when the planted boot had to shuffle off an edge */
-  shuffled: boolean;
+  /** what the last press did */
+  last: { boot: Boot; result: "move" | "blocked" } | null;
 }

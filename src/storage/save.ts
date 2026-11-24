@@ -3,8 +3,8 @@
 // saves should finally work is still open; this is the simplest thing that works offline.
 // ---------------------------------------------------------------------------
 export interface Save {
-  /** best clear per level: fewest swings, then fewest ticks */
-  done?: Record<string, { swings: number; ticks: number }>;
+  /** best clear per level: fewest presses, then fewest ticks */
+  done?: Record<string, { presses: number; ticks: number }>;
   attempts?: Record<string, number>;
   /** 0 = sound off */
   sfx?: number;

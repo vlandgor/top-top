@@ -17,7 +17,7 @@ describe("levels", () => {
       const sol = solve(lv, { cooldown: 2 });
       expect(sol, `${def.id} has no solution`).not.toBeNull();
       expect(replay(lv, sol!.actions).status).toBe("won");
-      if (process.env.LEVEL_REPORT) console.log(`${def.id.padEnd(4)} ${def.name.padEnd(18)} ${String(sol!.swings).padStart(3)} swings, ${(sol!.ticks / lv.beat).toFixed(1)} beats`);
+      if (process.env.LEVEL_REPORT) console.log(`${def.id.padEnd(4)} ${def.name.padEnd(18)} ${String(sol!.presses).padStart(3)} presses, ${(sol!.ticks / lv.beat).toFixed(1)} beats`);
     });
   }
 });

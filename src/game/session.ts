@@ -1,9 +1,9 @@
-import type { Level, LevelDef, Run, Turn, Vec } from "../core/types";
+import type { Boot, Level, LevelDef, Run, Vec } from "../core/types";
 import { parseLevel } from "../levels/parse";
 import { LEVELS } from "../levels/levels";
 import { sfx } from "../audio/audio";
 import { save, writeSave } from "../storage/save";
-import { advance, canSwing, newRun, swing } from "./rules";
+import { advance, canPress, newRun, nextTile, press } from "./rules";
 
 // ---------------------------------------------------------------------------
 // SESSION — the live game around the pure rules: real time, input buffering, instant retry,
@@ -19,10 +19,10 @@ export type Screen = "menu" | "play" | "paused" | "won";
 
 export interface SwingAnim {
   t0: number;                 // seconds
-  idx: 0 | 1;                 // which boot swung
-  pivot: Vec;                 // the planted boot's tile before any shuffle
-  from: Vec; to: Vec;         // the swinging boot
-  shuffleFrom: Vec | null;    // the planted boot, if it had to shuffle
+  idx: Boot;                  // which boot was pressed
+  pivot: Vec;                 // the other boot, which stayed put
+  from: Vec; to: Vec;         // the pressed boot; to = from when it was blocked
+  blocked: Vec | null;        // where it tried to go, when the edge was in the way
 }
 
 export const S = {
@@ -32,7 +32,8 @@ export const S = {
   run: null as Run | null,
   /** ms into the current tick */
   acc: 0,
-  buffered: 0 as 0 | Turn,
+  /** a press that arrived while this tick's press was used: 0 none, 1 left, 2 right */
+  buffered: 0 as 0 | 1 | 2,
   attempt: 1,
   /** seconds, from the frame loop */
   now: 0,
@@ -59,26 +60,24 @@ export function restart(){
   S.screen = "play";
 }
 
-/** the player tapped a direction */
-export function input(turn: Turn){
+/** the player pressed a boot's button */
+export function input(who: Boot){
   const r = S.run;
   if (S.screen !== "play" || !r) return;
   if (r.status === "dead") { retry(); return; }        // tapping through the flash retries at once
   if (r.status !== "play") return;
-  if (canSwing(r)) doSwing(turn); else S.buffered = turn;
+  if (canPress(r)) doPress(who); else S.buffered = who === 0 ? 1 : 2;
 }
 
-function doSwing(turn: Turn){
+function doPress(who: Boot){
   const r = S.run!;
-  const idx = (1 - r.anchor) as 0 | 1;
-  const pivot = { ...r.boots[r.anchor] }, from = { ...r.boots[idx] };
+  const pivot = { ...r.boots[1 - who] }, from = { ...r.boots[who] };
+  const target = nextTile(r, who);
   const before = r.got;
-  if (!swing(r, turn)) return;
-  S.anim = {
-    t0: S.now, idx, pivot, from, to: { ...r.boots[idx] },
-    shuffleFrom: r.shuffled ? pivot : null,
-  };
-  sfx(idx ? "stepR" : "stepL");
+  if (!press(r, who)) return;
+  const blocked = r.last?.result === "blocked";
+  S.anim = { t0: S.now, idx: who, pivot, from, to: { ...r.boots[who] }, blocked: blocked ? target : null };
+  sfx(blocked ? "bump" : who ? "stepR" : "stepL");
   afterChange(before);
 }
 
@@ -108,7 +107,7 @@ function onWon(){
   save.done = save.done || {};
   const prev = save.done[id];
   const ticks = r.tick;
-  if (!prev || r.moves < prev.swings || (r.moves === prev.swings && ticks < prev.ticks)) save.done[id] = { swings: r.moves, ticks };
+  if (!prev || r.moves < prev.presses || (r.moves === prev.presses && ticks < prev.ticks)) save.done[id] = { presses: r.moves, ticks };
   writeSave();
   sfx("win");
 }
@@ -137,7 +136,7 @@ export function update(dt: number){
     const before = r.got;
     advance(r);
     afterChange(before);
-    if (r.status === "play" && S.buffered) { const t = S.buffered; S.buffered = 0; doSwing(t); }
+    if (r.status === "play" && S.buffered) { const b = S.buffered; S.buffered = 0; doPress(b === 1 ? 0 : 1); }
   }
   const beat = Math.floor(r.tick / r.lv.beat);
   if (beat !== S.lastBeat) { S.lastBeat = beat; if (beat > 0) sfx("beat", beat); }

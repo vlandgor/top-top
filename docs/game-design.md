@@ -7,24 +7,23 @@ boots that are always neighbours, side by side or diagonal, never further apart.
 
 ## Movement
 
-- One boot is the **anchor**: planted, the pivot.
-- The other is the **mover**: each tap swings it one place (45°) around the anchor to the next
-  of the anchor's eight neighbours. The tap picks the direction: left = counterclockwise,
-  right = clockwise.
-- After a swing the boot that landed is planted and the other one swings next. The roles
-  alternate automatically, like a compass walking across a map. Alternating directions walks
-  the pair sideways (one row per two taps); repeating a direction turns it in place.
-- **At the edge:** if a swing would put the mover off the board, the planted boot shuffles one
-  step inward first, so the pair stays legal and keeps moving.
-- **Facing:** the boots face across the line between them, toward where an alternating tap
-  would take them. Both possible landing tiles are outlined (↺ / ↻); the walking one is
-  brighter, and an arrow shows when the planted boot will shuffle.
+The same movement as Chick Mates (`applyJump` in chick-mates-sandbox):
+
+- **Two buttons, one per boot.** Pressing a boot swings it one place (45°) around the other
+  boot, which stays put as the anchor.
+- **Each boot has its own turn direction.** The left boot starts clockwise, the right one
+  counterclockwise, so alternating presses walks the pair.
+- **Blocked:** if the next place is off the board, the boot doesn't move and **both** boots
+  flip their direction. The press still counts.
+- **Facing:** each boot faces the tile its button sends it to, and that tile is outlined with
+  the button's letter (L / R). Each button shows which way its boot turns right now.
 
 ## Time
 
 The game is deterministic, in **ticks** of 125 ms. Hazards step once per **beat** (4 ticks by
-default, 120 bpm; per level). The player can swing at most once per tick; a tap during a
-used tick is buffered to the next one. The clock starts when the level loads, like
+default, 120 bpm; per level). The player can press at most once per tick; a press during a
+used tick is buffered to the next one. (Chick Mates is turn-based; Top Top keeps its own beat
+clock so hazards move in real time.) The clock starts when the level loads, like
 Geometry Dash; dying restarts the level in about 0.4 s (or at once on the next tap).
 
 `src/game/rules.ts` holds these rules as pure functions. The game and the solver both run
@@ -53,9 +52,14 @@ them, so whatever the solver proves, a player can do.
 
 17 hand-made levels (6 Destination, 3 each of Collect, Sequence and Survival, 2 Waves). The
 first level of each mode is open; clearing one opens the next. The dev build opens everything.
-`npm test` proves every level beatable at a human pace (a swing at most every 2 ticks).
+`npm test` proves every level beatable at a human pace (a press at most every 2 ticks).
+
+The game is landscape only (either way up), with a boot button on each side of the board.
 
 ## Still open
+
+- Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only
+  thing that blocks.
 
 - Waves: tuning, more levels, whether it needs a time limit.
 - Achievements screen.

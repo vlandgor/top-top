@@ -53,11 +53,12 @@ function noise(dur: number, vol: number, f: number){
 const SCALE = [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24];
 const note = (semi: number) => 440 * Math.pow(2, semi / 12);
 
-export type Sound = "stepL" | "stepR" | "pick" | "die" | "win" | "beat" | "click";
+export type Sound = "stepL" | "stepR" | "bump" | "pick" | "die" | "win" | "beat" | "click";
 export function sfx(s: Sound, n = 0){
   switch (s) {
     case "stepL": tone(330, 0.07, { type: "triangle", vol: 0.16, to: 260 }); noise(0.03, 0.12, 2400); break;
     case "stepR": tone(392, 0.07, { type: "triangle", vol: 0.16, to: 310 }); noise(0.03, 0.12, 2800); break;
+    case "bump": tone(150, 0.09, { type: "square", vol: 0.1, to: 110 }); tone(520, 0.06, { type: "triangle", vol: 0.08, to: 300, delay: 0.05 }); break;
     case "pick": tone(note(SCALE[Math.min(n, SCALE.length - 1)]), 0.18, { vol: 0.18 }); tone(note(SCALE[Math.min(n, SCALE.length - 1)] + 12), 0.12, { vol: 0.08, delay: 0.04 }); break;
     case "die": tone(180, 0.28, { type: "sawtooth", vol: 0.14, to: 60 }); noise(0.18, 0.25, 700); break;
     case "win": [0, 4, 7, 12].forEach((s2, i) => tone(note(s2 + 3), 0.3, { vol: 0.15, delay: i * 0.08 })); break;
