@@ -125,7 +125,7 @@ export const COLLECT: LevelDef[] = [
     sentries: [{ path: "0,2 7,2", phase: 15 }, { path: "0,4 7,4", phase: 3 }],
     proof: "2R1R1L1R1L1R1R1R1R1L1L1L1R",
   },
-  //  9. difficulty 22: 16 presses, 7 beats
+  //  9. difficulty 22: 15 presses, 6 beats
   {
     id: "c9",
     name: "Glow Sticks",
@@ -138,7 +138,7 @@ export const COLLECT: LevelDef[] = [
       "........",
     ],
     sentries: [{ path: "0,3 7,3", phase: 2 }, { path: "6,0 6,3", phase: 1 }],
-    proof: "3L1R1R1L1L1R1R1L1R1L1R1L1R1R1R1L",
+    proof: "L1R1R1R1L1L1L1R1L1R1L1R1L1L1R",
   },
   // 10. difficulty 25: 21 presses, 8 beats
   {
@@ -187,7 +187,7 @@ export const COLLECT: LevelDef[] = [
     sentries: [{ path: "0,4 7,4", phase: 13 }, { path: "0,0 3,0 3,3 0,3", phase: 1 }, { path: "0,2 7,2", phase: 14 }],
     proof: "19L1L1R1R1L1L1L1L1L1R1R1R1L1R1R1R5L1L1L1L1L",
   },
-  // 13. difficulty 34: 28 presses, 14 beats
+  // 13. difficulty 34: 27 presses, 13 beats
   {
     id: "c13",
     name: "Laser Grid",
@@ -200,7 +200,7 @@ export const COLLECT: LevelDef[] = [
       ".....o...",
     ],
     sentries: [{ path: "4,4 7,4 7,2 4,2", phase: 0 }, { path: "4,4 7,4 7,2 4,2", phase: 0 }, { path: "7,0 7,4", phase: 9 }],
-    proof: "L1L1L1L1R1R1R1R1R1L1L1R1R1L1L1R1R1L1R1L1R1L1R1R1R1L1R1R",
+    proof: "R1L1L1R1L1L1L1L1L1R1R1R1L1R1L1L1L1R1L1L1L1R1R1R1L1R1R",
   },
   // 14. difficulty 37: 29 presses, 15 beats
   {
@@ -251,7 +251,7 @@ export const COLLECT: LevelDef[] = [
     sweeps: [{ dir: "diag", start: 5, every: 12, warn: 4, speed: 1, gaps: [[9, 10, 11, 12], [10, 11, 12, 13], [10, 11, 12, 13], [8, 9, 10, 11]] }],
     proof: "6L1L1L1L1R1R1R1R1L1R1L1R1L1R1R1R1L1R1R1L1L1R1L1R1R1R1L1L1R1R1L1R1R",
   },
-  // 17. difficulty 48: 38 presses, 19 beats
+  // 17. difficulty 48: 37 presses, 18 beats
   {
     id: "c17",
     name: "Afterglow",
@@ -266,9 +266,9 @@ export const COLLECT: LevelDef[] = [
     ],
     sentries: [{ path: "3,0 3,5", phase: 10 }, { path: "2,0 2,5", phase: 1 }],
     sweeps: [{ dir: "right", start: 5, every: 10, warn: 3, speed: 1, gaps: [[1, 2, 3], [3, 4, 5], [0, 1, 2], [1, 2, 3]] }],
-    proof: "2L1L1L1L1R1L1R1L1R1R1R1L1R1L1L1L1R1R1R1L1L1L1L1L1R1L1R1R1R1R1R1L1R1L1R1L1R1R",
+    proof: "R1L1L1L1L1R1R1R1L1R1R1R1L1R1L1L1L1R1L1R1L1R1L1L1L1R1R1R1L1L1L1R1L1L1L1R1R",
   },
-  // 18. difficulty 50: 40 presses, 22 beats
+  // 18. difficulty 50: 41 presses, 22 beats
   {
     id: "c18",
     name: "Full House",
@@ -284,7 +284,7 @@ export const COLLECT: LevelDef[] = [
     ],
     sentries: [{ path: "0,0 8,0", phase: 3 }, { path: "0,3 8,3", phase: 14 }],
     sweeps: [{ dir: "down", start: 5, every: 10, warn: 3, speed: 1, gaps: [[4, 5, 6], [1, 2, 3], [1, 2, 3], [0, 1, 2]] }],
-    proof: "8L1L1R1L1R1L1R1L1R1R1R1L1R1L1R1R1R1L1R1L1R1L1L1L1R1L1R1R1R1L1L1L1L1L1R1L1R1L1R1L",
+    proof: "6R1L1R1L1L1R1L1R1L1L1R1R1L1L1L1R1L1L1L1R1L1R1R1R1L1R1L1R1L1L1R1R1R1R1L1R1R1L1L1R1R",
   },
   // 19. difficulty 55: 45 presses, 24 beats
   {

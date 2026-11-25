@@ -3,7 +3,7 @@ import { parseLevel } from "../levels/parse";
 import { LEVELS } from "../levels/levels";
 import { sfx } from "../audio/audio";
 import { save, writeSave } from "../storage/save";
-import { advance, canPress, newRun, nextTile, press } from "./rules";
+import { advance, canPress, newRun, press } from "./rules";
 
 // ---------------------------------------------------------------------------
 // SESSION — the live game around the pure rules: real time, input buffering, instant retry,
@@ -21,8 +21,8 @@ export interface SwingAnim {
   t0: number;                 // seconds
   idx: Boot;                  // which boot was pressed
   pivot: Vec;                 // the other boot, which stayed put
-  from: Vec; to: Vec;         // the pressed boot; to = from when it was blocked
-  blocked: Vec | null;        // where it tried to go, when the edge was in the way
+  from: Vec; to: Vec;         // the pressed boot
+  back: boolean;              // it stepped back because the edge was in the way
 }
 
 export const S = {
@@ -72,12 +72,11 @@ export function input(who: Boot){
 function doPress(who: Boot){
   const r = S.run!;
   const pivot = { ...r.boots[1 - who] }, from = { ...r.boots[who] };
-  const target = nextTile(r, who);
   const before = r.got;
   if (!press(r, who)) return;
-  const blocked = r.last?.result === "blocked";
-  S.anim = { t0: S.now, idx: who, pivot, from, to: { ...r.boots[who] }, blocked: blocked ? target : null };
-  sfx(blocked ? "bump" : who ? "stepR" : "stepL");
+  const back = r.last?.result === "back";
+  S.anim = { t0: S.now, idx: who, pivot, from, to: { ...r.boots[who] }, back };
+  sfx(back ? "bump" : who ? "stepR" : "stepL");
   afterChange(before);
 }
 

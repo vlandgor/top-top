@@ -115,10 +115,8 @@ export type RunStatus = "play" | "dead" | "won";
 export interface Run {
   lv: Level;
   tick: number;
-  /** the two boots: 0 left, 1 right. Whichever is pressed swings around the other */
+  /** the two boots: 0 left (turns clockwise), 1 right (counterclockwise). The pressed one swings around the other */
   boots: [Vec, Vec];
-  /** each boot's turn direction: true = clockwise. A blocked swing flips both */
-  cw: [boolean, boolean];
   taken: boolean[];
   got: number;
   nextOrder: number;
@@ -127,5 +125,5 @@ export interface Run {
   lastMoveTick: number;
   moves: number;
   /** what the last press did */
-  last: { boot: Boot; result: "move" | "blocked" } | null;
+  last: { boot: Boot; result: "move" | "back" } | null;
 }

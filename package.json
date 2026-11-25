@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "solve": "vite-node tools/solve.ts",
     "gen-levels": "vite-node tools/gen-levels.ts",
+    "reprove": "vite-node tools/reprove.ts",
     "sync": "npm run build && cap sync",
     "android:debug": "npm run build && cap sync android && cd android && ./gradlew assembleDebug",
     "android:release": "npm run build && cap sync android && cd android && ./gradlew bundleRelease",

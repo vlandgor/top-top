@@ -2,8 +2,8 @@
 
 A minimalist puzzle-arcade game by Playcebo Games, played in landscape. You don't steer a
 character: you steer a pair of boots that are always stuck next to each other. Each button
-swings its boot around the other one; the left boot turns clockwise, the right one
-counterclockwise, and bumping the edge turns both around (the Chick Mates movement). Plan the
+swings its boot around the other one; the left boot always turns clockwise, the right one
+counterclockwise, and at the edge a boot steps back to make room for the other. Plan the
 presses, read the hazard patterns, and walk the boots heel to heel across a neon dance floor.
 
 Written in TypeScript and built with Vite. No engine: graphics are drawn on a 2D canvas and
@@ -21,6 +21,7 @@ npm test           # rules tests, and the solver proving every level can be beat
 npm run build      # strict type-check, then a production build into dist/
 npm run solve      # level design: fewest presses and time for each level (npm run solve d3 r2)
 npm run gen-levels # regenerate the levels of one or more modes (npm run gen-levels waves)
+npm run reprove    # after a rules change: re-solve every level, rewriting only its proof
 ```
 
 On a desktop: A / ← presses the left boot, D / → the right one, R restarts, Esc pauses.

@@ -177,11 +177,6 @@ export function syncHud(){
     ? Math.max(0, (b - a) * r.lv.beat * TICK_MS / 1000).toFixed(0) + "s"
     : r.lv.def.mode === "destination" ? fmtTime(r.tick) : `${a}/${b}`;
   const el = $("hGoalVal"); if (el.textContent !== v) el.textContent = v;
-  // each button shows which way its boot turns right now; hitting the edge flips both
-  for (const [id, cw] of [["bLeft", r.cw[0]], ["bRight", r.cw[1]]] as const) {
-    const sp = $(id).querySelector("span")!, g = cw ? "↻" : "↺";
-    if (sp.textContent !== g) sp.textContent = g;
-  }
   const at = $("attempt"), label = `Attempt ${S.attempt}`;
   if (at.textContent !== label) at.textContent = label;
   at.classList.toggle("on", S.screen === "play" && r.tick < 12 && S.attempt > 1);

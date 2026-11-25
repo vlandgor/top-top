@@ -7,16 +7,18 @@ boots that are always neighbours, side by side or diagonal, never further apart.
 
 ## Movement
 
-The same movement as Chick Mates (`applyJump` in chick-mates-sandbox):
+Based on Chick Mates (`applyJump` in chick-mates-sandbox):
 
 - **Two buttons, one per boot.** Pressing a boot swings it one place (45°) around the other
   boot, which stays put as the anchor.
-- **Each boot has its own turn direction.** The left boot starts clockwise, the right one
-  counterclockwise, so alternating presses walks the pair.
-- **Blocked:** if the next place is off the board, the boot doesn't move and **both** boots
-  flip their direction. The press still counts.
+- **Fixed directions.** The left boot always turns clockwise, the right one always
+  counterclockwise. Alternating presses walks the pair; pressing one boot repeatedly turns
+  the pair in place.
+- **At the edge:** if the next place is off the board, the boot steps **back** one place along
+  its circle instead. Nothing flips; the step back makes room for the other boot to swing into
+  its old spot. (On any board of at least 2×2, one step back always finds a tile.)
 - **Facing:** each boot faces the tile its button sends it to, and that tile is outlined with
-  the button's letter (L / R). Each button shows which way its boot turns right now.
+  the button's letter (L / R), or `L↩` / `R↩`, fainter, when it is a step back.
 
 ## Time
 

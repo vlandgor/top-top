@@ -36,16 +36,33 @@ describe("movement", () => {
     expect(press(r, 1)).toBe(true);
   });
 
-  it("blocked by the edge: the boot stays and both boots flip direction", () => {
+  it("off the edge: the boot steps back around the other one, and nothing flips", () => {
     const r = newRun(open(["AB..", "....", "...."]));
     press(r, 0);                               // A clockwise from west of B -> north-west: off the board
-    expect(r.boots[0]).toEqual({ x: 0, y: 0 });
-    expect(r.cw).toEqual([false, true]);
-    expect(r.last).toEqual({ boot: 0, result: "blocked" });
-    expect(r.moves).toBe(1);                   // the press still counts
+    expect(r.boots[0]).toEqual({ x: 0, y: 1 });// so it steps back to south-west of B
+    expect(r.last).toEqual({ boot: 0, result: "back" });
     advance(r);
-    press(r, 0);                               // now counterclockwise: south-west of B
-    expect(r.boots[0]).toEqual({ x: 0, y: 1 });
+    press(r, 1);                               // B, north-east of A, counterclockwise -> north: A's old spot
+    expect(r.boots[1]).toEqual({ x: 0, y: 0 });
+    advance(r);
+    press(r, 0);                               // A still turns clockwise: from south of B -> south-west: off, back -> south-east
+    expect(r.boots[0]).toEqual({ x: 1, y: 1 });
+  });
+
+  it("every press from every placement lands on the board, next to the other boot", () => {
+    // on any board at least 2x2, one step back is always enough; this checks all of them on a small one
+    const W = 4, H = 3, lv = open(["AB..", "....", "...."]);
+    for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+      if ((!dx && !dy) || x + dx < 0 || y + dy < 0 || x + dx >= W || y + dy >= H) continue;
+      for (const who of [0, 1] as const) {
+        const r = newRun(lv);
+        r.boots = [{ x, y }, { x: x + dx, y: y + dy }];
+        press(r, who);
+        const [p, q] = r.boots;
+        expect(p.x >= 0 && p.y >= 0 && p.x < W && p.y < H && q.x >= 0 && q.y >= 0 && q.x < W && q.y < H).toBe(true);
+        expect(Math.max(Math.abs(p.x - q.x), Math.abs(p.y - q.y))).toBe(1);
+      }
+    }
   });
 });
 

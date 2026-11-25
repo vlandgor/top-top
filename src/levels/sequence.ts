@@ -32,7 +32,7 @@ export const SEQUENCE: LevelDef[] = [
     ],
     proof: "R1R1L1R1R1R1R",
   },
-  //  3. difficulty 10: 10 presses, 3 beats
+  //  3. difficulty 10: 9 presses, 3 beats
   {
     id: "s3",
     name: "Zig Zag",
@@ -44,7 +44,7 @@ export const SEQUENCE: LevelDef[] = [
       "..2.1..",
       ".......",
     ],
-    proof: "L1L1L1L1R1R1R1R1R1R",
+    proof: "R1L1L1R1L1L1L1L1L",
   },
   //  4. difficulty 13: 11 presses, 4 beats
   {
@@ -94,7 +94,7 @@ export const SEQUENCE: LevelDef[] = [
     sentries: [{ path: "0,0 5,0", phase: 3 }],
     proof: "12R1R1R1R1L1R1L1L1R1R1L1L1L1L1L1R1R",
   },
-  //  7. difficulty 26: 22 presses, 8 beats
+  //  7. difficulty 26: 19 presses, 8 beats
   {
     id: "s7",
     name: "Step Pattern",
@@ -107,7 +107,7 @@ export const SEQUENCE: LevelDef[] = [
       "3....1..",
     ],
     sentries: [{ path: "5,0 5,3", phase: 7 }],
-    proof: "2L1L1L1L1R1R1R1L1R1R1R1L1R1L1R1L1R1L1R1L1R1R",
+    proof: "8L1R1R1R1L1R1R1R1L1L1R1L1L1R1L1R1L1R1L",
   },
   //  8. difficulty 31: 19 presses, 11 beats
   {
@@ -125,7 +125,7 @@ export const SEQUENCE: LevelDef[] = [
     sentries: [{ path: "0,3 6,3", phase: 7 }, { path: "0,0 6,0", phase: 11 }],
     proof: "7L1L4L4L4R1R1L1R1R1R1R1R1R1R1L1R1R1L1R",
   },
-  //  9. difficulty 36: 32 presses, 13 beats
+  //  9. difficulty 36: 31 presses, 13 beats
   {
     id: "s9",
     name: "Counterpoint",
@@ -139,9 +139,9 @@ export const SEQUENCE: LevelDef[] = [
       "..1....",
     ],
     sentries: [{ path: "0,3 6,3", phase: 12 }, { path: "0,1 6,1", phase: 2 }],
-    proof: "L1L1L1R1R1L1R1L1R1L1L1L1L1L1R1L1L1L1R1L1L1L1L1L1L1R1R1L1R1L1R1L",
+    proof: "2R1L1L1L1L1R1R1L1R1R1R1R1L1R1R1R1L1R1R1R1R1R1R1R1L1L1L1R1L1R1R",
   },
-  // 10. difficulty 42: 28 presses, 14 beats
+  // 10. difficulty 42: 27 presses, 13 beats
   {
     id: "s10",
     name: "Call and Response",
@@ -154,7 +154,7 @@ export const SEQUENCE: LevelDef[] = [
       "......3",
     ],
     sentries: [{ path: "4,2 6,2 6,0 4,0", phase: 2 }, { path: "5,0 5,3", phase: 2 }],
-    proof: "1L1L1L1R1L1R1R1R1R1R8R1R1L1R1R1R1L1R1R1L1R1R1L1L8L1R1R1L",
+    proof: "1L1L1L1R1L1R1R1R1R1R8R1R1L1R1R1R1L1R1R1L1R1R1L1L5L1R1R",
   },
   // 11. difficulty 49: 43 presses, 18 beats
   {
@@ -205,7 +205,7 @@ export const SEQUENCE: LevelDef[] = [
     sentries: [{ path: "5,0 5,4", phase: 2 }, { path: "4,4 8,4 8,2 4,2", phase: 4 }, { path: "5,4 8,4 8,1 5,1", phase: 3 }],
     proof: "30L1L1L1R1L1R1L1R1L1R1R1R1R1R1L1R1R1L1L1R1L1R1R1R1R1R1L1R1R1L1L1R1L1L1L1L1R1L1L1R1L1R1L1R1R1R1L1L1L1L1L1R1L",
   },
-  // 14. difficulty 65: 53 presses, 29 beats
+  // 14. difficulty 65: 49 presses, 28 beats
   {
     id: "s14",
     name: "Cascade",
@@ -219,9 +219,9 @@ export const SEQUENCE: LevelDef[] = [
       "....1...",
     ],
     sentries: [{ path: "0,4 7,4", phase: 12 }, { path: "3,0 3,5", phase: 5 }, { path: "6,0 6,5", phase: 10 }],
-    proof: "7L1L1L1L1L1R1R1L1R1R1L1R1L1R1R1R1L1R1L1R1L1L1L1R1R1R1L1L1L1L1L1L1L5L1L1R1R2L1R1R1L1L1L1L1L1L1R1R1R1R1L1R1R",
+    proof: "7L1L1L1L1L1R1R1L1R1R1L1R1L1R1R1R1L1R1L1R1L1L1L1R1R1R1L1L1R1L1L1L1L3R1L1R1R1R1R1R6R1R1L1R1R1R1R1L1R",
   },
-  // 15. difficulty 72: 52 presses, 39 beats
+  // 15. difficulty 72: 51 presses, 39 beats
   {
     id: "s15",
     name: "Off Beat",
@@ -236,9 +236,9 @@ export const SEQUENCE: LevelDef[] = [
       "..........",
     ],
     sweeps: [{ dir: "antidiag", start: 5, every: 12, warn: 4, speed: 1, gaps: [[0, 1, 2, 3], [2, 3, 4, 5], [0, 1, 2, 3], [0, 1, 2, 3]] }],
-    proof: "23R1R1L1R1L1R1L1R1L1R1L1L1R30L1L1L1L1R1L1R1L1L1R1L1R1R1R1L1R1L1R1R1R1L1R1L1R1L1R1R1R1L1L1L1R1L1R1L1L1L1L1L",
+    proof: "23R1R1L1R1L1R1L1R1L1R1L1L1R32L1R1L1L1R1L1R1L1L1L1R1L1R1R1R1L1R1R1R1R1R1L1R1L1R1L1R1L1R1L1R1L1R1R1R1R1R1R",
   },
-  // 16. difficulty 78: 54 presses, 39 beats
+  // 16. difficulty 78: 57 presses, 39 beats
   {
     id: "s16",
     name: "Rondo",
@@ -252,9 +252,9 @@ export const SEQUENCE: LevelDef[] = [
       "........5.",
     ],
     sweeps: [{ dir: "antidiag", start: 5, every: 12, warn: 4, speed: 1, gaps: [[11, 12, 13, 14], [10, 11, 12, 13], [9, 10, 11, 12], [11, 12, 13, 14]] }],
-    proof: "1R1R1L1L1L1R1R1R1R1R1R1R1L1R1L1L3L1R1L3R3R44L1L1L1R1L1L1L1R1L1R1L1R1L1R1L1R1L1L1L1L1L1R1L1R1L1R1L1R1L1R1L1R1L",
+    proof: "1R1R1L1L1L1R1R1R1R1R1R1R1L1R1L1L3L1L1R1R1L1R1L3R1L1R40R1R1R1R1L1R1L1R1L1R1L1R1L1R1R1R1R1R1L1R1L1R1L1R1L1R1L1R1L1R1R",
   },
-  // 17. difficulty 85: 69 presses, 41 beats
+  // 17. difficulty 85: 67 presses, 40 beats
   {
     id: "s17",
     name: "Crescendo",
@@ -269,9 +269,9 @@ export const SEQUENCE: LevelDef[] = [
     ],
     sentries: [{ path: "0,4 9,4", phase: 18 }, { path: "3,1 5,1 5,3 3,3", phase: 5 }],
     sweeps: [{ dir: "right", start: 5, every: 10, warn: 3, speed: 1, gaps: [[3, 4, 5], [1, 2, 3], [0, 1, 2], [3, 4, 5]] }],
-    proof: "19L1L1L1L1R3L3L4L1L1L1L1L1L1R1R1R1L1L1L1R1L1R1L1L1L1L1L1R1L1R1L1L1L1R1R1R1L1R1L1R1R1R1R1R1L1R1L1R1L1R1L1L1L1R1L1L1R1R1R1R1L1R1L1R1L1R1L1R1R",
+    proof: "19L1L1L1L1R3L3L5L1L1L1L1L1L1R1R1R1L1L1L1R1L1R1L1L1L1L1L1R1L1R1L1L1L1R1R1R1L1R1L1R1R1R1L1R1L1R1R1R1L1R1L1L1L2R1L1R1L1R1L1R1L1R1L1R1L1R1R",
   },
-  // 18. difficulty 90: 58 presses, 38 beats
+  // 18. difficulty 90: 57 presses, 38 beats
   {
     id: "s18",
     name: "Polyrhythm",
@@ -286,9 +286,9 @@ export const SEQUENCE: LevelDef[] = [
     ],
     sentries: [{ path: "1,4 6,4 6,1 1,1", phase: 5 }, { path: "5,5 8,5 8,2 5,2", phase: 0 }],
     sweeps: [{ dir: "right", start: 5, every: 10, warn: 3, speed: 1, gaps: [[3, 4, 5], [3, 4, 5], [3, 4, 5], [3, 4, 5]] }],
-    proof: "9L1L1L1R1L1R1R1R1L1R1L1L1L1L1R1R1L1L1L1R1R1R1L1R1R1L1L1L1R1R3L1L1L11R3R13L1R1R1R2R1L1L1L1L1L1L1L1R1R1L1R1L1L1L1R1R1L1R",
+    proof: "11L1L1L1R1L1R1R1R1L1R1L1L1L1L1R1R1L1L1R1L1R1R1L1R1R1R1L1R1L3R1R1R11L3L13L1R1L1L2L1R1R1R1R1R1L1R1L1R1R1R1L1R1L1R1L1R1L",
   },
-  // 19. difficulty 98: 70 presses, 61 beats
+  // 19. difficulty 98: 73 presses, 61 beats
   {
     id: "s19",
     name: "Showcase",
@@ -304,9 +304,9 @@ export const SEQUENCE: LevelDef[] = [
     ],
     sentries: [{ path: "5,5 7,5 7,2 5,2", phase: 7 }, { path: "0,4 10,4", phase: 10 }],
     sweeps: [{ dir: "diag", start: 5, every: 10, warn: 3, speed: 1, gaps: [[7, 8, 9], [6, 7, 8], [7, 8, 9], [6, 7, 8]] }],
-    proof: "73R1R5L1R1L1R1R1R9L1R1L1L1L1L1R1R1R1L1R1R22R1L1R1R1R1L1R1L1L1L1L1L1L1L1R1L1R1L1R1R1R1L1R1L1R1L1L1L1L1L1L1L1R1L1R1L1R1L1R1L1R1L1R1L1R1R1R1L1R1R",
+    proof: "73R1R3L1R1L1R1L1R1R3R1L1R3R1R1L1R1R1R1L1R1L1L1L22L1L1L1L1R1R1R1L1R1R1R1R1R1L1R1L1L1L1R1L1R1R1R1L1R1L1R1R1R1R1R1L1R1L1R1L1R1L1R1L1R1L1R1L1L1R1R1L1L1L",
   },
-  // 20. difficulty 104: 68 presses, 66 beats
+  // 20. difficulty 104: 71 presses, 66 beats
   {
     id: "s20",
     name: "Curtain Call",
@@ -321,6 +321,6 @@ export const SEQUENCE: LevelDef[] = [
     ],
     sentries: [{ path: "8,0 8,5", phase: 5 }, { path: "1,0 1,5", phase: 12 }],
     sweeps: [{ dir: "down", start: 5, every: 10, warn: 3, speed: 1, gaps: [[2, 3, 4], [1, 2, 3], [1, 2, 3], [2, 3, 4]] }],
-    proof: "63R1R1L1L1R1R1L1R1R3L9L1L1R1L3R27L1L1L1R1R1R1L1R1R1L1L1R1L1R1L1R1R1R1R1R1R1L1L1R1L1R1L3R17L1R1L1R1L1L1L1L10R1R1L1R1L1L1R1L1L1R1L1R1L1R1L1R1L",
+    proof: "69R1R15L1L1R1R1L1R1L3R1L1R3R3R7L1R1L1R1R1R1L1R1L1R1L1L1L1R1L1R1L1R1L1R1L1L1L1L1L1R1L1R1L1R1R3L17L1R1L1R1R1R1R1R10L1L1L1R1R1R1L1R1L1R1L1R1L1R1L1R1R",
   },
 ];

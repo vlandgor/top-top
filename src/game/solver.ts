@@ -15,7 +15,7 @@ export type Action = 0 | 1 | 2;
 export interface Solution { actions: Action[]; ticks: number; presses: number }
 
 function clone(r: Run): Run {
-  return { ...r, boots: [{ ...r.boots[0] }, { ...r.boots[1] }], cw: [r.cw[0], r.cw[1]], taken: r.taken.slice() };
+  return { ...r, boots: [{ ...r.boots[0] }, { ...r.boots[1] }], taken: r.taken.slice() };
 }
 
 // only the pickups on the board right now can still change anything, so only they go in the key
@@ -28,7 +28,7 @@ function liveItems(lv: Level, beat: number): number[] {
 }
 function key(r: Run, cooldown: number): string {
   const a = r.boots[0], b = r.boots[1];
-  let k = `${a.x},${a.y},${b.x},${b.y},${+r.cw[0]}${+r.cw[1]},${r.got},${Math.min(r.tick - r.lastMoveTick, cooldown)},`;
+  let k = `${a.x},${a.y},${b.x},${b.y},${r.got},${Math.min(r.tick - r.lastMoveTick, cooldown)},`;
   for (const i of liveItems(r.lv, beatOf(r.lv, r.tick))) k += r.taken[i] ? "1" : "0";
   return k;
 }

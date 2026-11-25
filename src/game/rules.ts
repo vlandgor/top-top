@@ -7,20 +7,20 @@ import { beatOf, lethalAt } from "./hazards";
 // (lv.beat ticks). The player gets at most one press per tick. The live game (session.ts)
 // and the solver (solver.ts) both drive these, so whatever the solver proves, a player can do.
 //
-// Movement is Chick Mates' (applyJump in chick-mates-sandbox):
+// Movement, based on Chick Mates (applyJump in chick-mates-sandbox):
 //   - two buttons, one per boot. Pressing a boot swings it one place around the other boot,
 //     which stays put as the anchor
-//   - each boot has its own turn direction: the left boot starts clockwise, the right one
-//     counterclockwise, so alternating presses walks the pair
-//   - if the next place is blocked (off the board), the boot doesn't move and BOTH boots
-//     flip their direction. The press still counts
+//   - the left boot always turns clockwise, the right one always counterclockwise, so
+//     alternating presses walks the pair. Directions never change
+//   - if the next place is off the board, the boot steps BACK along its circle instead,
+//     as many places as it takes to find a tile. That makes room for the other boot to
+//     swing into its old spot
 // ---------------------------------------------------------------------------
 
 export function newRun(lv: Level): Run {
   const r: Run = {
     lv, tick: 0,
     boots: [{ ...lv.start[0] }, { ...lv.start[1] }],
-    cw: [true, false],
     taken: lv.items.map(() => false), got: 0, nextOrder: 1,
     status: "play", cause: "", lastMoveTick: -1, moves: 0, last: null,
   };
@@ -30,11 +30,19 @@ export function newRun(lv: Level): Run {
 
 export function inBounds(lv: Level, p: Vec): boolean { return p.x >= 0 && p.y >= 0 && p.x < lv.w && p.y < lv.h; }
 
-/** where pressing this boot would send it (may be off the board, which means blocked) */
-export function nextTile(r: Run, who: Boot): Vec {
+/** the turn of each boot: left clockwise (+1), right counterclockwise (-1) */
+export const TURN = [1, -1] as const;
+
+/** where pressing this boot sends it, and whether that is a step back off an edge */
+export function nextTile(r: Run, who: Boot): Vec & { back: boolean } {
   const mv = r.boots[who], an = r.boots[1 - who];
-  const d = rot(dirBetween(an, mv), r.cw[who] ? 1 : -1);
-  return { x: an.x + DIRS[d].x, y: an.y + DIRS[d].y };
+  const d = dirBetween(an, mv), t = TURN[who];
+  const at = (k: number) => ({ x: an.x + DIRS[rot(d, k)].x, y: an.y + DIRS[rot(d, k)].y });
+  const fwd = at(t);
+  if (inBounds(r.lv, fwd)) return { ...fwd, back: false };
+  // blocked ahead: back around the other boot until there is a tile
+  for (let k = 1; k < 8; k++) { const p = at(-t * k); if (inBounds(r.lv, p)) return { ...p, back: true }; }
+  return { ...mv, back: true };                  // unreachable on a 2x2 board or bigger
 }
 
 export function canPress(r: Run): boolean { return r.status === "play" && r.lastMoveTick !== r.tick; }
@@ -43,13 +51,8 @@ export function canPress(r: Run): boolean { return r.status === "play" && r.last
 export function press(r: Run, who: Boot): boolean {
   if (!canPress(r)) return false;
   const t = nextTile(r, who);
-  if (inBounds(r.lv, t)) {
-    r.boots[who] = t;
-    r.last = { boot: who, result: "move" };
-  } else {
-    r.cw = [!r.cw[0], !r.cw[1]];                // shared turn: both boots turn around
-    r.last = { boot: who, result: "blocked" };
-  }
+  r.boots[who] = { x: t.x, y: t.y };
+  r.last = { boot: who, result: t.back ? "back" : "move" };
   r.lastMoveTick = r.tick; r.moves++;
   resolve(r);
   return true;

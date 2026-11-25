@@ -248,7 +248,7 @@ function judge(def: LevelDef, i: number): Judged | null {
   score += (def.sentries?.length || 0) * 2 + (def.sweeps?.length || 0) * 4;
   // how often the winning route bumps into the edge (for the hint that explains it)
   const r = newRun(lv); let bumps = 0;
-  for (const a of sol.actions) { if (a) { press(r, a === 1 ? 0 : 1); if (r.last?.result === "blocked") bumps++; } if (r.status === "play") advance(r); }
+  for (const a of sol.actions) { if (a) { press(r, a === 1 ? 0 : 1); if (r.last?.result === "back") bumps++; } if (r.status === "play") advance(r); }
   return { def, score, presses: sol.presses, beats: sol.ticks / lv.beat, proof: encodeProof(sol.actions), bumps };
 }
 
@@ -285,7 +285,7 @@ function hints(mode: Mode, picked: Judged[]): (string | undefined)[] {
     }[mode]);
     if (d.sweeps?.length && !sweepSeen && mode !== "waves") out.push("Glowing tiles warn you. They only kill when they flash solid");
     else if (d.sentries?.length && !sentrySeen) out.push("Sentries step on the beat. The faint tile is where they go next");
-    else if (mode === "destination" && j.bumps && !bumpSeen) out.push("When the edge is in the way, the boot stays put and both boots turn around");
+    else if (mode === "destination" && j.bumps && !bumpSeen) out.push("When the edge is in the way, the boot steps back and makes room for the other one");
     sweepSeen ||= !!d.sweeps?.length; sentrySeen ||= !!d.sentries?.length; bumpSeen ||= j.bumps > 0;
     return out[0];
   });

@@ -1,6 +1,6 @@
 import type { Boot, Level, Run, Vec } from "../core/types";
 import { sentryAt, sweepAt } from "../game/hazards";
-import { inBounds, itemLive, nextTile } from "../game/rules";
+import { itemLive, nextTile } from "../game/rules";
 import { RETRY_MS, S, tickF } from "../game/session";
 import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
@@ -198,19 +198,13 @@ function drawItems(r: Run, beat: number, accent: string){
 const LABEL = ["L", "R"];
 function drawNext(r: Run, accent: string){
   for (const who of [0, 1] as Boot[]) {
-    const t = nextTile(r, who), p = r.boots[who];
-    if (inBounds(r.lv, t)) {
-      outline(t.x, t.y, rgba(accent, 0.5), 1.5, 0.14, [L.s * 0.1, L.s * 0.07]);
-      ctx.fillStyle = rgba(accent, 0.7);
-      ctx.font = `800 ${Math.round(L.s * 0.24)}px ui-sans-serif,system-ui,sans-serif`;
-      ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(LABEL[who], cx(t.x), cy(t.y));
-    } else {
-      // the edge is in the way: pressing this boot only turns both boots around
-      const ex = cx(p.x) + (t.x - p.x) * L.s * 0.5, ey = cy(p.y) + (t.y - p.y) * L.s * 0.5;
-      ctx.beginPath(); ctx.arc(ex, ey, L.s * 0.09, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(accent, 0.35); ctx.fill();
-    }
+    const t = nextTile(r, who);
+    // a step back off an edge is drawn fainter, with a back arrow instead of the letter
+    outline(t.x, t.y, rgba(accent, t.back ? 0.32 : 0.5), 1.5, 0.14, [L.s * 0.1, L.s * 0.07]);
+    ctx.fillStyle = rgba(accent, t.back ? 0.5 : 0.7);
+    ctx.font = `800 ${Math.round(L.s * 0.24)}px ui-sans-serif,system-ui,sans-serif`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(t.back ? `${LABEL[who]}↩` : LABEL[who], cx(t.x), cy(t.y));
   }
 }
 
@@ -223,10 +217,7 @@ function drawBoots(r: Run, dead: boolean){
   if (an) {
     const k = (F.now - an.t0) / SWING_S;
     if (k < 1) {
-      if (an.blocked) {                                // a bump toward the edge and back
-        const b = Math.sin(Math.PI * Math.min(1, k * 1.4)) * 0.22;
-        pos[an.idx] = { x: cx(an.from.x + (an.blocked.x - an.from.x) * b), y: cy(an.from.y + (an.blocked.y - an.from.y) * b) };
-      } else {                                         // an arc around the other boot
+      {                                                // an arc around the other boot (a step back too)
         const e = ease(k);
         const a0 = Math.atan2(an.from.y - an.pivot.y, an.from.x - an.pivot.x);
         let a1 = Math.atan2(an.to.y - an.pivot.y, an.to.x - an.pivot.x);

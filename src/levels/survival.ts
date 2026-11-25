@@ -230,7 +230,7 @@ export const SURVIVAL: LevelDef[] = [
     sweeps: [{ dir: "diag", start: 4, every: 9, warn: 3, speed: 1, gaps: [[7, 8, 9], [10, 11, 12], [8, 9, 10], [6, 7, 8]] }],
     proof: "29L1L7R31L3L1R1L3R3R32",
   },
-  // 14. difficulty 34: 12 presses, 32 beats
+  // 14. difficulty 34: 11 presses, 32 beats
   {
     id: "r14",
     name: "Riptide",
@@ -245,9 +245,9 @@ export const SURVIVAL: LevelDef[] = [
       "........",
     ],
     sweeps: [{ dir: "diag", start: 4, every: 9, warn: 3, speed: 1, gaps: [[8, 9, 10], [5, 6, 7], [4, 5, 6], [4, 5, 6]] }],
-    proof: "33L1L3L3R3R31L3L1L1R3L3L31R",
+    proof: "23L1R1L1R1L25R1L1R1R31R7L24",
   },
-  // 15. difficulty 35: 17 presses, 33 beats
+  // 15. difficulty 35: 16 presses, 33 beats
   {
     id: "r15",
     name: "Two Fronts",
@@ -262,9 +262,9 @@ export const SURVIVAL: LevelDef[] = [
       "..........",
     ],
     sweeps: [{ dir: "antidiag", start: 4, every: 9, warn: 3, speed: 1, gaps: [[0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]] }, { dir: "right", start: 8, every: 9, warn: 3, speed: 1, gaps: [[1, 2, 3], [1, 2, 3], [2, 3, 4], [1, 2, 3]] }],
-    proof: "35R1R1L1R1L1R1L1R1L1L1R43R1L1R3R19R3R",
+    proof: "35R1R1L1R1L1R1L1R1L1L1R43R1L1R23L3L",
   },
-  // 16. difficulty 39: 17 presses, 35 beats
+  // 16. difficulty 39: 16 presses, 35 beats
   {
     id: "r16",
     name: "Maelstrom",
@@ -278,7 +278,7 @@ export const SURVIVAL: LevelDef[] = [
       "..........",
     ],
     sweeps: [{ dir: "antidiag", start: 4, every: 9, warn: 3, speed: 1, gaps: [[0, 1, 2], [3, 4, 5], [4, 5, 6], [5, 6, 7]] }, { dir: "down", start: 8, every: 9, warn: 3, speed: 1, gaps: [[3, 4, 5], [1, 2, 3], [4, 5, 6], [2, 3, 4]] }],
-    proof: "25L1R1R1R3R1L1R3L3L23L1L1L1L1R21L1R3L32",
+    proof: "25L1R1R1R3R1L1R3L3L25L1R1L1L21R1L3R32",
   },
   // 17. difficulty 43: 17 presses, 36 beats
   {
@@ -299,7 +299,7 @@ export const SURVIVAL: LevelDef[] = [
     sweeps: [{ dir: "diag", start: 4, every: 8, warn: 3, speed: 1, gaps: [[8, 9, 10], [5, 6, 7], [4, 5, 6], [1, 2, 3]] }, { dir: "down", start: 8, every: 8, warn: 3, speed: 1, gaps: [[2, 3], [1, 2], [1, 2], [0, 1]] }],
     proof: "21L1R1L1R1R1R19L1R1R27R7L27R1L1R3R3L3L8",
   },
-  // 18. difficulty 45: 23 presses, 37 beats
+  // 18. difficulty 45: 24 presses, 37 beats
   {
     id: "r18",
     name: "Tempest",
@@ -316,7 +316,7 @@ export const SURVIVAL: LevelDef[] = [
     ],
     sentries: [{ path: "5,0 7,0 7,4 5,4", phase: 0 }],
     sweeps: [{ dir: "antidiag", start: 4, every: 8, warn: 3, speed: 1, gaps: [[2, 3, 4], [4, 5, 6], [3, 4, 5], [6, 7, 8]] }, { dir: "down", start: 8, every: 8, warn: 3, speed: 1, gaps: [[0, 1], [0, 1], [3, 4], [5, 6]] }],
-    proof: "31R1R1L1R1R3L29L1R1L1L1R1R7L1L1L1R1R27R1L1R1L1L3R8",
+    proof: "31R1R1L1R1R3L35R1R1R1R1R1R1L1R1L1L1L3R23L1R1L1R1R3L8",
   },
   // 19. difficulty 46: 26 presses, 39 beats
   {
@@ -336,7 +336,7 @@ export const SURVIVAL: LevelDef[] = [
     sweeps: [{ dir: "diag", start: 4, every: 8, warn: 3, speed: 1, gaps: [[10, 11, 12], [7, 8, 9], [10, 11, 12], [9, 10, 11]] }, { dir: "left", start: 8, every: 8, warn: 3, speed: 1, gaps: [[3, 4], [0, 1], [0, 1], [1, 2]] }],
     proof: "35L1L1L1L1R1R1L1R1R1R1L3R1R1R1L1R1L1R1L1L1L1L1L1R1L1L68",
   },
-  // 20. difficulty 53: 27 presses, 40 beats
+  // 20. difficulty 53: 23 presses, 40 beats
   {
     id: "r20",
     name: "Eye of the Storm",
@@ -353,6 +353,6 @@ export const SURVIVAL: LevelDef[] = [
     ],
     sentries: [{ path: "0,4 10,4", phase: 9 }],
     sweeps: [{ dir: "diag", start: 4, every: 8, warn: 3, speed: 1, gaps: [[12, 13, 14], [13, 14, 15], [14, 15, 16], [14, 15, 16]] }, { dir: "right", start: 8, every: 8, warn: 3, speed: 1, gaps: [[0, 1], [2, 3], [2, 3], [0, 1]] }],
-    proof: "35L1L1L1R1L1R1R1R1L11R15L9L1L1L1R3L15R1R1R1R1L1L1L1L1L23L3L",
+    proof: "37L1L3L1R1L1R1L3R3R1R1L3R23L1L1L1L1R3L19R3R1L1R23L4",
   },
 ];
