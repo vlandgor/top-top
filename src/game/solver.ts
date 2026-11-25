@@ -26,9 +26,9 @@ function liveItems(lv: Level, beat: number): number[] {
   if (!l) { l = []; lv.items.forEach((it, i) => { if (itemLive(it, beat)) l!.push(i); }); m.set(beat, l); }
   return l;
 }
-function key(r: Run): string {
+function key(r: Run, cooldown: number): string {
   const a = r.boots[0], b = r.boots[1];
-  let k = `${a.x},${a.y},${b.x},${b.y},${+r.cw[0]}${+r.cw[1]},${r.got},${Math.min(r.tick - r.lastMoveTick, 9)},`;
+  let k = `${a.x},${a.y},${b.x},${b.y},${+r.cw[0]}${+r.cw[1]},${r.got},${Math.min(r.tick - r.lastMoveTick, cooldown)},`;
   for (const i of liveItems(r.lv, beatOf(r.lv, r.tick))) k += r.taken[i] ? "1" : "0";
   return k;
 }
@@ -64,7 +64,7 @@ export function solve(lv: Level, opts: SolveOpts = {}): Solution | null {
           if (!winner || node.presses < winner.presses) winner = node;
           continue;
         }
-        const k = key(r);
+        const k = key(r, cooldown);
         const old = next.get(k);
         if (!old || node.presses < old.presses) next.set(k, node);
       }
@@ -84,4 +84,23 @@ export function replay(lv: Level, actions: Action[]): Run {
     if (r.status === "play") advance(r);
   }
   return r;
+}
+
+/** actions to the compact proof format of LevelDef.proof */
+export function encodeProof(actions: Action[]): string {
+  let out = "", wait = 0;
+  for (const a of actions) {
+    if (!a) { wait++; continue; }
+    if (wait) { out += wait; wait = 0; }
+    out += a === 1 ? "L" : "R";
+  }
+  return wait ? out + wait : out;                 // trailing waits matter: Survival ends standing still
+}
+export function decodeProof(proof: string): Action[] {
+  const out: Action[] = [];
+  for (const m of proof.matchAll(/(\d+)|L|R/g)) {
+    if (m[1]) for (let i = 0; i < +m[1]; i++) out.push(0);
+    else out.push(m[0] === "L" ? 1 : 2);
+  }
+  return out;
 }

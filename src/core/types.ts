@@ -68,6 +68,12 @@ export interface LevelDef {
   drops?: string[];
   /** a one-line tip shown on the level's first attempt */
   hint?: string;
+  /**
+   * a winning input, as the solver found it: L / R press a boot, a number waits that many
+   * ticks ("2L1R" = wait 2, left, wait 1, right). The tests replay it to prove the level can be
+   * beaten at a human pace; written by tools/gen-levels.ts
+   */
+  proof?: string;
 }
 
 // ---- parsed level ------------------------------------------------------------------------

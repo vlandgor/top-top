@@ -70,10 +70,25 @@ export function sweepAt(sw: Sweep, x: number, y: number, beat: number, w: number
   return best;
 }
 
+// Danger depends only on the level and the beat, so each beat's map of deadly tiles is worked
+// out once and kept (1 = sentry, 2 = sweep). The solver asks millions of times; this makes
+// every ask after the first a lookup.
+const maskCache = new WeakMap<Level, Map<number, Uint8Array>>();
+function dangerMap(lv: Level, b: number): Uint8Array {
+  let byBeat = maskCache.get(lv); if (!byBeat) maskCache.set(lv, byBeat = new Map());
+  let m = byBeat.get(b);
+  if (!m) {
+    m = new Uint8Array(lv.w * lv.h);
+    for (const sw of lv.sweeps) for (let y = 0; y < lv.h; y++) for (let x = 0; x < lv.w; x++)
+      if (sweepAt(sw, x, y, b, lv.w, lv.h).lethal) m[y * lv.w + x] = 2;
+    for (const s of lv.sentries) { const p = sentryAt(s, b); m[p.y * lv.w + p.x] = 1; }
+    byBeat.set(b, m);
+  }
+  return m;
+}
+
 /** is this tile deadly at this tick? the one rule every death goes through */
 export function lethalAt(lv: Level, x: number, y: number, tick: number): "" | "sentry" | "sweep" {
-  const b = beatOf(lv, tick);
-  for (const s of lv.sentries) { const p = sentryAt(s, b); if (p.x === x && p.y === y) return "sentry"; }
-  for (const sw of lv.sweeps) if (sweepAt(sw, x, y, b, lv.w, lv.h).lethal) return "sweep";
-  return "";
+  const v = dangerMap(lv, beatOf(lv, tick))[y * lv.w + x];
+  return v === 1 ? "sentry" : v === 2 ? "sweep" : "";
 }

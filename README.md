@@ -20,6 +20,7 @@ npm run dev        # local server with hot reload
 npm test           # rules tests, and the solver proving every level can be beaten
 npm run build      # strict type-check, then a production build into dist/
 npm run solve      # level design: fewest presses and time for each level (npm run solve d3 r2)
+npm run gen-levels # regenerate the levels of one or more modes (npm run gen-levels waves)
 ```
 
 On a desktop: A / ← presses the left boot, D / → the right one, R restarts, Esc pauses.
@@ -47,7 +48,24 @@ On a phone: the button on each side of the board, or tap the left / right half o
 
 ## Making levels
 
-Levels live in `src/levels/levels.ts`. A level is a map plus a list of hazards:
+There are 20 levels per mode, one file per mode in `src/levels/` (`destination.ts`,
+`collect.ts`, …). They're made by `tools/gen-levels.ts`, which for every slot:
+
+1. builds candidate levels from that slot's recipe. Boards grow, beats speed up, and each
+   hazard type arrives on its own (slow, with a tip) before it is mixed with others;
+2. throws away unfair ones: nothing may reach you for the first 3 s (2 s after level 10), and
+   hazards must actually block the easy route;
+3. solves the rest at a human pace and scores them: presses needed, how often you must wait
+   for something to pass, and whether a slower player could still make it;
+4. picks the candidate that fits a smoothly rising difficulty curve.
+
+Each level is saved with its `proof`, a winning input. `npm test` replays every proof
+through the rules (checking presses are at least 2 ticks apart), so all 100 levels are proven
+beatable in under a second; `SOLVE=1 npm test` also re-solves them from scratch.
+`npm run gen-levels collect` regenerates one mode (it is seeded, so unchanged recipes give
+the same levels). Names and tips can be edited in the level files directly.
+
+A level is a map plus hazards:
 
 ```ts
 {
@@ -61,10 +79,6 @@ Levels live in `src/levels/levels.ts`. A level is a map plus a list of hazards:
   sweeps: [{ dir: "diag", start: 4, every: 8, gaps: [6, 7] }],
 }
 ```
-
-`npm test` parses every level and runs the solver on it at a human pace (at most one press
-every two ticks). A level that can't be beaten, or that kills you on the first tick, fails the
-build. `npm run solve` shows how many presses and beats each level takes.
 
 ## Android
 
