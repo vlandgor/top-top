@@ -17,8 +17,10 @@ Based on Chick Mates (`applyJump` in chick-mates-sandbox):
 - **At the edge:** if the next place is off the board, the boot steps **back** one place along
   its circle instead. Nothing flips; the step back makes room for the other boot to swing into
   its old spot. (On any board of at least 2×2, one step back always finds a tile.)
-- **Facing:** each boot faces the tile its button sends it to, and that tile is outlined with
-  the button's letter (L / R), or `L↩` / `R↩`, fainter, when it is a step back.
+- **Facing:** each boot always faces along its own path: the next tile ahead, even when that
+  is off the board. A step back is a step backwards, never a turn around, so the boots never
+  swap sides. Where a press sends the boot is outlined with the button's letter (L / R), or
+  `L↩` / `R↩`, fainter, when it is a step back.
 
 ## Time
 

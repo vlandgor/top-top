@@ -230,8 +230,9 @@ function drawBoots(r: Run, dead: boolean){
     }
   }
   for (const who of [0, 1] as Boot[]) {
-    // each boot faces the tile its button sends it to
-    const p = r.boots[who], t = nextTile(r, who);
+    // each boot faces along its own path: the next tile ahead, even when the edge is in the
+    // way and the press will step it back. It never turns around
+    const p = r.boots[who], t = nextTile(r, who).ahead;
     const want = Math.atan2(t.y - p.y, t.x - p.x);
     let dh = want - heading[who];
     while (dh > Math.PI) dh -= Math.PI * 2; while (dh < -Math.PI) dh += Math.PI * 2;
