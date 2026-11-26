@@ -120,11 +120,14 @@ A second app for testing on a phone. It's named **Top Top Dev** (`com.playcebo.t
 so it installs alongside the real app and can't be confused with it. Instead of the bundled
 game it loads the newest build from **https://vlandgor.github.io/top-top/**:
 
-- Every push to `main` redeploys that page (`.github/workflows/dev-web.yml`). The next time
+- Every push, to `main` or any other branch, redeploys that page (`.github/workflows/dev-web.yml`),
+  so a branch can be tried on the phone before it's merged. There is one page, so the branch
+  pushed last is the one that's live. The next time
   the app opens, it runs the new commit; no reinstall needed. If it was only in the
   background, it reloads on resume when a newer build is live, but never in the middle of a
   level.
-- The main menu shows `DEV · <commit>`, so you can see which build is running.
+- The main menu shows `DEV · <commit>` (`DEV · <branch> · <commit>` off `main`), so you can see
+  which build is running.
 - Offline, it shows a small "Retry" page instead of the game.
 - Its saves are separate from the real app's.
 
@@ -142,7 +145,9 @@ into `android/app/src/dev/assets/` after `cap sync`. Locally: `npm run android:d
 `DEV_URL=http://<your-ip>:5173/ npm run android:dev` points it at your `npm run dev`
 server instead.
 
-**One-time setup:** Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+**One-time setup:** Settings → Pages → Build and deployment → Source: **GitHub Actions**, and
+Settings → Environments → github-pages → Deployment branches and tags: **No restriction**
+(otherwise only `main` may deploy).
 
 ## Icon, splash and store art
 
