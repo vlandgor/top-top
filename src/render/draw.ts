@@ -18,7 +18,7 @@ let F: Frame;
 let ctx: CanvasRenderingContext2D = mainCtx;
 
 const SWING_S = 0.09;              // seconds a swing takes to draw
-const HUD_TOP = 64, BOTTOM = 30;   // room for the HUD chips and the hint line
+const HUD_TOP = 58, BOTTOM = 26;   // room for the HUD chips and the hint line
 
 interface Layout { s: number; ox: number; oy: number }
 let L: Layout = { s: 40, ox: 0, oy: 0 };
@@ -61,7 +61,7 @@ export function draw(){
   ctx.fillStyle = C.bg; ctx.fillRect(0, 0, view.w, view.h);
   const r = S.run; if (!r) return;
   F = { r, tf: tickF(), now: S.now, live: true };
-  L = layoutIn(r.lv, 10, HUD_TOP, view.w - 20, view.h - HUD_TOP - BOTTOM, 76, BIGGEST);
+  L = layoutIn(r.lv, 0, HUD_TOP, view.w, view.h - HUD_TOP - BOTTOM, 76, BIGGEST);
   const dead = r.status === "dead", deadK = dead ? Math.min(1, (S.now - S.deadAt) / (RETRY_MS / 1000)) : 0;
 
   ctx.save();

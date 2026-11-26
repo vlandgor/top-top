@@ -1,4 +1,8 @@
 :root{
+  /* the margin kept clear around the whole UI, on top of any notch or rounded-corner area */
+  --edge:20px;
+  --inT:calc(var(--edge) + env(safe-area-inset-top)); --inB:calc(var(--edge) + env(safe-area-inset-bottom));
+  --inL:calc(var(--edge) + env(safe-area-inset-left)); --inR:calc(var(--edge) + env(safe-area-inset-right));
   --bg:#05080a; --panel:#0c1316; --line:#1a272b; --txt:#e4f4f1; --dim:#7d9692;
   --teal:#19e3c8; --coral:#ff7a5c; --purple:#a77bff; --red:#ff3b4e; --blue:#4db8ff;
   --accent:var(--teal);
@@ -9,14 +13,14 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
   overscroll-behavior:none;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 button{font:inherit;color:inherit;cursor:pointer}
 /* landscape: a boot button under each thumb, the board between them */
-#wrap{position:relative;display:flex;flex-direction:row;height:100%;
-  padding:0 env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+#wrap{position:relative;display:flex;flex-direction:row;gap:12px;height:100%;
+  padding:var(--inT) var(--inR) var(--inB) var(--inL)}
 #stage{position:relative;flex:1;min-width:0}
 canvas{display:block}
 #cv{width:100%;height:100%}
 
 /* ---- HUD ---- */
-#hud{position:absolute;inset:calc(10px + env(safe-area-inset-top)) 10px auto 10px;display:flex;gap:8px;
+#hud{position:absolute;inset:0 0 auto 0;display:flex;gap:8px;
   align-items:flex-start;pointer-events:none;font-variant-numeric:tabular-nums;z-index:2}
 .chip{background:rgba(12,19,22,.86);border:1px solid var(--line);border-radius:12px;padding:6px 11px;min-width:0}
 .chip span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
@@ -26,16 +30,16 @@ canvas{display:block}
 #hGoal span{color:var(--dim)}
 .hbtn{pointer-events:auto;background:rgba(12,19,22,.86);border:1px solid var(--line);border-radius:12px;
   width:44px;height:44px;font-size:14px;display:flex;align-items:center;justify-content:center;flex:none}
-#attempt{position:absolute;left:0;right:0;top:calc(68px + env(safe-area-inset-top));text-align:center;
+#attempt{position:absolute;left:0;right:0;top:56px;text-align:center;
   font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);pointer-events:none;
   opacity:0;transition:opacity .4s}
 #attempt.on{opacity:.9}
-#toast{position:absolute;left:16px;right:16px;bottom:10px;text-align:center;font-size:13px;color:#bfd7d3;
+#toast{position:absolute;left:8px;right:8px;bottom:0;text-align:center;font-size:13px;color:#bfd7d3;
   pointer-events:none;opacity:0;transition:opacity .5s;line-height:1.35}
 #toast.on{opacity:1}
 
 /* ---- the two boot buttons ---- */
-.pad{flex:none;width:clamp(84px,15vw,150px);margin:12px 10px;border-radius:24px;border:1px solid var(--line);
+.pad{flex:none;width:clamp(84px,15vw,150px);margin:0;border-radius:24px;border:1px solid var(--line);
   background:linear-gradient(#0e171a,#091012);color:var(--accent);display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:6px;touch-action:none;transition:transform .05s}
 .pad b{font-size:30px;font-weight:900;line-height:1;color:var(--txt)}
@@ -48,7 +52,7 @@ canvas{display:block}
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 #ui.on{display:block}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
-  gap:14px;padding:calc(24px + env(safe-area-inset-top)) 22px calc(24px + env(safe-area-inset-bottom));
+  gap:14px;padding:var(--inT) var(--inR) var(--inB) var(--inL);
   text-align:center;overflow:auto}
 .screen.on{display:flex}
 .screen{justify-content:safe center}
@@ -73,7 +77,7 @@ canvas{display:block}
 #sWin .stack,#sPause .stack{flex-direction:row;flex-wrap:wrap;justify-content:center}
 #sWin .stack>*,#sPause .stack>*{width:auto;min-width:170px}
 .hint{font-size:12px;color:var(--dim);max-width:310px;line-height:1.5}
-.devtag{position:absolute;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom));font:11px ui-monospace,monospace;
+.devtag{position:absolute;left:0;right:0;bottom:calc(var(--inB) - 14px);font:11px ui-monospace,monospace;
   opacity:.45;pointer-events:none}
 
 .howgrid{display:grid;grid-template-columns:56px 1fr;gap:12px 14px;text-align:left;width:min(330px,94%);
@@ -96,7 +100,7 @@ canvas{display:block}
 .bar h2{flex:none;font-size:22px}
 .bar .sub{margin:0 0 0 auto}
 .back{background:none;border:1px solid var(--line);border-radius:12px;width:40px;height:40px;font-size:24px;line-height:1;flex:none}
-.screen.top{gap:12px;padding-top:calc(14px + env(safe-area-inset-top));padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+.screen.top{gap:12px}
 
 /* ---- game modes: list left, details right ---- */
 .split{display:grid;grid-template-columns:minmax(200px,34%) 1fr;gap:16px;width:100%;max-width:980px;flex:1;min-height:0}
