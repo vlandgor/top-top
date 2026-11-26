@@ -71,10 +71,15 @@ export interface LevelDef {
    * first). Up to 4. A room map has no A / B; solo levels leave this out
    */
   starts?: string[];
-  /** co-op rooms: lives the team shares. default 5 */
+  /** co-op rooms: lives the team shares, for two players (more players get more). default 5 */
   lives?: number;
   /** co-op rooms: beats before time runs out and the team loses. 0 / absent = no limit */
   limit?: number;
+  /**
+   * co-op rooms: more lights for more players. more[0] is added with a 3rd player, more[1] with
+   * a 4th, each "x,y x,y"
+   */
+  more?: string[];
   /** a one-line tip shown on the level's first attempt */
   hint?: string;
   /**

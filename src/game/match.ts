@@ -1,6 +1,7 @@
 import type { Boot, LevelDef, Level } from "../core/types";
 import { sfx } from "../audio/audio";
 import { parseLevel } from "../levels/parse";
+import { forPlayers } from "../levels/rooms";
 import { save, writeSave } from "../storage/save";
 import { Bot, SKILLS, type SkillId } from "./bot";
 import { advanceRoom, canPressPair, newRoom, pressPair, type Room } from "./room";
@@ -55,8 +56,8 @@ export const M = {
 };
 
 export function startMatch(def: LevelDef, slots: Slot[]){
-  M.def = def; M.lv = parseLevel(def);
   M.slots = slots.filter(s => s.kind !== "open");
+  M.def = def; M.lv = parseLevel(forPlayers(def, M.slots.length));
   M.you = M.slots.findIndex(s => s.kind === "you");
   M.seed = (Math.random() * 2 ** 31) | 0;
   M.active = true;

@@ -8,8 +8,10 @@ import { itemLive, nextTileOf } from "./rules";
 // the same movement as solo; pairs never block each other, they just overlap.
 //
 //   - the lights are shared: whoever touches one picks it up for the team
-//   - the team shares a pool of lives. A pair that dies loses one, waits RESPAWN_TICKS and
-//     comes back at its start. When the pool is empty, the run is lost
+//   - the team shares a pool of lives: lv.lives is for two players, and it grows in proportion
+//     (5 lives: 8 for three players, 10 for four). A pair that
+//     dies loses one, waits RESPAWN_TICKS and comes back at its start, once nothing will hit
+//     the start for SPAWN_SAFE ticks. When the pool is empty, the run is lost
 //   - an optional time limit (lv.limit, in beats): the clock running out loses too
 //
 // Every player gets at most one press per tick, like solo. Who presses doesn't matter to these
@@ -19,6 +21,8 @@ import { itemLive, nextTileOf } from "./rules";
 
 /** how long a pair is out after dying: 8 ticks, 1 s */
 export const RESPAWN_TICKS = 8;
+/** a pair only comes back when its start stays safe this long: 12 ticks, 1.5 s to get moving */
+export const SPAWN_SAFE = 12;
 
 export interface Pair {
   boots: [Vec, Vec];
@@ -63,11 +67,14 @@ export function newRoom(lv: Level, players: number): Room {
   }));
   const room: Room = {
     lv, tick: 0, pairs, taken: lv.items.map(() => false), got: 0, nextOrder: 1,
-    lives: lv.lives, status: "play", why: "",
+    lives: teamLives(lv, players), status: "play", why: "",
   };
   resolveRoom(room);
   return room;
 }
+
+/** the shared lives for a team of this size */
+export function teamLives(lv: Level, players: number): number { return Math.ceil(lv.lives * Math.max(2, players) / 2); }
 
 export function canPressPair(room: Room, i: number): boolean {
   const p = room.pairs[i];
@@ -91,12 +98,18 @@ export function advanceRoom(room: Room): void {
   room.tick++;
   for (const p of room.pairs) {
     if (p.alive || room.tick < p.backAt) continue;
-    // back at the start, unless a hazard is standing on it right now: then wait a tick more
-    if (p.start.some(s => lethalAt(room.lv, s.x, s.y, room.tick))) { p.backAt = room.tick + 1; continue; }
+    // back at the start, unless a hazard is on it or about to be: then wait a tick more
+    if (!startSafe(room, p)) { p.backAt = room.tick + 1; continue; }
     p.boots = [{ ...p.start[0] }, { ...p.start[1] }];
     p.alive = true; p.last = null; p.lastMoveTick = -1;
   }
   resolveRoom(room);
+}
+
+function startSafe(room: Room, p: Pair): boolean {
+  for (let t = room.tick; t <= room.tick + SPAWN_SAFE; t++)
+    if (p.start.some(s => lethalAt(room.lv, s.x, s.y, t))) return false;
+  return true;
 }
 
 /** deaths, pickups and the end of the run, after anything changed */
@@ -130,14 +143,18 @@ export function resolveRoom(room: Room): void {
 }
 
 function won(room: Room): boolean {
-  switch (room.lv.def.mode) {
-    case "collect": return room.got === room.lv.items.length;
-    // only Collect has a room so far; the other modes get their co-op rules when they get rooms
+  const lv = room.lv;
+  switch (lv.def.mode) {
+    case "collect": return room.got === lv.items.length;
+    // the team survives the clock: any lives left when it runs out is a win
+    case "survival": return beatOf(lv, room.tick) >= lv.survive;
+    // the other modes get their co-op rules when they get rooms
     default: return false;
   }
 }
 
-/** seconds-free clock for the HUD: beats left, or null without a limit */
+/** the clock for the HUD, in beats: Survival's goal, or the time limit. null when there is none */
 export function beatsLeft(room: Room): number | null {
-  return room.lv.limit ? Math.max(0, room.lv.limit - beatOf(room.lv, room.tick)) : null;
+  const end = room.lv.def.mode === "survival" ? room.lv.survive : room.lv.limit;
+  return end ? Math.max(0, end - beatOf(room.lv, room.tick)) : null;
 }

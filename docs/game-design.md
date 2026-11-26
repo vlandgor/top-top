@@ -83,29 +83,42 @@ own levels (`src/levels/rooms.ts`).
 
 - **Every player steers their own pair** with the solo movement and buttons. Pairs never
   block each other; they just overlap. Each pair has its own colour (you are always teal).
-- **One team:** lights are shared, so any player's pickup counts. The team shares a pool of
-  **lives** (5 by default). A pair that dies loses one, sits out 1 s, then comes back at its
-  start. The run is lost when the lives or the **clock** (`limit`, in beats) run out.
+- **One team:** the team shares a pool of **lives**: a room's `lives` (5 by default) are for
+  two players and grow in proportion (8 for three, 10 for four). A pair that dies loses one,
+  sits out 1 s, then comes back at its start once nothing will hit it there for 1.5 s. The
+  run is lost when the lives run out (or, in Collect, the **clock**: `limit`, in beats).
 - **Flow:** lobby → 3-2-1 countdown → play → results (team time, lives left, each player's
   lights and falls). Pausing counts back in from 3. The team's best time is kept per room and
   player count.
 - **Room levels** list one start per player (`starts: ["ax,ay bx,by", …]`) instead of A / B on
-  the map, plus `lives` and `limit`. There is no proof: the tests prove a room by having bot
-  teams clear it at every player count and skill.
-- **First room:** *Light Hunt*, Collect All, 11×7, 13 lights, 2 sentries, 60 s. Only Collect
-  has co-op rules so far.
+  the map, plus `lives`, `limit` and `more` (extra lights for a 3rd and a 4th player). There is
+  no proof: the tests prove a room by having bot teams clear it at every player count and
+  skill. Regular and Pro teams must win every run; a Rookie team at least half.
+- **The lobby** has a room per mode, picked with tabs in the mode's colour.
+
+| Room | Mode | Co-op rule |
+|---|---|---|
+| *Light Hunt* | Collect All | Lights are shared: any player's pickup counts. 13 lights (16 for three players, 19 for four), 2 sentries, 60 s. |
+| *Hot Floor* | Survival | Stay alive together for 44 s: the room is cleared with any lives left. Pulses whose safe columns swap sides, two sentries, and from halfway a wave down the board. |
+
+Still to come: Sequence (one shared order, a wrong light costs a life instead of restarting),
+Destination (every pair has to reach the goal; a pair that does is home and stops), Waves (a
+shared count).
 
 ### Bots
 
 Until there is online play, bots fill the other seats, so the whole flow can be built and
-tested solo. In the lobby each of the three extra slots is Open or a bot (Easy / Normal / Hard).
+tested solo. In the lobby each of the three extra slots is Open or a bot: Rookie, Regular or
+Pro (easy / normal / hard in the code).
 
 A bot steers its pair through the same rules a person does, one decision per tick. It looks
 5 s ahead with a breadth-first search over its own pair against the real hazard schedule,
 heads for the soonest light that another bot hasn't claimed and that a teammate isn't clearly
-closer to, and rethinks when that light is gone. Skill is three knobs: press pace (4 / 3 / 2
-ticks), reaction time before acting on a new goal, and how often a press goes to the wrong
-boot (5% / 2% / 0%), which can cost the team a life like a person's slip. Everything random
+closer to, and rethinks when that light is gone. With nothing to collect (Survival) it takes
+the safe route with the fewest presses, so it holds still when it can; when no route is safe,
+the one that lasts longest. Skill is three knobs: press pace (5 / 4 / 3 ticks: 625 / 500 /
+375 ms), reaction time before acting on a new goal, and how often a press goes to the wrong
+boot (3% / 2% / 0%), which can cost the team a life like a person's slip. Everything random
 is seeded, so a match replays the same way.
 
 ### Toward online play

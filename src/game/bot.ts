@@ -30,10 +30,11 @@ export interface Skill {
   /** chance that a press goes to the wrong boot */
   slip: number;
 }
+// paces of 625 / 500 / 375 ms a press: Hard keeps up with a quick player, Normal with a relaxed one
 export const SKILLS: Record<SkillId, Skill> = {
-  easy: { pace: 4, react: 4, slip: 0.05 },
-  normal: { pace: 3, react: 2, slip: 0.02 },
-  hard: { pace: 2, react: 1, slip: 0 },
+  easy: { pace: 5, react: 5, slip: 0.03 },
+  normal: { pace: 4, react: 3, slip: 0.02 },
+  hard: { pace: 3, react: 1, slip: 0 },
 };
 
 /** how far ahead a bot looks: 40 ticks, 5 s */
@@ -41,7 +42,7 @@ const HORIZON = 40;
 /** extra ticks a light "costs" when someone else is on it */
 const CLAIMED = 40, CLOSER = 16;
 
-interface Node { a: Vec; b: Vec; since: number; parent: Node | null; act: Action }
+interface Node { a: Vec; b: Vec; since: number; parent: Node | null; act: Action; presses: number }
 interface Plan { tick0: number; acts: Action[]; states: Node[]; target: number; i: number }
 
 /** a small seeded random generator (mulberry32) */
@@ -94,9 +95,11 @@ export class Bot {
     const T = room.tick;
     const wait = (t: number) => t < react;
 
-    const root: Node = { a: { ...p.boots[0] }, b: { ...p.boots[1] }, since: p.lastMoveTick < 0 ? pace : Math.min(pace, T - p.lastMoveTick), parent: null, act: 0 };
+    const root: Node = { a: { ...p.boots[0] }, b: { ...p.boots[1] }, since: p.lastMoveTick < 0 ? pace : Math.min(pace, T - p.lastMoveTick), parent: null, act: 0, presses: 0 };
     const first = new Map<number, { node: Node; t: number }>();    // light -> soonest node standing on it
     let layer: Node[] = [root];
+    /** the deepest layer anything was still alive in, for when nothing lives to the horizon */
+    let lastAlive: Node[] = [root];
     const deadly = (q: Vec, tick: number) => !!lethalAt(lv, q.x, q.y, tick);
     for (let t = 0; t < HORIZON && layer.length; t++) {
       const next = new Map<string, Node>();
@@ -112,14 +115,16 @@ export class Bot {
             if (deadly(a, tick) || deadly(b, tick)) continue;
           }
           if (deadly(a, tick + 1) || deadly(b, tick + 1)) continue;
-          const node: Node = { a, b, since: act ? 1 : Math.min(pace, n.since + 1), parent: n, act };
+          const node: Node = { a, b, since: act ? 1 : Math.min(pace, n.since + 1), parent: n, act, presses: n.presses + (act ? 1 : 0) };
           for (const q of [a, b]) for (const i of lv.itemsAt.get(q.y * lv.w + q.x) || [])
             if (!room.taken[i] && !first.has(i) && itemLive(lv.items[i], beat)) first.set(i, { node, t });
           const k = `${a.x},${a.y},${b.x},${b.y},${node.since}`;
-          if (!next.has(k)) next.set(k, node);
+          const old = next.get(k);
+          if (!old || node.presses < old.presses) next.set(k, node);   // same place, fewer presses wins
         }
       }
       layer = [...next.values()];
+      if (layer.length) lastAlive = layer;
     }
 
     // pick a light: soonest, unless another bot has it or a teammate is clearly closer
@@ -143,12 +148,15 @@ export class Bot {
       const free = open.filter(i => !team.some(o => o && o !== this && o.target === i));
       const goals = (free.length ? free : open).map(i => lv.items[i]);
       const dist = (n: Node) => Math.min(...goals.map(g => Math.min(cheb(n.a, g), cheb(n.b, g))));
-      end = goals.length ? layer.reduce((m, n) => (dist(n) < dist(m) ? n : m)) : layer[0];
+      // nothing to collect at all (Survival): the safe route with the fewest presses, so it holds still when it can
+      end = goals.length ? layer.reduce((m, n) => (dist(n) < dist(m) ? n : m)) : layer.reduce((m, n) => (n.presses < m.presses ? n : m));
     }
     if (!end) {
       // no way to live through the next few seconds while standing still to decide: decide at once
       if (react) return this.think(room, team, 0);
-      this.plan = null; this.target = -1; return;
+      // still none: the route that lives longest, and think again on the way
+      end = lastAlive.reduce((m, n) => (n.presses < m.presses ? n : m));
+      if (end === root) { this.plan = null; this.target = -1; return; }
     }
     const path: Node[] = [];
     for (let c: Node | null = end; c && c.parent; c = c.parent) path.push(c);

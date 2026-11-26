@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LevelDef } from "../src/core/types";
 import { parseLevel } from "../src/levels/parse";
-import { ROOMS } from "../src/levels/rooms";
+import { forPlayers, ROOMS } from "../src/levels/rooms";
 import { advanceRoom, newRoom, pressPair, RESPAWN_TICKS } from "../src/game/room";
 import { Bot, botsAct, SKILLS, type SkillId } from "../src/game/bot";
 
@@ -75,19 +75,36 @@ describe("co-op rules", () => {
   });
 });
 
+describe("room levels for more players", () => {
+  it("add their extra lights", () => {
+    const def = ROOMS.find(r => r.more?.length)!;
+    const lights = (n: number) => parseLevel(forPlayers(def, n)).items.length;
+    expect(lights(3)).toBeGreaterThan(lights(2));
+    expect(lights(4)).toBeGreaterThan(lights(3));
+  });
+});
+
 // A room has no proof: it is proven by bot teams clearing it, at every player count and skill.
+// Normal and Hard teams must win every run; Easy bots are meant to be a liability, so an Easy
+// team only has to win at least half of its runs.
 describe("rooms can be cleared by bot teams", () => {
   for (const def of ROOMS) {
-    const lv = parseLevel(def);
     for (const skill of ["hard", "normal", "easy"] as SkillId[]) {
-      for (let n = 2; n <= lv.starts.length; n++) {
+      for (let n = 2; n <= (def.starts?.length || 0); n++) {
         it(`${def.id} "${def.name}": ${n} ${skill} bots`, () => {
+          const lv = parseLevel(forPlayers(def, n));
+          const runs: string[] = [];
+          let wins = 0;
           for (let seed = 1; seed <= 4; seed++) {
             const r = newRoom(lv, n);
             const bots = r.pairs.map((_, i) => new Bot(i, SKILLS[skill], seed * 100 + i));
             while (r.status === "play") { botsAct(r, bots); advanceRoom(r); }
-            expect(r.status, `seed ${seed}: ${r.why}, ${r.got}/${lv.items.length} lights`).toBe("won");
+            if (r.status === "won") wins++;
+            else if (skill !== "easy") expect(r.status, `seed ${seed}: ${r.why}, ${r.got}/${lv.items.length} lights`).toBe("won");
+            runs.push(`${r.status === "won" ? "" : "LOST "}` + `${(r.tick / 8).toFixed(1)}s/${r.pairs.reduce((s, p) => s + p.deaths, 0)}fell`);
           }
+          if (process.env.ROOM_STATS) console.log(def.id, skill, n, runs.join(" "));
+          expect(wins, runs.join(" ")).toBeGreaterThanOrEqual(2);
         });
       }
     }

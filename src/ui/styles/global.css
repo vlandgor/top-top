@@ -234,3 +234,10 @@ em.new{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:upper
   border-top:3px solid var(--c);text-align:left}
 #roPlayers b{display:block;font-size:14px}
 #roPlayers span{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+.rtabs{display:flex;gap:6px;flex-wrap:wrap;flex:none}
+.rtabs button{background:none;border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:700;
+  color:var(--dim);display:flex;align-items:center;gap:6px}
+.rtabs button i{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.rtabs button.sel{border-color:var(--c);color:var(--txt);background:color-mix(in srgb,var(--c) 12%,transparent)}
+#roomInfo .eyebrow{color:var(--accent)}
+#bRoomStart{background:var(--accent);box-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent)}
