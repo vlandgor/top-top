@@ -44,16 +44,17 @@ canvas{display:block}
    fading toward the board ---- */
 .pad{flex:none;width:clamp(76px,13vw,140px);margin:calc(-1 * var(--inT)) 0 calc(-1 * var(--inB));border:0;border-radius:0;
   color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  touch-action:none;transition:background .12s}
-/* strong at the edge, easing out slowly toward the board */
-.pad{--g0:34%;--g1:20%;--g2:8%}
-.pad.hit{--g0:58%;--g1:36%;--g2:14%}
-#bLeft{margin-left:calc(-1 * var(--inL));padding-left:var(--inL);
-  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) var(--g0),transparent) 0%,
-    color-mix(in srgb,var(--accent) var(--g1),transparent) 35%,color-mix(in srgb,var(--accent) var(--g2),transparent) 70%,transparent 100%)}
-#bRight{margin-right:calc(-1 * var(--inR));padding-right:var(--inR);
-  background:linear-gradient(270deg,color-mix(in srgb,var(--accent) var(--g0),transparent) 0%,
-    color-mix(in srgb,var(--accent) var(--g1),transparent) 35%,color-mix(in srgb,var(--accent) var(--g2),transparent) 70%,transparent 100%)}
+  touch-action:none;background:none}
+/* a thin glowing rail at the screen edge, fading out at its ends; brighter while pressed */
+.pad{position:relative;--a:.5}
+.pad.hit{--a:1}
+#bLeft{margin-left:calc(-1 * var(--inL));padding-left:var(--inL)}
+#bRight{margin-right:calc(-1 * var(--inR));padding-right:var(--inR)}
+.pad::before{content:"";position:absolute;top:10%;bottom:10%;width:2px;border-radius:2px;pointer-events:none;
+  background:linear-gradient(transparent,currentColor 25%,currentColor 75%,transparent);box-shadow:0 0 10px currentColor;
+  opacity:var(--a);transition:opacity .1s}
+#bLeft::before{left:7px}
+#bRight::before{right:7px}
 .pad b{font-size:26px;font-weight:850;line-height:1;color:var(--txt);opacity:.9}
 .pad span{font-size:24px;line-height:1;text-shadow:0 0 16px currentColor}
 .pad.off,#hud.off{visibility:hidden}
