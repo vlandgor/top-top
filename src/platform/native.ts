@@ -11,7 +11,7 @@ function onBack(){
   if (M.active && M.phase !== "over") { if (M.phase === "paused") unpause(); else pauseAny(); return; }
   if (S.screen === "play") { pauseAny(); return; }
   if (S.screen === "paused") { unpause(); return; }
-  if (S.screen === "won") { goLevels(S.def?.mode); return; }
+  if (S.screen === "won") { goLevels(S.def?.mode, false); return; }
   if (back()) return;
   app()?.exitApp();
 }

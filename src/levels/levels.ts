@@ -23,6 +23,8 @@ export interface ModeInfo {
   preview: string;
   /** still being designed */
   wip?: boolean;
+  /** the mode played as a co-op team: its one-line blurb and its rule */
+  coop: { blurb: string; about: string };
 }
 
 export const MODES: ModeInfo[] = [
@@ -30,26 +32,31 @@ export const MODES: ModeInfo[] = [
     id: "destination", name: "Destination", preview: "d14",
     blurb: "Walk the boots to the goal",
     about: "Get either boot onto the glowing goal. Read the sentries, time your presses and find the way through.",
+    coop: { blurb: "Get every pair home", about: "Every pair has to reach the goal. A pair that gets there is home and stops; the room is cleared when the whole team is home." },
   },
   {
     id: "collect", name: "Collect All", preview: "c10",
     blurb: "Pick up every light",
     about: "Every light on the board has to be picked up, in any order, by either boot. Plan a route that touches them all.",
+    coop: { blurb: "Every light counts for the team", about: "Pick up every light together: whoever touches one picks it up for the team. Split the board, and watch the shared lives." },
   },
   {
     id: "sequence", name: "Sequence", preview: "s10",
     blurb: "Collect in order",
     about: "The lights are numbered. Pick them up in order: touch the wrong one and the level restarts.",
+    coop: { blurb: "One order for the whole team", about: "The team picks up the numbered lights in one shared order. Touch the wrong one and it costs a shared life." },
   },
   {
     id: "survival", name: "Survival", preview: "r13",
     blurb: "Stay alive until the clock runs out",
     about: "No goal, just a clock. The floor keeps lighting up red; stay on the safe tiles until time runs out.",
+    coop: { blurb: "Stay alive together", about: "No goal, just a clock. Keep the team alive until it runs out: the room is cleared with any shared lives left." },
   },
   {
     id: "waves", name: "Waves", preview: "w6", wip: true,
     blurb: "Grab what each wave leaves, then get clear",
     about: "A wave sweeps down the board again and again. Each one leaves lights behind it; grab them before the next wave washes them away.",
+    coop: { blurb: "Grab what the waves leave, together", about: "Each wave leaves lights behind it. The team collects them toward one shared count before the next wave washes them away." },
   },
 ];
 

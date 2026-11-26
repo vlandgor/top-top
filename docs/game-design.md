@@ -87,14 +87,16 @@ own levels (`src/levels/rooms.ts`).
   two players and grow in proportion (8 for three, 10 for four). A pair that dies loses one,
   sits out 1 s, then comes back at its start once nothing will hit it there for 1.5 s. The
   run is lost when the lives run out (or, in Collect, the **clock**: `limit`, in beats).
-- **Flow:** lobby → 3-2-1 countdown → play → results (team time, lives left, each player's
-  lights and falls). Pausing counts back in from 3. The team's best time is kept per room and
-  player count.
+- **Flow:** **Co-op** on the main menu opens the lobby (the team: you plus three seats for
+  bots), then the same **Game modes** and **Levels** screens as solo, showing the rooms, each
+  mode's co-op rule and the team in the header (modes without a room yet say "soon"). Then a
+  3-2-1 countdown → play → results (team time, lives left, each player's lights and falls),
+  with Play again, Levels and Lobby. Pausing counts back in from 3. The team's best time is
+  kept per room and team size; a room counts as cleared for the team size in the lobby.
 - **Room levels** list one start per player (`starts: ["ax,ay bx,by", …]`) instead of A / B on
   the map, plus `lives`, `limit` and `more` (extra lights for a 3rd and a 4th player). There is
   no proof: the tests prove a room by having bot teams clear it at every player count and
   skill. Regular and Pro teams must win every run; a Rookie team at least half.
-- **The lobby** has a room per mode, picked with tabs in the mode's colour.
 
 | Room | Mode | Co-op rule |
 |---|---|---|

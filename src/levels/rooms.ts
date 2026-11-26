@@ -1,4 +1,4 @@
-import type { LevelDef } from "../core/types";
+import type { LevelDef, Mode } from "../core/types";
 
 // ---------------------------------------------------------------------------
 // ROOMS — co-op levels for 2-4 players, kept apart from the solo levels in LEVELS. One room
@@ -65,6 +65,7 @@ export const ROOMS: LevelDef[] = [
 ];
 
 export function roomById(id: string): LevelDef | undefined { return ROOMS.find(r => r.id === id); }
+export function roomsOf(mode: Mode): LevelDef[] { return ROOMS.filter(r => r.mode === mode); }
 
 /** a room as played by this many players: its `more` lights added to the map */
 export function forPlayers(def: LevelDef, players: number): LevelDef {

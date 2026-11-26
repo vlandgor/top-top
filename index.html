@@ -48,7 +48,7 @@
 
     <!-- choose a game mode: the list on the left, the chosen mode on the right -->
     <section class="screen top" id="sModes">
-      <div class="bar"><button class="back" id="bModesBack" aria-label="Back">‹</button><h2>Game modes</h2></div>
+      <div class="bar"><button class="back" id="bModesBack" aria-label="Back">‹</button><h2>Game modes</h2><div class="teamchip" id="modesTeam"></div></div>
       <div class="split">
         <div id="modeList"></div>
         <div id="modeInfo">
@@ -60,7 +60,7 @@
             <div class="chips" id="miChips"></div>
             <div class="mstats">
               <div><b id="miCleared">0/0</b><span>cleared</span></div>
-              <div><b id="miAttempts">0</b><span>attempts</span></div>
+              <div><b id="miAttempts">0</b><span id="miAttemptsL">attempts</span></div>
               <div><b id="miBest">–</b><span>best time</span></div>
             </div>
             <button class="btn" id="bModeSelect">Select</button>
@@ -76,6 +76,7 @@
       <div class="bar lvbar">
         <button class="back" id="bLevelsBack" aria-label="Back">‹</button>
         <h2 id="lvTitle">Levels</h2>
+        <div class="teamchip" id="lvTeam"></div>
         <div class="lvblurb" id="lvBlurb"></div>
         <div class="lvprog"><span id="lvCleared"></span><div class="progress"><i id="lvBar"></i></div></div>
       </div>
@@ -87,38 +88,23 @@
           <p id="liGoal"></p>
           <div class="chips" id="liChips"></div>
           <div class="mstats">
-            <div><b id="liPresses">–</b><span>presses</span></div>
-            <div><b id="liTime">–</b><span>best time</span></div>
-            <div><b id="liAttempts">0</b><span>attempts</span></div>
+            <div><b id="liPresses">–</b><span id="liPressesL">presses</span></div>
+            <div><b id="liTime">–</b><span id="liTimeL">best time</span></div>
+            <div><b id="liAttempts">0</b><span id="liAttemptsL">attempts</span></div>
           </div>
           <button class="btn" id="bLevelPlay">Play</button>
         </div>
       </div>
     </section>
 
-    <!-- co-op lobby: the players on the left (you, then three slots for bots), the room on the right -->
+    <!-- co-op lobby: the team. You, then three slots for bots (later: friends). Then the same
+         game modes and levels screens as solo, in co-op -->
     <section class="screen top" id="sRoom">
-      <div class="bar"><button class="back" id="bRoomBack" aria-label="Back">‹</button><h2>Co-op</h2><div class="sub">2–4 players on one floor, as one team</div></div>
-      <div class="split">
-        <div id="slotList">
-          <div id="slots"></div>
-          <div class="hint">Tap a slot to add a bot or change its skill. Bots fill in for friends until online play arrives.</div>
-        </div>
-        <div id="roomInfo">
-          <canvas id="roomPreview"></canvas>
-          <div class="info">
-            <div class="rtabs" id="roomTabs"></div>
-            <div class="eyebrow" id="riTag"></div>
-            <h3 id="riName"></h3>
-            <p id="riGoal"></p>
-            <div class="chips" id="riChips"></div>
-            <div class="mstats">
-              <div><b id="riBest">–</b><span id="riBestLabel">team best</span></div>
-              <div><b id="riLives">5</b><span>shared lives</span></div>
-            </div>
-            <button class="btn" id="bRoomStart">Start</button>
-          </div>
-        </div>
+      <div class="bar"><button class="back" id="bRoomBack" aria-label="Back">‹</button><h2>Co-op lobby</h2><div class="sub">2–4 players on one floor, as one team</div></div>
+      <div id="slots"></div>
+      <div class="lobbyfoot">
+        <div class="hint">Tap a slot to add a bot or change its skill. Bots fill in for friends until online play arrives.</div>
+        <button class="btn" id="bRoomNext">Choose a game</button>
       </div>
     </section>
 
@@ -129,6 +115,7 @@
       <div id="roPlayers"></div>
       <div class="stack">
         <button class="btn big" id="bRoomAgain">Play again</button>
+        <button class="ghost" id="bRoomLevels">Levels</button>
         <button class="ghost" id="bRoomLobby">Lobby</button>
       </div>
     </section>
