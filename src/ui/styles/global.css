@@ -8,7 +8,7 @@
   --accent:var(--teal);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
   font:14px/1.4 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   overscroll-behavior:none;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -69,6 +69,14 @@ canvas{display:block}
 .screen.on{display:flex}
 .screen{justify-content:safe center}
 .screen.row{flex-direction:row;gap:48px}
+/* the main menu never scrolls: on short screens (or with a large system font) the logo, title
+   and buttons shrink to fit instead */
+#sMenu{overflow:hidden}
+#sMenu .stack{gap:clamp(6px,2.4vh,10px)}
+#sMenu .btn.big,#sMenu .ghost{padding-top:clamp(8px,3vh,16px);padding-bottom:clamp(8px,3vh,16px)}
+#sMenu .title{font-size:clamp(26px,10vh,40px)}
+#sMenu .title small{margin-top:clamp(6px,2.4vh,12px)}
+#logoCv{height:clamp(70px,36vh,150px);width:auto}
 .brand{display:flex;flex-direction:column;align-items:center;gap:6px}
 .screen.row .stack{width:auto;min-width:260px}
 .screen.top{justify-content:flex-start}
