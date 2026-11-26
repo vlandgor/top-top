@@ -100,38 +100,99 @@ function features(m: Mode): string[] {
   return out;
 }
 
-/** every frame while the modes screen is open */
-export function drawModePreview(){
-  if (!preview || !screenOn("sModes")) return;
-  const cv = $<HTMLCanvasElement>("modePreview");
+/** a canvas drawn at its CSS size, sharp on high-density screens */
+function previewInto(id: string, p: { run: Run; t0: number }){
+  const cv = $<HTMLCanvasElement>(id);
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = cv.clientWidth, h = cv.clientHeight;
   if (!w || !h) return;
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   const c = cv.getContext("2d")!;
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  drawPreview(c, w, h, preview.run, performance.now() / 1000 - preview.t0, TICK_MS);
+  drawPreview(c, w, h, p.run, performance.now() / 1000 - p.t0, TICK_MS);
 }
 
-// ---- levels of one mode -------------------------------------------------------------------
+/** every frame: the live preview on whichever of the two screens is open */
+export function drawPreviews(){
+  if (preview && screenOn("sModes")) previewInto("modePreview", preview);
+  if (levelPreview && screenOn("sLevels")) previewInto("levelPreview", levelPreview);
+}
+
+// ---- levels of one mode: a grid on the left, the chosen level on the right ------------------
+/** a thin padlock drawn in the text colour, to match the neon UI (an emoji lock is yellow) */
+const LOCK = `<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true" style="position:relative"><rect x="3.5" y="7" width="9" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>`;
+
+/** the level chosen in each mode, so coming back shows the same one */
+const chosen: Partial<Record<Mode, string>> = {};
+let levelPreview: { run: Run; t0: number } | null = null;
+
 export function goLevels(m: Mode = mode){
   mode = m;
   S.screen = "menu"; S.run = null; setAccent(ACCENT[m]);
-  const info = MODES.find(x => x.id === m)!, st = modeStats(m);
+  const info = MODES.find(x => x.id === m)!, st = modeStats(m), lvls = levelsOf(m);
   $("lvTitle").textContent = info.name;
   $("lvProgress").textContent = `${st.cleared}/${st.total} cleared`;
+  // the first open level not cleared yet: where the player is up to
+  const next = lvls.find(d => !isDone(d.id) && isOpen(d, IS_DEV));
   const grid = $("levelGrid"); grid.innerHTML = "";
-  levelsOf(m).forEach((def, i) => {
+  lvls.forEach((def, i) => {
     const b = document.createElement("button");
-    const best = save.done?.[def.id], open = isOpen(def, IS_DEV);
-    b.className = "lvl" + (best ? " done" : "");
-    b.disabled = !open;
-    const sub = best ? `${best.presses ?? "–"} presses · ${fmtTime(best.ticks)}` : open ? "Not cleared" : "Clear the one before";
-    b.innerHTML = `<b>${i + 1}</b><strong>${def.name}</strong><small>${sub}</small>`;
-    b.onclick = () => { sfx("click"); play(def); };
+    const open = isOpen(def, IS_DEV);
+    b.className = "lvl" + (isDone(def.id) ? " done" : "") + (!open ? " locked" : "") + (def === next ? " next" : "");
+    b.dataset.id = def.id;
+    b.innerHTML = open ? `<span>${i + 1}</span>` : LOCK;
+    b.setAttribute("aria-label", `Level ${i + 1}: ${def.name}`);
+    b.onclick = () => { sfx("click"); selectLevel(def); };
     grid.appendChild(b);
   });
+  const keep = lvls.find(d => d.id === chosen[m]);
+  selectLevel(keep || next || lvls[lvls.length - 1]);
   show("sLevels");
+}
+
+/** what you have to do, in one line */
+function goalText(def: LevelDef): string {
+  const lights = def.map.join("").replace(/[^o1-9]/g, "").length;
+  switch (def.mode) {
+    case "destination": return "Walk the boots onto the glowing goal.";
+    case "collect": return lights === 2 ? "Pick up both lights, in any order." : `Pick up all ${lights} lights, in any order.`;
+    case "sequence": return `Pick up the ${lights} numbered lights in order, 1 to ${lights}.`;
+    case "survival": return `Stay alive for ${Math.round((def.survive || 0) * (def.beat || 4) * TICK_MS / 1000)} seconds.`;
+    case "waves": return `Collect ${def.need} lights left behind by the waves.`;
+  }
+}
+
+/** what is in a level, read from the level itself */
+function levelChips(def: LevelDef): string[] {
+  const out = [`${def.map[0].length}×${def.map.length}`];
+  const tempo = (def.beat || 4) >= 6 ? "Slow beat" : (def.beat || 4) === 5 ? "Medium beat" : "Fast beat";
+  const n = def.sentries?.length || 0;
+  if (n) out.push(n === 1 ? "1 sentry" : `${n} sentries`);
+  for (const sw of def.sweeps || []) {
+    const name = sw.dir === "all" ? "Pulse" : sw.dir === "diag" || sw.dir === "antidiag" ? "Waterfall" : "Wave";
+    if (!out.includes(name)) out.push(name);
+  }
+  if (n || def.sweeps?.length) out.push(tempo);
+  else out.push("No hazards");
+  return out;
+}
+
+function selectLevel(def: LevelDef){
+  chosen[def.mode] = def.id;
+  const i = levelsOf(def.mode).indexOf(def), open = isOpen(def, IS_DEV), best = save.done?.[def.id];
+  document.querySelectorAll<HTMLElement>(".lvl").forEach(b => b.classList.toggle("sel", b.dataset.id === def.id));
+  $("liTag").textContent = `Level ${i + 1}` + (best ? " · cleared" : open ? "" : " · locked");
+  $("liName").textContent = def.name;
+  $("liGoal").textContent = goalText(def);
+  $("liChips").innerHTML = levelChips(def).map(c => `<span>${c}</span>`).join("");
+  $("liPresses").textContent = best?.presses != null ? String(best.presses) : "–";
+  $("liTime").textContent = best ? fmtTime(best.ticks) : "–";
+  $("liAttempts").textContent = String(save.attempts?.[def.id] || 0);
+  const btn = $<HTMLButtonElement>("bLevelPlay");
+  btn.disabled = !open;
+  btn.textContent = !open ? `Clear level ${i} first` : best ? "Play again" : "Play";
+  btn.onclick = () => { sfx("click"); if (open) play(def); };
+  levelPreview = { run: newRun(parseLevel(def)), t0: performance.now() / 1000 };
 }
 
 // ---- playing --------------------------------------------------------------------------------

@@ -72,7 +72,25 @@
         <h2 id="lvTitle">Levels</h2>
         <div class="sub" id="lvProgress"></div>
       </div>
-      <div id="levelGrid"></div>
+      <!-- the levels as a grid on the left, the chosen level on the right -->
+      <div class="split">
+        <div id="levelGrid"></div>
+        <div id="levelInfo">
+          <canvas id="levelPreview"></canvas>
+          <div class="info">
+            <div class="eyebrow" id="liTag"></div>
+            <h3 id="liName"></h3>
+            <p id="liGoal"></p>
+            <div class="chips" id="liChips"></div>
+            <div class="mstats">
+              <div><b id="liPresses">–</b><span>presses</span></div>
+              <div><b id="liTime">–</b><span>best time</span></div>
+              <div><b id="liAttempts">0</b><span>attempts</span></div>
+            </div>
+            <button class="btn" id="bLevelPlay">Play</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="screen" id="sHow">
