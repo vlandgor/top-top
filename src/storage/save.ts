@@ -14,6 +14,8 @@ export interface Save {
   roomId?: string;
   /** co-op: the lobby's other three slots as last set up: "open" or a bot skill */
   roomSlots?: string[];
+  /** the boot skin you wear (render/skins.ts) */
+  skin?: string;
   /** 0 = sound off */
   sfx?: number;
 }
@@ -27,8 +29,10 @@ function loadSave(): Save {
 }
 export function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* full or blocked */ } }
 export function resetSave(){
-  const sfx = save.sfx;
+  // settings and the boots you wear stay; progress goes
+  const { sfx, skin } = save;
   for (const k of Object.keys(save) as (keyof Save)[]) delete save[k];
   if (sfx !== undefined) save.sfx = sfx;
+  if (skin !== undefined) save.skin = skin;
   writeSave();
 }

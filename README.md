@@ -42,8 +42,8 @@ On a phone: the button on each side of the board, or tap the left / right half o
 | `src/game/bot.ts` | Bot teammates: a short look-ahead over the rules, with Easy / Normal / Hard knobs. |
 | `src/game/match.ts` | A live co-op room: countdown, the local player's and the bots' presses, results. |
 | `src/levels/` | The levels (ASCII maps plus hazard lists) and their parser; co-op rooms in `rooms.ts`. |
-| `src/render/` | Canvas, palette, the boot drawing, and drawing a frame. |
-| `src/ui/` | Menus, level select, HUD, styles; the co-op lobby and results in `room.ts`. |
+| `src/render/` | Canvas, palette, the boot drawing and its skins, and drawing a frame. |
+| `src/ui/` | Menus, level select, HUD, styles; the co-op lobby and results in `room.ts`; Customize in `skins.ts`. |
 | `src/input/` | Buttons, screen halves and keyboard. |
 | `src/audio/` | Synthesised sound effects. |
 | `src/platform/` | Capacitor glue: the Android back button, app pause/resume, the dev channel. |

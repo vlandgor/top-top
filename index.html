@@ -41,6 +41,7 @@
       <div class="stack">
         <button class="btn big" id="bPlay">Play</button>
         <button class="ghost" id="bCoop">Co-op <em class="new">new</em></button>
+        <button class="ghost" id="bSkins">Customize</button>
         <button class="ghost" id="bHow">How to play</button>
         <button class="ghost" id="bSet">Settings</button>
       </div>
@@ -132,6 +133,23 @@
         <button class="btn big" id="bRoomAgain">Play again</button>
         <button class="ghost" id="bRoomLevels">Levels</button>
         <button class="ghost" id="bRoomLobby">Lobby</button>
+      </div>
+    </section>
+
+    <!-- customize: the boot skins on the left, the chosen one walking on the right -->
+    <section class="screen top" id="sSkins">
+      <div class="bar"><button class="back" id="bSkinsBack" aria-label="Back">‹</button><h2>Customize</h2><div class="sub">The pattern on your boots, solo and in co-op</div></div>
+      <div class="skinsplit">
+        <div id="skinGrid"></div>
+        <div id="skinInfo">
+          <canvas id="skinStage"></canvas>
+          <div class="info">
+            <div class="eyebrow" id="skTag">Boots</div>
+            <h3 id="skName"></h3>
+            <p id="skAbout"></p>
+          </div>
+          <button class="btn" id="bSkinEquip">Equip</button>
+        </div>
       </div>
     </section>
 

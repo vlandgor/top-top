@@ -1,7 +1,9 @@
 // A boot seen from straight above: a sole that is wider at the toe, a toe cap, laces, and the
 // round opening of the shaft over the heel. Drawn pointing up (toe at -y), centred on the
 // origin; the caller rotates it. `left` mirrors it so the big toe is on the inner side.
-export interface BootStyle { body: string; edge: string; detail: string; glow: string; glowSize: number }
+// A skin (skins.ts) prints its pattern on the sole, between the fill and the outlines.
+import type { Skin } from "./skins";
+export interface BootStyle { body: string; edge: string; detail: string; glow: string; glowSize: number; skin?: Skin }
 
 function solePath(c: CanvasRenderingContext2D, L: number, W: number){
   c.beginPath();
@@ -23,8 +25,12 @@ export function drawBoot(c: CanvasRenderingContext2D, x: number, y: number, angl
   solePath(c, L, W);
   c.fillStyle = st.body; c.fill();
   c.shadowBlur = 0;
+  if (st.skin?.paint) {
+    c.save(); c.clip(); st.skin.paint(c, L, W, st); c.restore();
+    solePath(c, L, W);
+  }
   c.lineWidth = lw; c.strokeStyle = st.edge; c.stroke();
-  c.lineCap = "round"; c.strokeStyle = st.detail;
+  c.lineCap = "round"; c.strokeStyle = st.skin?.dark ? st.body : st.detail;
   // toe cap
   c.beginPath(); c.ellipse(-W * 0.03, -L * 0.3, W * 0.3, L * 0.13, 0, Math.PI * 1.05, Math.PI * 1.95, true);
   c.lineWidth = lw; c.stroke();

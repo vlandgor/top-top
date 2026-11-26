@@ -7,6 +7,7 @@ import { itemLive } from "../game/rules";
 import { RETRY_MS, S, tickF, type SwingAnim } from "../game/session";
 import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
+import { mySkin, skinOfPlayer, type Skin } from "./skins";
 import { ACCENT, C, mix, rgba } from "./theme";
 import { LEVELS } from "../levels/levels";
 import { parseLevel } from "../levels/parse";
@@ -79,9 +80,10 @@ export function draw(){
   }
   drawBoard();
   if (r.status === "play") drawNext(r.lv, r.boots, ACCENT[r.lv.def.mode]);
+  const skin = mySkin();
   drawPair(r.lv, r.boots, S.anim, heading, (_who, lifted) => dead
-    ? { body: "#ff8a95", edge: C.hazard, detail: "#7a1520", glow: C.hazard, glowSize: L.s * 0.5 }
-    : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: L.s * (lifted ? 0.6 : 0.3) });
+    ? { ...DEAD_STYLE, glowSize: L.s * 0.5, skin }
+    : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: L.s * (lifted ? 0.6 : 0.3), skin });
   ctx.restore();
   if (dead) { ctx.fillStyle = rgba(C.hazard, 0.28 * (1 - deadK)); ctx.fillRect(0, 0, view.w, view.h); }
   if (r.status === "won") drawWin(r, ACCENT[r.lv.def.mode]);
@@ -275,8 +277,8 @@ function drawWin(r: Run, accent: string){
 // start tiles fill in its colour until it's back.
 const roomHeads: number[][] = [];
 const DEAD_STYLE: BootStyle = { body: "#ff8a95", edge: C.hazard, detail: "#7a1520", glow: C.hazard, glowSize: 20 };
-function playerStyle(color: string, lifted: boolean): BootStyle {
-  return { body: mix(color, "#ffffff", 0.8), edge: color, detail: mix(color, "#000000", 0.5), glow: color, glowSize: L.s * (lifted ? 0.6 : 0.3) };
+function playerStyle(color: string, lifted: boolean, skin: Skin): BootStyle {
+  return { body: mix(color, "#ffffff", 0.8), edge: color, detail: mix(color, "#000000", 0.5), glow: color, glowSize: L.s * (lifted ? 0.6 : 0.3), skin };
 }
 function bigText(text: string, k: number, color: string){
   ctx.save();
@@ -300,7 +302,7 @@ function drawRoom(){
   const order = r.pairs.map((_, i) => i).filter(i => i !== M.you);
   if (M.you >= 0) order.push(M.you);
   for (const i of order) {
-    const p = r.pairs[i], color = PLAYER_COLORS[i];
+    const p = r.pairs[i], color = PLAYER_COLORS[i], skin = skinOfPlayer(i);
     const head = roomHeads[i] = roomHeads[i] || [-Math.PI / 2, -Math.PI / 2];
     if (p.alive) {
       if (i === M.you && r.status === "play" && M.phase !== "count") drawNext(lv, p.boots, color);
@@ -309,7 +311,7 @@ function drawRoom(){
         ctx.beginPath(); ctx.arc(cx(b.x), cy(b.y), L.s * (0.3 + 0.5 * k), 0, Math.PI * 2);
         ctx.lineWidth = 3 * (1 - k); ctx.strokeStyle = rgba(color, 1 - k); ctx.stroke();
       }
-      drawPair(lv, p.boots, M.anims[i], head, (_who, lifted) => playerStyle(color, lifted));
+      drawPair(lv, p.boots, M.anims[i], head, (_who, lifted) => playerStyle(color, lifted, skin));
       if (i === M.you && M.phase === "count") {        // which pair is yours
         const mx = (cx(p.boots[0].x) + cx(p.boots[1].x)) / 2, my = Math.min(cy(p.boots[0].y), cy(p.boots[1].y)) - L.s * 0.62;
         ctx.font = `800 ${Math.round(L.s * 0.24)}px ui-sans-serif,system-ui,sans-serif`;
@@ -321,7 +323,7 @@ function drawRoom(){
     const since = M.now - M.diedAt[i];
     if (since < 0.45 && p.diedAt) {
       ctx.globalAlpha = 1 - since / 0.45;
-      drawPair(lv, p.diedAt, null, head, () => DEAD_STYLE);
+      drawPair(lv, p.diedAt, null, head, () => ({ ...DEAD_STYLE, skin }));
       ctx.globalAlpha = 1;
     }
     const k = 1 - Math.min(1, Math.max(0, (p.backAt - F.tf) / RESPAWN_TICKS));   // 0 -> 1 as it comes back
@@ -362,7 +364,7 @@ export function drawLobbyFloor(c: CanvasRenderingContext2D, w: number, h: number
       panel(p.x, p.y, rgba(col, 0.14));
       // each boot lifts in turn, two steps a second, the pairs a little out of step
       const lift = Math.max(0, Math.sin((t * 2 + k * 0.5 + i * 0.25) * Math.PI));
-      drawBoot(ctx, cx(p.x), cy(p.y), 0, k === 0, L.s * 0.7 * (1 + 0.1 * lift), playerStyle(col, lift > 0.6));
+      drawBoot(ctx, cx(p.x), cy(p.y), 0, k === 0, L.s * 0.7 * (1 + 0.1 * lift), playerStyle(col, lift > 0.6, skinOfPlayer(i)));
     });
   });
   ctx = mainCtx;
@@ -384,6 +386,41 @@ export function drawLogo(c: CanvasRenderingContext2D, t: number){
   const px = ox + s * 1.5, py = oy + s * 0.5;
   const sw = Math.sin(t * 2.4) * Math.PI / 4;
   const mx = px + Math.cos(sw) * s, my = py + Math.sin(sw) * s;
-  drawBoot(c, px, py, 0, true, 40, { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: 8 });
-  drawBoot(c, mx, my, sw, false, 40, { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: 18 });
+  const skin = mySkin();
+  drawBoot(c, px, py, 0, true, 40, { ...YOU_STYLE, glowSize: 8, skin });
+  drawBoot(c, mx, my, sw, false, 40, { ...YOU_STYLE, glowSize: 18, skin });
+}
+
+// ---- the customize screen -----------------------------------------------------------------
+/** your boots, in the game's teal, before a skin is put on */
+const YOU_STYLE: BootStyle = { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: 0 };
+
+/** a skin's tile: the pair standing side by side, toes up */
+export function drawSkinThumb(c: CanvasRenderingContext2D, w: number, h: number, skin: Skin, sel: boolean){
+  c.clearRect(0, 0, w, h);
+  const len = Math.min(h * 0.92, w * 0.44);
+  for (const k of [0, 1]) {
+    drawBoot(c, w / 2 + (k ? 1 : -1) * len * 0.36, h / 2, 0, k === 0, len, { ...YOU_STYLE, glowSize: sel ? len * 0.3 : len * 0.12, skin });
+  }
+}
+
+/**
+ * The big preview of a skin: the pair walking on a strip of lit tiles, the way the logo does,
+ * sized to the canvas. `t` is seconds.
+ */
+export function drawSkinStage(c: CanvasRenderingContext2D, w: number, h: number, t: number, skin: Skin){
+  c.clearRect(0, 0, w, h);
+  // the swinging boot reaches 45° above and below the row of tiles: leave room for it
+  const s = Math.min(w / 3.4, h / 2.6), ox = w / 2 - s * 1.5, oy = h / 2 - s * 0.5;
+  const pulse = Math.exp(-((t * 2) % 1) * 5);
+  for (let i = 0; i < 3; i++) {
+    c.beginPath(); c.roundRect(ox + i * s + 2, oy + 2, s - 4, s - 4, s * 0.15);
+    c.fillStyle = C.tile; c.fill(); c.strokeStyle = C.tileEdge; c.lineWidth = 1; c.stroke();
+    c.beginPath(); c.roundRect(ox + i * s + s * 0.18, oy + s * 0.18, s * 0.64, s * 0.64, s * 0.1);
+    c.fillStyle = rgba(C.teal, i === 1 ? 0.12 + 0.2 * pulse : 0.07 + 0.05 * pulse); c.fill();
+  }
+  const px = ox + s * 1.5, py = oy + s * 0.5, len = s * 0.75;
+  const sw = Math.sin(t * 2.4) * Math.PI / 4;
+  drawBoot(c, px, py, 0, true, len, { ...YOU_STYLE, glowSize: s * 0.15, skin });
+  drawBoot(c, px + Math.cos(sw) * s, py + Math.sin(sw) * s, sw, false, len, { ...YOU_STYLE, glowSize: s * 0.3, skin });
 }

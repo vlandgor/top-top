@@ -130,6 +130,18 @@ remote players all go through `pressPair()`, at most once per tick per pair. The
 deterministic, so online play can be lockstep: send presses tagged with their tick, not
 positions. The lobby's open slots are where friends will join.
 
+## Customize
+
+**Customize** on the main menu opens the boot skins: a grid of 12 on the left, the chosen pair
+walking on the right, with **Equip** (tapping the previewed skin again equips it too). A skin is
+the pattern printed on the boots; colour stays who you are (teal solo, your seat's colour in
+co-op) and the pattern is drawn in it, so every skin works for every player. In co-op each bot
+wears a different skin from yours, so pairs read apart by pattern as well as colour. Your skin
+also shows on the main-menu logo, and survives Reset progress.
+
+Skins: Classic, Racer, Tiger, Polka, Checker, Zigzag, Camo, Stars, Flames, Circuit, Two-Tone,
+Galaxy (`src/render/skins.ts`). All are open for now; unlocking is still to decide.
+
 ## Still open
 
 - Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only
@@ -137,6 +149,7 @@ positions. The lobby's open slots are where friends will join.
 
 - Waves: tuning, more levels, whether it needs a time limit.
 - Achievements screen.
+- Skins: how they unlock (levels cleared, achievements), more of them, maybe a colour choice solo.
 - Co-op: rules for the other modes (shared sequence, team survival, everyone to the goal),
   more rooms, lights and lives scaled by player count, versus rules, then online play.
 - In-app level editor with sharing. The level format is plain data and the solver can

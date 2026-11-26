@@ -245,3 +245,24 @@ em.new{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:upper
   border-top:3px solid var(--c);text-align:left}
 #roPlayers b{display:block;font-size:14px}
 #roPlayers span{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
+
+/* ---- customize: the skins in a grid on the left, the chosen pair walking on the right ---- */
+.skinsplit{display:grid;grid-template-columns:1fr minmax(220px,38%);gap:16px;width:100%;max-width:980px;flex:1;min-height:0}
+#skinGrid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:8px;min-height:0}
+.skin{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 5px;min-height:0;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;transition:border-color .12s,background .12s}
+.skin canvas{flex:1;width:100%;min-height:0}
+.skin b{flex:none;font-size:11.5px;font-weight:700;color:#c3d6d2;white-space:nowrap}
+.skin.sel{background:color-mix(in srgb,var(--teal) 10%,var(--panel));border:1.5px solid var(--teal);
+  box-shadow:0 0 16px color-mix(in srgb,var(--teal) 22%,transparent)}
+.skin.sel b{color:var(--txt)}
+.skin.worn:after{content:"✓";position:absolute;right:8px;top:4px;font-size:11px;color:var(--teal)}
+.skin:active{transform:scale(.97)}
+#skinInfo{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:18px;padding:14px;text-align:left;min-height:0}
+#skinStage{width:100%;flex:1;min-height:0;border-radius:12px;background:#04070a}
+#skinInfo .info{display:flex;flex-direction:column;gap:5px;flex:none}
+#skinInfo h3{margin:0;font-size:21px;font-weight:850;line-height:1.1}
+#skinInfo p{margin:0;color:#c3d6d2;font-size:13px;line-height:1.4}
+#bSkinEquip{flex:none;padding:12px}
+#bSkinEquip:disabled{background:var(--line);color:var(--dim);box-shadow:none}

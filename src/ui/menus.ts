@@ -10,12 +10,14 @@ import { resetSave, save, writeSave } from "../storage/save";
 import { drawPreview } from "../render/draw";
 import { ACCENT } from "../render/theme";
 import { leaveMatch, M, pauseMatch, restartMatch, resumeMatch } from "../game/match";
+import { drawSkins, goSkins, initSkins } from "./skins";
 import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
 // MENUS — one overlay, one screen at a time, plus the in-game HUD.
 //   solo:  main menu -> game modes (list + details) -> levels of that mode -> play
 //   co-op: main menu -> lobby (room.ts) -> game modes -> levels -> play
+//   main menu -> customize (skins.ts): the pattern on your boots
 // The game modes and levels screens are shared: in co-op they list the rooms (src/levels/
 // rooms.ts) instead of the solo levels, explain each mode's co-op rule, show the team in the
 // header, and Play starts a room with the lobby's team.
@@ -157,6 +159,7 @@ export function previewInto(id: string, p: { run: Run; t0: number }){
 export function drawPreviews(){
   if (preview && screenOn("sModes")) previewInto("modePreview", preview);
   drawLobby();
+  drawSkins();
 }
 
 // ---- levels of one mode: tiles on the left, the selected level and Play on the right --------
@@ -332,7 +335,7 @@ function modesBack(){ if (coop) goLobby(); else goMenu(); }
 export function back(): boolean {
   if (screenOn("sLevels")) { goModes(); return true; }
   if (screenOn("sModes")) { modesBack(); return true; }
-  if (screenOn("sHow") || screenOn("sSet") || screenOn("sRoom")) { goMenu(); return true; }
+  if (screenOn("sHow") || screenOn("sSet") || screenOn("sRoom") || screenOn("sSkins")) { goMenu(); return true; }
   if (screenOn("sRoomOver")) { roomLevels(); return true; }
   return false;
 }
@@ -340,8 +343,10 @@ export function back(): boolean {
 export function initMenus(){
   S.onWin = onWin;
   initRoom();
+  initSkins(goMenu);
   on("bPlay", () => goModes(false));
   on("bCoop", goLobby);
+  on("bSkins", goSkins);
   on("bRoomBack", goMenu);
   on("bHow", () => show("sHow"));
   on("bHowOk", goMenu);
