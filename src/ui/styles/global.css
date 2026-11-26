@@ -1,6 +1,6 @@
 :root{
   /* the margin kept clear around the whole UI, on top of any notch or rounded-corner area */
-  --edge:20px;
+  --edge:8px;
   --inT:calc(var(--edge) + env(safe-area-inset-top)); --inB:calc(var(--edge) + env(safe-area-inset-bottom));
   --inL:calc(var(--edge) + env(safe-area-inset-left)); --inR:calc(var(--edge) + env(safe-area-inset-right));
   --bg:#05080a; --panel:#0c1316; --line:#1a272b; --txt:#e4f4f1; --dim:#7d9692;
