@@ -10,7 +10,7 @@ import { resetSave, save, writeSave } from "../storage/save";
 import { drawPreview } from "../render/draw";
 import { ACCENT } from "../render/theme";
 import { leaveMatch, M, pauseMatch, restartMatch, resumeMatch } from "../game/match";
-import { enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
+import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
 // MENUS — one overlay, one screen at a time, plus the in-game HUD.
@@ -153,9 +153,10 @@ export function previewInto(id: string, p: { run: Run; t0: number }){
   drawPreview(c, w, h, p.run, performance.now() / 1000 - p.t0, TICK_MS);
 }
 
-/** every frame: the live preview on the modes screen */
+/** every frame: the live preview on the modes screen, and the lobby's floor */
 export function drawPreviews(){
   if (preview && screenOn("sModes")) previewInto("modePreview", preview);
+  drawLobby();
 }
 
 // ---- levels of one mode: tiles on the left, the selected level and Play on the right --------

@@ -5,10 +5,11 @@ import { bestKey, leaveMatch, M, PLAYER_COLORS, restartMatch, startMatch, type S
 import { beatsLeft, teamLives } from "../game/room";
 import { TICK_MS } from "../game/session";
 import { parseLevel } from "../levels/parse";
-import { forPlayers } from "../levels/rooms";
+import { forPlayers, ROOMS } from "../levels/rooms";
+import { drawLobbyFloor } from "../render/draw";
 import { ACCENT } from "../render/theme";
 import { save, writeSave } from "../storage/save";
-import { $, goLevels, goModes, setAccent, show, toast } from "./menus";
+import { $, goLevels, goModes, screenOn, setAccent, show, toast } from "./menus";
 
 // ---------------------------------------------------------------------------
 // ROOM UI — the co-op lobby, the in-room HUD and the results screen.
@@ -90,9 +91,44 @@ function renderSlots(){
     };
     box.appendChild(b);
   });
-  const n = teamSize(), next = $<HTMLButtonElement>("bRoomNext");
+  renderTeam();
+}
+
+/** the right side of the lobby: who's in, what that means, and the way to the games */
+function renderTeam(){
+  const n = teamSize(), bots = others.filter(o => o !== "open") as SkillId[];
+  $("lbTitle").textContent = n < 2 ? "Just you" : `${n} players`;
+  const skills = [...new Set(bots)];
+  const who = !bots.length ? "Add at least one bot to play a room."
+    : `You and ${bots.length === 1 ? "a bot" : `${bots.length} bots`}: ${listOf(bots.map(b => `${article(SKILL_NAME[b])} ${SKILL_NAME[b]}`))}.`;
+  const what = skills.map(b => SKILL_ABOUT[b]).join(" ");
+  $("lbAbout").textContent = `${who} ${what} Lights and lives grow with the team.`.trim();
+  $("lbLives").textContent = String(Math.ceil(5 * Math.max(2, n) / 2));
+  $("lbCleared").textContent = `${ROOMS.filter(r => save.roomBest?.[bestKey(r.id, n)] !== undefined).length}/${ROOMS.length}`;
+  $("lbBots").textContent = String(bots.length);
+  const next = $<HTMLButtonElement>("bRoomNext");
   next.disabled = n < 2;
-  next.textContent = n < 2 ? "Add a bot to play" : `Choose a game · ${n} players`;
+  next.textContent = n < 2 ? "Add a bot to play" : "Choose a game";
+}
+const SKILL_ABOUT: Record<SkillId, string> = {
+  easy: "Rookies are slow and slip now and then.",
+  normal: "Regulars keep a relaxed pace.",
+  hard: "Pros keep up with a quick player.",
+};
+const article = (w: string) => (/^[aeiou]/i.test(w) ? "an" : "a");
+const listOf = (xs: string[]) => xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1];
+
+/** every frame: the lobby's floor, with the team standing on it */
+export function drawLobby(){
+  if (!screenOn("sRoom")) return;
+  const cv = $<HTMLCanvasElement>("lobbyFloor");
+  const dpr = Math.min(2, window.devicePixelRatio || 1), w = cv.clientWidth, h = cv.clientHeight;
+  if (!w || !h) return;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const c = cv.getContext("2d")!;
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const n = teamSize();
+  drawLobbyFloor(c, w, h, [0, 1, 2, 3].map(i => i < n ? PLAYER_COLORS[i] : null), performance.now() / 1000);
 }
 
 /** play a room with the team from the lobby */

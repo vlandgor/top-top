@@ -101,10 +101,25 @@
          game modes and levels screens as solo, in co-op -->
     <section class="screen top" id="sRoom">
       <div class="bar"><button class="back" id="bRoomBack" aria-label="Back">‹</button><h2>Co-op lobby</h2><div class="sub">2–4 players on one floor, as one team</div></div>
-      <div id="slots"></div>
-      <div class="lobbyfoot">
-        <div class="hint">Tap a slot to add a bot or change its skill. Bots fill in for friends until online play arrives.</div>
-        <button class="btn" id="bRoomNext">Choose a game</button>
+      <div class="split">
+        <div id="slotList">
+          <div id="slots"></div>
+          <div class="hint">Tap a seat to add a bot or change its skill.</div>
+        </div>
+        <div id="lobbyInfo">
+          <canvas id="lobbyFloor"></canvas>
+          <div class="info">
+            <div class="eyebrow">Your team</div>
+            <h3 id="lbTitle">2 players</h3>
+            <p id="lbAbout"></p>
+            <div class="mstats">
+              <div><b id="lbLives">5</b><span>lives</span></div>
+              <div><b id="lbCleared">0/0</b><span>cleared</span></div>
+              <div><b id="lbBots">1</b><span>bots</span></div>
+            </div>
+            <button class="btn" id="bRoomNext">Choose a game</button>
+          </div>
+        </div>
       </div>
     </section>
 

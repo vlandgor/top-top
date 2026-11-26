@@ -9,6 +9,8 @@ import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
 import { ACCENT, C, mix, rgba } from "./theme";
 import { LEVELS } from "../levels/levels";
+import { parseLevel } from "../levels/parse";
+import { ROOMS } from "../levels/rooms";
 
 // ---------------------------------------------------------------------------
 // DRAW — one frame of the board, seen from straight above like an LED dance floor.
@@ -336,6 +338,34 @@ function drawRoom(){
     bigText(String(Math.max(1, Math.ceil(left))), 1 - (left - Math.floor(left)), PLAYER_COLORS[0]);
   } else if (M.phase === "play" && inPhase < 0.6 && r.tick < 6) bigText("GO", inPhase / 0.6, ACCENT[lv.def.mode]);
   if (M.phase === "over") bigText(r.status === "won" ? "CLEARED" : r.why === "time" ? "TIME" : "OUT", Math.max(0, inPhase - 0.5) * 2, r.status === "won" ? ACCENT[lv.def.mode] : C.hazard);
+}
+
+/**
+ * The lobby's little floor: the first room's board with each player's pair at its start, in
+ * their colour, stepping in place on the beat. `seats` is a colour per start, null for an open
+ * seat (its start tiles are drawn dashed). `t` is seconds.
+ */
+let lobbyLv: Level | null = null;
+export function drawLobbyFloor(c: CanvasRenderingContext2D, w: number, h: number, seats: (string | null)[], t: number){
+  ctx = c;
+  ctx.clearRect(0, 0, w, h);
+  const lv = lobbyLv = lobbyLv || parseLevel({ ...ROOMS[0], map: ROOMS[0].map.map(r => r.replace(/[^.]/g, ".")) });
+  L = layoutIn(lv, 6, 6, w - 12, h - 12, 60);
+  drawFloor(lv, (t * 2) % 1, PLAYER_COLORS[0]);
+  lv.starts.forEach((pair, i) => {
+    const col = seats[i];
+    if (!col) {
+      for (const p of pair) outline(p.x, p.y, rgba("#7d9692", 0.4), 1.5, 0.12, [L.s * 0.1, L.s * 0.07]);
+      return;
+    }
+    pair.forEach((p, k) => {
+      panel(p.x, p.y, rgba(col, 0.14));
+      // each boot lifts in turn, two steps a second, the pairs a little out of step
+      const lift = Math.max(0, Math.sin((t * 2 + k * 0.5 + i * 0.25) * Math.PI));
+      drawBoot(ctx, cx(p.x), cy(p.y), 0, k === 0, L.s * 0.7 * (1 + 0.1 * lift), playerStyle(col, lift > 0.6));
+    });
+  });
+  ctx = mainCtx;
 }
 
 /** the main-menu logo: the two boots mid-step on three lit tiles */
