@@ -7,6 +7,8 @@ import { S } from "../game/session";
 // ---------------------------------------------------------------------------
 export const IS_DEV = import.meta.env.VITE_CHANNEL === "dev";
 const COMMIT = String(import.meta.env.VITE_COMMIT || "local").slice(0, 7);
+/** shown next to the commit when the build isn't from main */
+const BRANCH = String(import.meta.env.VITE_BRANCH || "main");
 
 // GitHub Pages lets the app's web view keep the page for up to 10 minutes, so even a cold start
 // can open the previous build. So on every start and every resume, ask for version.json
@@ -30,7 +32,7 @@ export function initDev(){
   if (!IS_DEV) return;
   // which commit is running, on the main menu only
   const tag = document.createElement("div");
-  tag.textContent = "DEV · " + COMMIT;
+  tag.textContent = "DEV · " + (BRANCH === "main" ? "" : BRANCH + " · ") + COMMIT;
   tag.className = "devtag";
   document.getElementById("sMenu")?.appendChild(tag);
   // an older Top Top Dev install was locked to portrait and can't turn: say what to do
