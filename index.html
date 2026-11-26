@@ -12,10 +12,11 @@
   <button class="pad" id="bLeft" aria-label="Left boot"><b>L</b><span>↻</span></button>
   <div id="stage">
     <canvas id="cv"></canvas>
+    <!-- one slim line: mode dot and level on the left, the objective and pause on the right -->
     <div id="hud">
-      <div class="chip" id="hLevel"><span id="hMode">Destination</span><b id="hName">First Steps</b></div>
-      <div class="chip right" id="hGoal"><span id="hGoalLabel">goal</span><b id="hGoalVal">0/1</b></div>
-      <button class="hbtn" id="pauseBtn" aria-label="Pause">❚❚</button>
+      <div id="hLevel"><i class="dot"></i><b id="hName">First Steps</b><span id="hMode">Destination</span></div>
+      <div id="hGoal"><span id="hGoalLabel">goal</span><b id="hGoalVal">0/1</b></div>
+      <button class="hbtn" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/></svg></button>
     </div>
     <div id="attempt"></div>
     <div id="toast"></div>

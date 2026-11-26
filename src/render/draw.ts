@@ -18,7 +18,7 @@ let F: Frame;
 let ctx: CanvasRenderingContext2D = mainCtx;
 
 const SWING_S = 0.09;              // seconds a swing takes to draw
-const HUD_TOP = 58, BOTTOM = 26;   // room for the HUD chips and the hint line
+const HUD_TOP = 44, BOTTOM = 24;   // room for the HUD chips and the hint line
 
 interface Layout { s: number; ox: number; oy: number }
 let L: Layout = { s: 40, ox: 0, oy: 0 };

@@ -19,32 +19,43 @@ button{font:inherit;color:inherit;cursor:pointer}
 canvas{display:block}
 #cv{width:100%;height:100%}
 
-/* ---- HUD ---- */
-#hud{position:absolute;inset:0 0 auto 0;display:flex;gap:8px;
-  align-items:flex-start;pointer-events:none;font-variant-numeric:tabular-nums;z-index:2}
-.chip{background:rgba(12,19,22,.86);border:1px solid var(--line);border-radius:12px;padding:6px 11px;min-width:0}
-.chip span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
-.chip b{display:block;font-size:16px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#hLevel{flex:1}
-#hGoal{text-align:right}
-#hGoal span{color:var(--dim)}
-.hbtn{pointer-events:auto;background:rgba(12,19,22,.86);border:1px solid var(--line);border-radius:12px;
-  width:44px;height:44px;font-size:14px;display:flex;align-items:center;justify-content:center;flex:none}
-#attempt{position:absolute;left:0;right:0;top:56px;text-align:center;
-  font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);pointer-events:none;
+/* ---- HUD: one slim line over the board ---- */
+#hud{position:absolute;inset:0 0 auto 0;height:36px;display:flex;align-items:center;gap:14px;
+  pointer-events:none;font-variant-numeric:tabular-nums;z-index:2}
+#hLevel{flex:1;display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}
+#hLevel .dot{align-self:center;width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);flex:none}
+#hName{font-size:15px;font-weight:700;overflow:hidden;text-overflow:ellipsis}
+#hMode{font-size:12px;color:var(--dim)}
+#hGoal{display:flex;align-items:baseline;gap:6px}
+#hGoalLabel{font-size:11px;color:var(--dim);text-transform:lowercase}
+#hGoalVal{font-size:16px;font-weight:750;color:var(--accent)}
+.hbtn{pointer-events:auto;background:none;border:0;color:var(--dim);width:36px;height:36px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.hbtn:active{background:rgba(255,255,255,.06);color:var(--txt)}
+#attempt{position:absolute;left:0;right:0;top:38px;text-align:center;
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);pointer-events:none;
   opacity:0;transition:opacity .4s}
 #attempt.on{opacity:.9}
 #toast{position:absolute;left:8px;right:8px;bottom:0;text-align:center;font-size:13px;color:#bfd7d3;
   pointer-events:none;opacity:0;transition:opacity .5s;line-height:1.35}
 #toast.on{opacity:1}
 
-/* ---- the two boot buttons ---- */
-.pad{flex:none;width:clamp(84px,15vw,150px);margin:0;border-radius:24px;border:1px solid var(--line);
-  background:linear-gradient(#0e171a,#091012);color:var(--accent);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:6px;touch-action:none;transition:transform .05s}
-.pad b{font-size:30px;font-weight:900;line-height:1;color:var(--txt)}
-.pad span{font-size:30px;line-height:1;text-shadow:0 0 18px currentColor}
-.pad.hit{transform:scale(.96);background:#0f2622;border-color:var(--accent)}
+/* ---- the two boot buttons: full-height zones at the screen edges, a glow in the mode's colour
+   fading toward the board ---- */
+.pad{flex:none;width:clamp(76px,13vw,140px);margin:calc(-1 * var(--inT)) 0 calc(-1 * var(--inB));border:0;border-radius:0;
+  color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  touch-action:none;transition:background .12s}
+/* strong at the edge, easing out slowly toward the board */
+.pad{--g0:34%;--g1:20%;--g2:8%}
+.pad.hit{--g0:58%;--g1:36%;--g2:14%}
+#bLeft{margin-left:calc(-1 * var(--inL));padding-left:var(--inL);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--accent) var(--g0),transparent) 0%,
+    color-mix(in srgb,var(--accent) var(--g1),transparent) 35%,color-mix(in srgb,var(--accent) var(--g2),transparent) 70%,transparent 100%)}
+#bRight{margin-right:calc(-1 * var(--inR));padding-right:var(--inR);
+  background:linear-gradient(270deg,color-mix(in srgb,var(--accent) var(--g0),transparent) 0%,
+    color-mix(in srgb,var(--accent) var(--g1),transparent) 35%,color-mix(in srgb,var(--accent) var(--g2),transparent) 70%,transparent 100%)}
+.pad b{font-size:26px;font-weight:850;line-height:1;color:var(--txt);opacity:.9}
+.pad span{font-size:24px;line-height:1;text-shadow:0 0 16px currentColor}
 .pad.off,#hud.off{visibility:hidden}
 
 /* ---- menus: one overlay over the whole app, one screen visible at a time ---- */
