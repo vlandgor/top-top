@@ -5,6 +5,7 @@ import { RETRY_MS, S, tickF } from "../game/session";
 import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
 import { ACCENT, C, rgba } from "./theme";
+import { LEVELS } from "../levels/levels";
 
 // ---------------------------------------------------------------------------
 // DRAW — one frame of the board, seen from straight above like an LED dance floor.
@@ -23,9 +24,13 @@ interface Layout { s: number; ox: number; oy: number }
 let L: Layout = { s: 40, ox: 0, oy: 0 };
 const heading = [-Math.PI / 2, -Math.PI / 2];   // the way each boot faces, eased toward its next tile
 
-/** the largest square tiles that fit the board in a box */
-function layoutIn(lv: Level, x: number, y: number, w: number, h: number, max: number): Layout {
-  const s = Math.floor(Math.min(w / lv.w, h / lv.h, max));
+// In the game every level uses the same tile size: the size at which the biggest board of any
+// level fits the screen. Smaller boards keep that size and sit centred, with empty floor around.
+const BIGGEST = LEVELS.reduce((m, d) => ({ w: Math.max(m.w, d.map[0].length), h: Math.max(m.h, d.map.length) }), { w: 1, h: 1 });
+
+/** square tiles in a box: `fit` is the board whose size decides the tile, `lv` is drawn centred */
+function layoutIn(lv: Level, x: number, y: number, w: number, h: number, max: number, fit: { w: number; h: number } = lv): Layout {
+  const s = Math.floor(Math.min(w / fit.w, h / fit.h, max));
   return { s, ox: Math.round(x + (w - s * lv.w) / 2), oy: Math.round(y + (h - s * lv.h) / 2) };
 }
 const cx = (x: number) => L.ox + (x + 0.5) * L.s;
@@ -56,7 +61,7 @@ export function draw(){
   ctx.fillStyle = C.bg; ctx.fillRect(0, 0, view.w, view.h);
   const r = S.run; if (!r) return;
   F = { r, tf: tickF(), now: S.now, live: true };
-  L = layoutIn(r.lv, 10, HUD_TOP, view.w - 20, view.h - HUD_TOP - BOTTOM, 76);
+  L = layoutIn(r.lv, 10, HUD_TOP, view.w - 20, view.h - HUD_TOP - BOTTOM, 76, BIGGEST);
   const dead = r.status === "dead", deadK = dead ? Math.min(1, (S.now - S.deadAt) / (RETRY_MS / 1000)) : 0;
 
   ctx.save();
