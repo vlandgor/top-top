@@ -160,14 +160,15 @@ canvas{display:block}
 .progress{width:110px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
 .progress i{display:block;height:100%;width:0;background:var(--accent);box-shadow:0 0 8px var(--accent);border-radius:2px}
 .lvbody{display:flex;gap:14px;width:100%;flex:1;min-height:0}
-#levelGrid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;
+#levelGrid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,58px);gap:8px;
   align-content:start;padding:2px 8px 26px 2px;
   -webkit-mask-image:linear-gradient(#000 calc(100% - 26px),transparent);mask-image:linear-gradient(#000 calc(100% - 26px),transparent)}
 /* neutral tiles, like the game-mode list: colour only marks the selection, a cleared check and the up-next dot */
 .lvl{position:relative;aspect-ratio:1;border-radius:12px;background:var(--panel);border:1px solid var(--line);
-  color:var(--txt);font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;
+  color:var(--txt);font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;
   display:flex;align-items:center;justify-content:center;padding:0;transition:border-color .12s,background .12s}
-.lvl.locked{color:#3e504d}
+.lvl.locked,.lvl:disabled{color:#3e504d;cursor:default}
+.lvl:disabled:active{transform:none}
 .lvl .mark{position:absolute;right:7px;top:4px;font-size:10px;color:var(--accent)}
 .lvl.next:not(.sel):after{content:"";position:absolute;right:8px;top:8px;width:6px;height:6px;border-radius:50%;
   background:var(--accent);box-shadow:0 0 8px var(--accent)}

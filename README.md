@@ -122,7 +122,6 @@ game it loads the newest build from **https://vlandgor.github.io/top-top/**:
   background, it reloads on resume when a newer build is live, but never in the middle of a
   level.
 - The main menu shows `DEV · <commit>`, so you can see which build is running.
-- Every level is unlocked.
 - Offline, it shows a small "Retry" page instead of the game.
 - Its saves are separate from the real app's.
 

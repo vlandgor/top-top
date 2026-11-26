@@ -149,8 +149,7 @@ export function resume(){ if (S.screen === "paused") S.screen = "play"; }
 
 // ---- progression: the first level of each mode is open; each clear opens the next ---------
 export function isDone(id: string): boolean { return !!save.done?.[id]; }
-export function isOpen(def: LevelDef, everything: boolean): boolean {
-  if (everything) return true;
+export function isOpen(def: LevelDef): boolean {
   const same = LEVELS.filter(l => l.mode === def.mode);
   const i = same.indexOf(def);
   return i <= 0 || isDone(same[i - 1].id);

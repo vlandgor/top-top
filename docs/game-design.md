@@ -72,8 +72,7 @@ Fairness rules for every level: nothing reaches a standing player for 3 s (2 s a
 beaten at a human pace. The first level of each mode, and the first level with each new
 hazard, shows a tip.
 
-The first level of each mode is open; clearing one opens the next. The dev build opens
-everything. The game is landscape only (either way up), with a boot button on each side of
+The first level of each mode is open; clearing one opens the next (in the dev build too). The game is landscape only (either way up), with a boot button on each side of
 the board.
 
 ## Still open

@@ -133,12 +133,13 @@ export function goLevels(m: Mode = mode){
   $("lvCleared").textContent = `${st.cleared} / ${st.total} cleared`;
   $("lvBar").style.width = `${(100 * st.cleared) / st.total}%`;
   // the first open level not cleared yet: where the player is up to
-  const next = lvls.find(d => !isDone(d.id) && isOpen(d, IS_DEV));
+  const next = lvls.find(d => !isDone(d.id) && isOpen(d));
   const grid = $("levelGrid"); grid.innerHTML = "";
   lvls.forEach((def, i) => {
-    const open = isOpen(def, IS_DEV);
+    const open = isOpen(def);
     const b = document.createElement("button");
     b.className = "lvl" + (!open ? " locked" : "") + (def === next ? " next" : "");
+    b.disabled = !open;                          // locked levels can't be selected
     b.dataset.id = def.id;
     b.innerHTML = (open ? String(i + 1) : LOCK) + (isDone(def.id) ? `<span class="mark">✓</span>` : "");
     b.setAttribute("aria-label", `Level ${i + 1}: ${def.name}`);
@@ -184,8 +185,8 @@ function levelChips(def: LevelDef): string[] {
 
 function selectLevel(def: LevelDef){
   chosen[def.mode] = def.id;
-  const lvls = levelsOf(def.mode), i = lvls.indexOf(def), open = isOpen(def, IS_DEV), best = save.done?.[def.id];
-  const next = lvls.find(d => !isDone(d.id) && isOpen(d, IS_DEV));
+  const lvls = levelsOf(def.mode), i = lvls.indexOf(def), open = isOpen(def), best = save.done?.[def.id];
+  const next = lvls.find(d => !isDone(d.id) && isOpen(d));
   document.querySelectorAll<HTMLElement>(".lvl").forEach(b => b.classList.toggle("sel", b.dataset.id === def.id));
   $("liTag").textContent = `Level ${i + 1}` + (best ? " · cleared" : !open ? " · locked" : def === next ? " · up next" : "");
   $("liName").textContent = def.name;
