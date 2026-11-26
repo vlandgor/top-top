@@ -117,49 +117,58 @@ export function drawPreviews(){
   if (preview && screenOn("sModes")) previewInto("modePreview", preview);
 }
 
-// ---- levels of one mode: a header with the mode's progress, then every level as a card --------
+// ---- levels of one mode: tiles on the left, the selected level and Play on the right --------
 /** a thin padlock drawn in the text colour, to match the neon UI (an emoji lock is yellow) */
-const LOCK = `<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>`;
+const LOCK = `<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><rect x="3.5" y="7" width="9" height="7" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>`;
+
+/** the level selected in each mode, so coming back shows the same one */
+const chosen: Partial<Record<Mode, string>> = {};
 
 export function goLevels(m: Mode = mode){
   mode = m;
   S.screen = "menu"; S.run = null; setAccent(ACCENT[m]);
   const info = MODES.find(x => x.id === m)!, st = modeStats(m), lvls = levelsOf(m);
   $("lvTitle").textContent = info.name;
-  $("lvCleared").textContent = `${st.cleared}/${st.total}`;
-  $("lvAttempts").textContent = String(st.attempts);
-  $("lvBest").textContent = st.best === null ? "–" : fmtTime(st.best);
+  $("lvBlurb").textContent = info.blurb;
+  $("lvCleared").textContent = `${st.cleared} / ${st.total} cleared`;
   $("lvBar").style.width = `${(100 * st.cleared) / st.total}%`;
   // the first open level not cleared yet: where the player is up to
   const next = lvls.find(d => !isDone(d.id) && isOpen(d, IS_DEV));
   const grid = $("levelGrid"); grid.innerHTML = "";
   lvls.forEach((def, i) => {
-    const open = isOpen(def, IS_DEV), best = save.done?.[def.id];
+    const open = isOpen(def, IS_DEV);
     const b = document.createElement("button");
-    b.className = "lvl" + (best ? " done" : "") + (!open ? " locked" : "") + (def === next ? " next" : "");
-    const sub = !open ? "Locked"
-      : def === next ? "Up next"
-      : best ? `${best.presses ?? "–"} presses · ${fmtTime(best.ticks)}`
-      : levelSummary(def);
-    const mark = !open ? LOCK : best ? "✓" : "";
-    b.innerHTML = `<div class="top"><span class="num">${i + 1}</span><span class="name"></span><span class="mark">${mark}</span></div>
-      <div class="sub"></div>`;
-    b.querySelector(".name")!.textContent = def.name;
-    b.querySelector(".sub")!.textContent = sub;
-    b.setAttribute("aria-label", `Level ${i + 1}: ${def.name}. ${sub}`);
+    b.className = "lvl" + (!open ? " locked" : "") + (def === next ? " next" : "");
+    b.dataset.id = def.id;
+    b.innerHTML = (open ? String(i + 1) : LOCK) + (isDone(def.id) ? `<span class="mark">✓</span>` : "");
+    b.setAttribute("aria-label", `Level ${i + 1}: ${def.name}`);
+    // tap selects; tapping the selected level again plays it
     b.onclick = () => {
-      if (!open) { b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); return; }
-      sfx("click"); play(def);
+      sfx("click");
+      if (chosen[m] === def.id && open) play(def); else selectLevel(def);
     };
     grid.appendChild(b);
   });
+  const keep = lvls.find(d => d.id === chosen[m]);
+  selectLevel(keep || next || lvls[lvls.length - 1]);
   show("sLevels");
-  // keep the level you're up to in view
-  grid.querySelector(".next")?.scrollIntoView({ block: "nearest" });
+  grid.querySelector(".sel")?.scrollIntoView({ block: "nearest" });
 }
 
-/** what is in a level, in a few words: its hazards, or its size when it has none */
-function levelSummary(def: LevelDef): string {
+/** what you have to do, in one line */
+function goalText(def: LevelDef): string {
+  const lights = def.map.join("").replace(/[^o1-9]/g, "").length;
+  switch (def.mode) {
+    case "destination": return "Walk the boots onto the glowing goal.";
+    case "collect": return lights === 2 ? "Pick up both lights, in any order." : `Pick up all ${lights} lights, in any order.`;
+    case "sequence": return `Pick up the ${lights} numbered lights in order, 1 to ${lights}.`;
+    case "survival": return `Stay alive for ${Math.round((def.survive || 0) * (def.beat || 4) * TICK_MS / 1000)} seconds.`;
+    case "waves": return `Collect ${def.need} lights left behind by the waves.`;
+  }
+}
+
+/** what is in a level: its hazards, board size and tempo */
+function levelChips(def: LevelDef): string[] {
   const out: string[] = [];
   const n = def.sentries?.length || 0;
   if (n) out.push(n === 1 ? "1 sentry" : `${n} sentries`);
@@ -167,7 +176,28 @@ function levelSummary(def: LevelDef): string {
     const name = sw.dir === "all" ? "pulse" : sw.dir === "diag" || sw.dir === "antidiag" ? "waterfall" : "wave";
     if (!out.includes(name)) out.push(name);
   }
-  return out.length ? out.join(" · ") : `${def.map[0].length}×${def.map.length}, no hazards`;
+  if (!out.length) out.push("no hazards");
+  out.push(`${def.map[0].length}×${def.map.length}`);
+  out.push(`${Math.round(60000 / ((def.beat || 4) * TICK_MS))} bpm`);
+  return out;
+}
+
+function selectLevel(def: LevelDef){
+  chosen[def.mode] = def.id;
+  const lvls = levelsOf(def.mode), i = lvls.indexOf(def), open = isOpen(def, IS_DEV), best = save.done?.[def.id];
+  const next = lvls.find(d => !isDone(d.id) && isOpen(d, IS_DEV));
+  document.querySelectorAll<HTMLElement>(".lvl").forEach(b => b.classList.toggle("sel", b.dataset.id === def.id));
+  $("liTag").textContent = `Level ${i + 1}` + (best ? " · cleared" : !open ? " · locked" : def === next ? " · up next" : "");
+  $("liName").textContent = def.name;
+  $("liGoal").textContent = goalText(def);
+  $("liChips").innerHTML = levelChips(def).map(c => `<span>${c}</span>`).join("");
+  $("liPresses").textContent = best?.presses != null ? String(best.presses) : "–";
+  $("liTime").textContent = best ? fmtTime(best.ticks) : "–";
+  $("liAttempts").textContent = String(save.attempts?.[def.id] || 0);
+  const btn = $<HTMLButtonElement>("bLevelPlay");
+  btn.disabled = !open;
+  btn.textContent = !open ? `Clear level ${i} first` : best ? "Play again" : "Play";
+  btn.onclick = () => { sfx("click"); if (open) play(def); };
 }
 
 // ---- playing --------------------------------------------------------------------------------

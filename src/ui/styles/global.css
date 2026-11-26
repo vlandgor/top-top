@@ -152,34 +152,36 @@ canvas{display:block}
 .mstats span{display:block;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);white-space:nowrap}
 #bModeSelect{margin-top:auto;flex:none;padding:12px;background:var(--c);box-shadow:0 0 24px color-mix(in srgb, var(--c) 35%, transparent)}
 
-/* ---- the levels of one mode: header with progress, then a grid of level cards ---- */
+/* ---- the levels of one mode: full-width header, tiles left (scrolling), the level right ---- */
+.lvbar{max-width:none;padding-bottom:8px;border-bottom:1px solid var(--line)}
 #lvTitle{color:var(--accent)}
-.lvstats{margin-left:auto;display:flex;gap:18px;font-variant-numeric:tabular-nums;text-align:right}
-.lvstats b{display:block;font-size:16px;line-height:1.1}
-.lvstats span{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-.progress{width:100%;max-width:980px;height:3px;border-radius:3px;background:var(--line);overflow:hidden;flex:none;margin-top:-4px}
-.progress i{display:block;height:100%;width:0;background:var(--accent);box-shadow:0 0 10px var(--accent);border-radius:3px}
-#levelGrid{width:100%;max-width:980px;flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-  grid-auto-rows:minmax(56px,1fr);gap:8px;overflow:auto}
-.lvl{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 11px;
-  display:flex;flex-direction:column;justify-content:center;gap:5px;text-align:left;min-width:0;overflow:hidden}
-.lvl .top{display:flex;align-items:baseline;gap:8px;min-width:0}
-.lvl .num{font-size:17px;font-weight:850;line-height:1.2;color:var(--accent);font-variant-numeric:tabular-nums;flex:none}
-.lvl .name{font-size:13.5px;font-weight:650;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-.lvl .mark{margin-left:auto;flex:none;font-size:11px;color:var(--accent);display:flex;align-self:center}
-.lvl .sub{font-size:11px;line-height:1.2;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
-.lvl.done{border-color:color-mix(in srgb,var(--accent) 35%,transparent)}
-.lvl.done .sub{color:#c3d6d2}
-.lvl.next{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--panel));
-  box-shadow:0 0 18px color-mix(in srgb,var(--accent) 25%,transparent)}
-.lvl.next .sub{color:var(--accent);font-weight:700;letter-spacing:.04em}
-.lvl.locked{opacity:.42}
-.lvl.locked .num{color:var(--dim)}
-.lvl.locked .mark{color:var(--dim)}
-.lvl:active:not(.locked){transform:scale(.97)}
-.lvl.shake{animation:shake .3s}
-@keyframes shake{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
-@media (prefers-reduced-motion:reduce){.lvl.shake{animation:none}}
+.lvblurb{color:var(--dim);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvprog{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--dim);font-size:13px;flex:none;font-variant-numeric:tabular-nums}
+.progress{width:110px;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:var(--accent);box-shadow:0 0 8px var(--accent);border-radius:2px}
+.lvbody{display:flex;gap:14px;width:100%;flex:1;min-height:0}
+#levelGrid{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;
+  align-content:start;padding:2px 8px 26px 2px;
+  -webkit-mask-image:linear-gradient(#000 calc(100% - 26px),transparent);mask-image:linear-gradient(#000 calc(100% - 26px),transparent)}
+/* neutral tiles, like the game-mode list: colour only marks the selection, a cleared check and the up-next dot */
+.lvl{position:relative;aspect-ratio:1;border-radius:12px;background:var(--panel);border:1px solid var(--line);
+  color:var(--txt);font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;
+  display:flex;align-items:center;justify-content:center;padding:0;transition:border-color .12s,background .12s}
+.lvl.locked{color:#3e504d}
+.lvl .mark{position:absolute;right:7px;top:4px;font-size:10px;color:var(--accent)}
+.lvl.next:not(.sel):after{content:"";position:absolute;right:8px;top:8px;width:6px;height:6px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.lvl.sel{background:color-mix(in srgb,var(--accent) 10%,var(--panel));border:1.5px solid var(--accent);
+  box-shadow:0 0 16px color-mix(in srgb,var(--accent) 22%,transparent)}
+.lvl:active{transform:scale(.96)}
+#levelInfo{width:36%;flex:none;display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:14px;text-align:left;min-height:0;overflow:hidden}
+#levelInfo .eyebrow{color:var(--dim)}
+#levelInfo h3{margin:-2px 0 0;font-size:20px;font-weight:850;line-height:1.15}
+#levelInfo p{margin:0;color:#a9bdb9;font-size:13px;line-height:1.4}
+#levelInfo .mstats{margin-top:auto}
+#bLevelPlay{flex:none;padding:12px;box-shadow:0 0 24px color-mix(in srgb,var(--accent) 35%,transparent)}
+#bLevelPlay:disabled{background:var(--line);color:var(--dim);box-shadow:none}
 
 /* ---- portrait: the game is landscape only. The Android app is locked to landscape; this
    covers a browser, or an old install that was still portrait ---- */

@@ -67,19 +67,30 @@
     </section>
 
     <!-- the levels of one mode -->
-    <!-- the levels of one mode: a header with the mode's progress, then every level as a card -->
+    <!-- the levels of one mode: a full-width header, the level tiles on the left (they scroll),
+         the selected level and Play on the right -->
     <section class="screen top" id="sLevels">
-      <div class="bar">
+      <div class="bar lvbar">
         <button class="back" id="bLevelsBack" aria-label="Back">‹</button>
         <h2 id="lvTitle">Levels</h2>
-        <div class="lvstats">
-          <div><b id="lvCleared">0/20</b><span>cleared</span></div>
-          <div><b id="lvAttempts">0</b><span>attempts</span></div>
-          <div><b id="lvBest">–</b><span>best total</span></div>
+        <div class="lvblurb" id="lvBlurb"></div>
+        <div class="lvprog"><span id="lvCleared"></span><div class="progress"><i id="lvBar"></i></div></div>
+      </div>
+      <div class="lvbody">
+        <div id="levelGrid"></div>
+        <div id="levelInfo">
+          <div class="eyebrow" id="liTag"></div>
+          <h3 id="liName"></h3>
+          <p id="liGoal"></p>
+          <div class="chips" id="liChips"></div>
+          <div class="mstats">
+            <div><b id="liPresses">–</b><span>presses</span></div>
+            <div><b id="liTime">–</b><span>best time</span></div>
+            <div><b id="liAttempts">0</b><span>attempts</span></div>
+          </div>
+          <button class="btn" id="bLevelPlay">Play</button>
         </div>
       </div>
-      <div class="progress"><i id="lvBar"></i></div>
-      <div id="levelGrid"></div>
     </section>
 
     <section class="screen" id="sHow">
