@@ -38,9 +38,12 @@ On a phone: the button on each side of the board, or tap the left / right half o
 | `src/game/hazards.ts` | Where danger is at any beat: sentries and grid-wide sweeps. Pure and deterministic. |
 | `src/game/solver.ts` | Breadth-first solver over the rules. Proves levels are beatable; meant for the level editor too. |
 | `src/game/session.ts` | The live game around the rules: real time, input buffering, instant retry, attempts. |
-| `src/levels/` | The levels (ASCII maps plus hazard lists) and their parser. |
+| `src/game/room.ts` | **Co-op rules**: 2-4 pairs on one board, shared lights and lives, respawns, the clock. |
+| `src/game/bot.ts` | Bot teammates: a short look-ahead over the rules, with Easy / Normal / Hard knobs. |
+| `src/game/match.ts` | A live co-op room: countdown, the local player's and the bots' presses, results. |
+| `src/levels/` | The levels (ASCII maps plus hazard lists) and their parser; co-op rooms in `rooms.ts`. |
 | `src/render/` | Canvas, palette, the boot drawing, and drawing a frame. |
-| `src/ui/` | Menus, level select, HUD, styles. |
+| `src/ui/` | Menus, level select, HUD, styles; the co-op lobby and results in `room.ts`. |
 | `src/input/` | Buttons, screen halves and keyboard. |
 | `src/audio/` | Synthesised sound effects. |
 | `src/platform/` | Capacitor glue: the Android back button, app pause/resume, the dev channel. |

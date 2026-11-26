@@ -94,8 +94,8 @@ canvas{display:block}
 .sub{color:var(--dim);font-size:14px;margin-top:-6px}
 .eyebrow{font-size:11px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
 .huge{font-size:34px!important}
-#sWin .stack,#sPause .stack{flex-direction:row;flex-wrap:wrap;justify-content:center}
-#sWin .stack>*,#sPause .stack>*{width:auto;min-width:170px}
+#sWin .stack,#sPause .stack,#sRoomOver .stack{flex-direction:row;flex-wrap:wrap;justify-content:center}
+#sWin .stack>*,#sPause .stack>*,#sRoomOver .stack>*{width:auto;min-width:170px}
 .hint{font-size:12px;color:var(--dim);max-width:310px;line-height:1.5}
 .devtag{position:absolute;left:0;right:0;bottom:calc(var(--inB) - 14px);font:11px ui-monospace,monospace;
   opacity:.45;pointer-events:none}
@@ -194,3 +194,43 @@ canvas{display:block}
   box-shadow:0 0 22px rgba(25,227,200,.4);animation:turn 2.2s ease-in-out infinite}
 @keyframes turn{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}
 @media (orientation:portrait){ #rotate{display:flex} }
+
+/* ---- co-op ---- */
+#bCoop{display:flex;align-items:center;justify-content:center;gap:8px}
+em.new{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+  border:1px solid var(--line);border-radius:6px;padding:1px 5px}
+#hTeam{display:none;align-items:center;gap:12px;font-variant-numeric:tabular-nums}
+#hTeam.on{display:flex}
+#hDots{display:flex;gap:5px}
+#hDots i{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c);transition:opacity .2s}
+#hDots i.out{opacity:.22;box-shadow:none}
+#hLives{font-size:14px;font-weight:750;color:#ff8a95}
+#hClock{font-size:14px;font-weight:700;color:var(--txt);min-width:34px;text-align:right}
+#hClock.low{color:var(--red)}
+
+#slotList{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+#slots{display:flex;flex-direction:column;gap:8px;flex:1}
+#slotList .hint{text-align:left;max-width:none;flex:none}
+.slot{display:flex;align-items:center;gap:12px;text-align:left;background:var(--panel);border:1px solid var(--line);
+  border-radius:14px;padding:0 14px;flex:1;min-height:40px;max-height:58px;position:relative;overflow:hidden}
+.slot i{width:12px;height:12px;border-radius:50%;background:var(--c);box-shadow:0 0 12px var(--c);flex:none}
+.slot b{flex:1;font-size:15px}
+.slot small{color:var(--dim);font-size:12px}
+.slot.open{border-style:dashed;color:var(--dim)}
+.slot.open i{background:none;box-shadow:none;border:1.5px dashed var(--c)}
+.slot.you{cursor:default}
+.slot.you:active{transform:none}
+#roomInfo{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;background:var(--panel);
+  border:1px solid var(--line);border-radius:18px;padding:14px;text-align:left;min-height:0}
+#roomPreview{width:100%;height:100%;min-height:0;border-radius:12px;background:#04070a}
+#roomInfo .info{display:flex;flex-direction:column;gap:7px;min-height:0}
+#roomInfo h3{margin:0;font-size:21px;font-weight:850;line-height:1.1}
+#roomInfo p{margin:0;color:#c3d6d2;font-size:13px;line-height:1.4}
+#bRoomStart{margin-top:auto;flex:none;padding:12px}
+#bRoomStart:disabled{background:var(--line);color:var(--dim);box-shadow:none}
+
+#roPlayers{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:4px 0}
+#roPlayers div{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 12px;min-width:96px;
+  border-top:3px solid var(--c);text-align:left}
+#roPlayers b{display:block;font-size:14px}
+#roPlayers span{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}

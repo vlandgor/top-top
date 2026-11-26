@@ -15,6 +15,8 @@
     <!-- one slim line: mode dot and level on the left, the objective and pause on the right -->
     <div id="hud">
       <div id="hLevel"><i class="dot"></i><b id="hName">First Steps</b><span id="hMode">Destination</span></div>
+      <!-- co-op only: a dot per player (dim while out), the team's lives and the clock -->
+      <div id="hTeam"><span id="hDots"></span><span id="hLives"></span><span id="hClock"></span></div>
       <div id="hGoal"><span id="hGoalLabel">goal</span><b id="hGoalVal">0/1</b></div>
       <button class="hbtn" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/></svg></button>
     </div>
@@ -38,6 +40,7 @@
       </div>
       <div class="stack">
         <button class="btn big" id="bPlay">Play</button>
+        <button class="ghost" id="bCoop">Co-op <em class="new">new</em></button>
         <button class="ghost" id="bHow">How to play</button>
         <button class="ghost" id="bSet">Settings</button>
       </div>
@@ -90,6 +93,42 @@
           </div>
           <button class="btn" id="bLevelPlay">Play</button>
         </div>
+      </div>
+    </section>
+
+    <!-- co-op lobby: the players on the left (you, then three slots for bots), the room on the right -->
+    <section class="screen top" id="sRoom">
+      <div class="bar"><button class="back" id="bRoomBack" aria-label="Back">‹</button><h2>Co-op</h2><div class="sub">2–4 players on one floor, as one team</div></div>
+      <div class="split">
+        <div id="slotList">
+          <div id="slots"></div>
+          <div class="hint">Tap a slot to add a bot or change its skill. Bots fill in for friends until online play arrives.</div>
+        </div>
+        <div id="roomInfo">
+          <canvas id="roomPreview"></canvas>
+          <div class="info">
+            <div class="eyebrow" id="riTag"></div>
+            <h3 id="riName"></h3>
+            <p id="riGoal"></p>
+            <div class="chips" id="riChips"></div>
+            <div class="mstats">
+              <div><b id="riBest">–</b><span id="riBestLabel">team best</span></div>
+              <div><b id="riLives">5</b><span>shared lives</span></div>
+            </div>
+            <button class="btn" id="bRoomStart">Start</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="sRoomOver">
+      <div class="eyebrow" id="roTag">Co-op</div>
+      <h2 class="huge" id="roTitle">Cleared</h2>
+      <div class="sub" id="roSub"></div>
+      <div id="roPlayers"></div>
+      <div class="stack">
+        <button class="btn big" id="bRoomAgain">Play again</button>
+        <button class="ghost" id="bRoomLobby">Lobby</button>
       </div>
     </section>
 

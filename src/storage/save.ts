@@ -8,6 +8,10 @@ export interface Save {
   attempts?: Record<string, number>;
   /** the game mode last chosen on the modes screen */
   lastMode?: "destination" | "collect" | "sequence" | "survival" | "waves";
+  /** co-op: the team's fastest clear in ticks, by "room id/players" */
+  roomBest?: Record<string, number>;
+  /** co-op: the lobby's other three slots as last set up: "open" or a bot skill */
+  roomSlots?: string[];
   /** 0 = sound off */
   sfx?: number;
 }

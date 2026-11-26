@@ -1,6 +1,7 @@
 import "./ui/styles/global.css";
 import { initAudio } from "./audio/audio";
 import { update } from "./game/session";
+import { updateMatch } from "./game/match";
 import { initControls } from "./input/controls";
 import { initDev } from "./platform/dev";
 import { initNative } from "./platform/native";
@@ -15,6 +16,7 @@ let last = 0;
 function loop(ts: number){
   const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0; last = ts;
   update(dt);
+  updateMatch(dt);
   draw();
   syncHud();
   if ($("sMenu").classList.contains("on")) drawLogo(logo, ts / 1000);

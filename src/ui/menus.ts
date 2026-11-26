@@ -8,6 +8,8 @@ import { IS_DEV } from "../platform/dev";
 import { resetSave, save, writeSave } from "../storage/save";
 import { drawPreview } from "../render/draw";
 import { ACCENT } from "../render/theme";
+import { leaveMatch, M, pauseMatch, restartMatch, resumeMatch } from "../game/match";
+import { drawRoomPreview, enterRoom, goLobby, initRoom, syncRoomHud } from "./room";
 
 // ---------------------------------------------------------------------------
 // MENUS — one overlay, one screen at a time, plus the in-game HUD.
@@ -15,7 +17,7 @@ import { ACCENT } from "../render/theme";
 // ---------------------------------------------------------------------------
 export function $<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T; }
 
-function show(id: string | null){
+export function show(id: string | null){
   document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id));
   $("ui").classList.toggle("on", !!id);
   const inLevel = !id || id === "sPause" || id === "sWin";
@@ -26,14 +28,14 @@ function show(id: string | null){
 const on = (id: string, fn: () => void) => $(id).addEventListener("click", () => { sfx("click"); fn(); });
 export function screenOn(id: string): boolean { return $(id).classList.contains("on"); }
 
-function setAccent(c: string){ document.documentElement.style.setProperty("--accent", c); }
+export function setAccent(c: string){ document.documentElement.style.setProperty("--accent", c); }
 const fmtTime = (ticks: number) => (ticks * TICK_MS / 1000).toFixed(1) + "s";
 
 /** the mode chosen on the modes screen; remembered between visits */
 let mode: Mode = save.lastMode && MODES.some(m => m.id === save.lastMode) ? save.lastMode : "destination";
 
 export function goMenu(){
-  S.screen = "menu"; S.run = null; setAccent(ACCENT.destination);
+  S.screen = "menu"; S.run = null; leaveMatch(); setAccent(ACCENT.destination);
   show("sMenu");
 }
 
@@ -101,7 +103,7 @@ function features(m: Mode): string[] {
 }
 
 /** a canvas drawn at its CSS size, sharp on high-density screens */
-function previewInto(id: string, p: { run: Run; t0: number }){
+export function previewInto(id: string, p: { run: Run; t0: number }){
   const cv = $<HTMLCanvasElement>(id);
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = cv.clientWidth, h = cv.clientHeight;
@@ -115,6 +117,7 @@ function previewInto(id: string, p: { run: Run; t0: number }){
 /** every frame: the live preview on whichever of the two screens is open */
 export function drawPreviews(){
   if (preview && screenOn("sModes")) previewInto("modePreview", preview);
+  drawRoomPreview();
 }
 
 // ---- levels of one mode: tiles on the left, the selected level and Play on the right --------
@@ -202,8 +205,20 @@ function selectLevel(def: LevelDef){
 }
 
 // ---- playing --------------------------------------------------------------------------------
-export function unpause(){ resume(); if (S.screen === "play") show(null); }
-export function showPause(){ $("pauseName").textContent = S.def?.name || ""; show("sPause"); }
+export function unpause(){
+  if (M.active) { resumeMatch(); show(null); return; }
+  resume(); if (S.screen === "play") show(null);
+}
+export function showPause(){
+  $("pauseName").textContent = (M.active ? M.def?.name : S.def?.name) || "";
+  $("bPauseLevels").textContent = M.active ? "Lobby" : "Levels";
+  show("sPause");
+}
+/** pause whichever game is running: the solo level or the co-op room */
+export function pauseAny(){
+  if (M.active) { pauseMatch(); if (M.phase === "paused") showPause(); return; }
+  pause(); if (S.screen === "paused") showPause();
+}
 
 export function play(def: LevelDef){
   startLevel(def);
@@ -211,13 +226,14 @@ export function play(def: LevelDef){
   $("hMode").textContent = MODES.find(m => m.id === def.mode)!.name;
   $("hName").textContent = def.name;
   $("hGoalLabel").textContent = def.mode === "survival" ? "survive" : def.mode === "destination" ? "time" : "lights";
+  $("hTeam").classList.remove("on");
   show(null);
   const first = (save.attempts?.[def.id] || 0) === 0;
   toast(first && def.hint ? def.hint : "");
 }
 
 let toastTimer = 0;
-function toast(text: string){
+export function toast(text: string){
   const t = $("toast");
   t.textContent = text; t.classList.toggle("on", !!text);
   clearTimeout(toastTimer);
@@ -238,6 +254,7 @@ function onWin(){
 
 /** HUD text, every frame while playing */
 export function syncHud(){
+  if (M.active) { syncRoomHud(); return; }
   const r = S.run; if (!r) return;
   const [a, b] = progress(r);
   const v = r.lv.def.mode === "survival"
@@ -252,13 +269,17 @@ export function syncHud(){
 /** the Android back button on a menu: one screen back. false on the main menu */
 export function back(): boolean {
   if (screenOn("sLevels")) { goModes(); return true; }
-  if (screenOn("sModes") || screenOn("sHow") || screenOn("sSet")) { goMenu(); return true; }
+  if (screenOn("sModes") || screenOn("sHow") || screenOn("sSet") || screenOn("sRoom")) { goMenu(); return true; }
+  if (screenOn("sRoomOver")) { goLobby(); return true; }
   return false;
 }
 
 export function initMenus(){
   S.onWin = onWin;
+  initRoom();
   on("bPlay", goModes);
+  on("bCoop", goLobby);
+  on("bRoomBack", goMenu);
   on("bHow", () => show("sHow"));
   on("bHowOk", goMenu);
   on("bSet", () => { ($("optSfx") as HTMLInputElement).checked = soundOn(); show("sSet"); });
@@ -268,10 +289,13 @@ export function initMenus(){
   on("bModesBack", goMenu);
   on("bModeSelect", () => goLevels(mode));
   on("bLevelsBack", goModes);
-  on("pauseBtn", () => { pause(); if (S.screen === "paused") showPause(); });
+  on("pauseBtn", pauseAny);
   on("bResume", unpause);
-  on("bRestart", () => { S.attempt++; restart(); show(null); });
-  on("bPauseLevels", () => goLevels(S.def?.mode));
+  on("bRestart", () => {
+    if (M.active) { restartMatch(); enterRoom(); return; }
+    S.attempt++; restart(); show(null);
+  });
+  on("bPauseLevels", () => { if (M.active) goLobby(); else goLevels(S.def?.mode); });
   on("bNext", () => { const n = S.def && nextLevel(S.def); if (n) play(n); });
   on("bRetry", () => { S.attempt++; play(S.def!); });
   on("bWinLevels", () => goLevels(S.def?.mode));

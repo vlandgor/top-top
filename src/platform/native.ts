@@ -1,13 +1,15 @@
 import { resumeAudio, sfx, suspendAudio } from "../audio/audio";
-import { pause, S } from "../game/session";
-import { back, goLevels, showPause, unpause } from "../ui/menus";
+import { S } from "../game/session";
+import { M } from "../game/match";
+import { back, goLevels, pauseAny, unpause } from "../ui/menus";
 
 // ---- inside the Android app (Capacitor). in a plain browser this does nothing.
 // the hardware back button steps back one screen; on the main menu it leaves the app.
 function app(){ return window.Capacitor?.Plugins?.App; }
 
 function onBack(){
-  if (S.screen === "play") { pause(); showPause(); return; }
+  if (M.active && M.phase !== "over") { if (M.phase === "paused") unpause(); else pauseAny(); return; }
+  if (S.screen === "play") { pauseAny(); return; }
   if (S.screen === "paused") { unpause(); return; }
   if (S.screen === "won") { goLevels(S.def?.mode); return; }
   if (back()) return;
@@ -18,6 +20,6 @@ export function initNative(){
   const App = app();
   if (!App?.addListener) return;
   App.addListener("backButton", () => { sfx("click"); onBack(); });
-  App.addListener("pause", () => { if (S.screen === "play") { pause(); showPause(); } suspendAudio(); });
+  App.addListener("pause", () => { if (S.screen === "play" || M.active) pauseAny(); suspendAudio(); });
   App.addListener("resume", () => resumeAudio());
 }

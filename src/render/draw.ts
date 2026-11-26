@@ -1,10 +1,13 @@
 import type { Boot, Level, Run, Vec } from "../core/types";
+import { COUNTDOWN_S, M, matchTickF, PLAYER_COLORS } from "../game/match";
+import { RESPAWN_TICKS } from "../game/room";
+import { nextTileOf } from "../game/rules";
 import { sentryAt, sweepAt } from "../game/hazards";
-import { itemLive, nextTile } from "../game/rules";
-import { RETRY_MS, S, tickF } from "../game/session";
+import { itemLive } from "../game/rules";
+import { RETRY_MS, S, tickF, type SwingAnim } from "../game/session";
 import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
-import { ACCENT, C, rgba } from "./theme";
+import { ACCENT, C, mix, rgba } from "./theme";
 import { LEVELS } from "../levels/levels";
 
 // ---------------------------------------------------------------------------
@@ -13,7 +16,9 @@ import { LEVELS } from "../levels/levels";
 // which run, at what time, and whether it is the live game (with swing and death effects).
 // ---------------------------------------------------------------------------
 
-interface Frame { r: Run; tf: number; now: number; live: boolean }
+/** what the board needs to draw: a solo Run and a co-op Room both are one */
+interface Board { lv: Level; taken: boolean[]; nextOrder: number }
+interface Frame { b: Board; tf: number; now: number; live: boolean; picked: Map<number, number> }
 let F: Frame;
 let ctx: CanvasRenderingContext2D = mainCtx;
 
@@ -59,8 +64,9 @@ const ease = (k: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, k)), 3);
 export function draw(){
   ctx = mainCtx;
   ctx.fillStyle = C.bg; ctx.fillRect(0, 0, view.w, view.h);
+  if (M.active) { drawRoom(); return; }
   const r = S.run; if (!r) return;
-  F = { r, tf: tickF(), now: S.now, live: true };
+  F = { b: r, tf: tickF(), now: S.now, live: true, picked: S.pickedAt };
   L = layoutIn(r.lv, 0, HUD_TOP, view.w, view.h - HUD_TOP - BOTTOM, 76, BIGGEST);
   const dead = r.status === "dead", deadK = dead ? Math.min(1, (S.now - S.deadAt) / (RETRY_MS / 1000)) : 0;
 
@@ -69,7 +75,11 @@ export function draw(){
     const a = (0.4 - deadK) * 10;
     ctx.translate(Math.sin(S.now * 90) * a, Math.cos(S.now * 70) * a);
   }
-  drawBoard(dead);
+  drawBoard();
+  if (r.status === "play") drawNext(r.lv, r.boots, ACCENT[r.lv.def.mode]);
+  drawPair(r.lv, r.boots, S.anim, heading, (_who, lifted) => dead
+    ? { body: "#ff8a95", edge: C.hazard, detail: "#7a1520", glow: C.hazard, glowSize: L.s * 0.5 }
+    : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: L.s * (lifted ? 0.6 : 0.3) });
   ctx.restore();
   if (dead) { ctx.fillStyle = rgba(C.hazard, 0.28 * (1 - deadK)); ctx.fillRect(0, 0, view.w, view.h); }
   if (r.status === "won") drawWin(r, ACCENT[r.lv.def.mode]);
@@ -82,25 +92,22 @@ export function draw(){
 export function drawPreview(c: CanvasRenderingContext2D, w: number, h: number, r: Run, t: number, tickMs: number, loop = 12){
   ctx = c;
   ctx.clearRect(0, 0, w, h);
-  F = { r, tf: ((t % loop) * 1000) / tickMs, now: t, live: false };
+  F = { b: r, tf: ((t % loop) * 1000) / tickMs, now: t, live: false, picked: S.pickedAt };
   r.tick = Math.floor(F.tf);
   L = layoutIn(r.lv, 4, 4, w - 8, h - 8, 60);
-  drawBoard(false);
+  drawBoard();
   ctx = mainCtx;
 }
 
-function drawBoard(dead: boolean){
-  const r = F.r, lv = r.lv, accent = ACCENT[lv.def.mode];
+/** the floor, hazards, lights and goal: everything but the boots */
+function drawBoard(){
+  const r = F.b, lv = r.lv, accent = ACCENT[lv.def.mode];
   const beatF = F.tf / lv.beat, beat = Math.floor(beatF), frac = beatF - beat;
   drawFloor(lv, frac, accent);
   drawSweeps(lv, beatF);
   drawItems(r, beat, accent);
   if (lv.goal) drawGoal(lv.goal, accent);
   drawSentries(lv, beat, frac);
-  // previews show the level and its hazards only: still boots would just stand in the danger
-  if (!F.live) return;
-  if (r.status === "play") drawNext(r, accent);
-  drawBoots(r, dead);
 }
 
 // ---- floor -------------------------------------------------------------------------------
@@ -160,12 +167,12 @@ function drawGoal(g: Vec, accent: string){
   panel(g.x, g.y, rgba(accent, 0.85), L.s * 0.5, 0.34);
 }
 
-function drawItems(r: Run, beat: number, accent: string){
+function drawItems(r: Board, beat: number, accent: string){
   const lv = r.lv;
   lv.items.forEach((it, i) => {
     const x = cx(it.x), y = cy(it.y), s = L.s;
     if (r.taken[i]) {                                // pop when picked up
-      const k = F.live ? (F.now - (S.pickedAt.get(i) ?? -9)) / 0.3 : 1;
+      const k = F.live ? (F.now - (F.picked.get(i) ?? -9)) / 0.3 : 1;
       if (k < 1) {
         ctx.beginPath(); ctx.arc(x, y, s * (0.18 + 0.35 * k), 0, Math.PI * 2);
         ctx.lineWidth = 3 * (1 - k); ctx.strokeStyle = rgba(accent, 1 - k); ctx.stroke();
@@ -201,9 +208,9 @@ function drawItems(r: Run, beat: number, accent: string){
 
 // ---- where each button sends its boot ----------------------------------------------------
 const LABEL = ["L", "R"];
-function drawNext(r: Run, accent: string){
+function drawNext(lv: Level, boots: [Vec, Vec], accent: string){
   for (const who of [0, 1] as Boot[]) {
-    const t = nextTile(r, who);
+    const t = nextTileOf(lv, boots, who);
     // a step back off an edge is drawn fainter, with a back arrow instead of the letter
     outline(t.x, t.y, rgba(accent, t.back ? 0.32 : 0.5), 1.5, 0.14, [L.s * 0.1, L.s * 0.07]);
     ctx.fillStyle = rgba(accent, t.back ? 0.5 : 0.7);
@@ -214,11 +221,12 @@ function drawNext(r: Run, accent: string){
 }
 
 // ---- the boots ---------------------------------------------------------------------------
-function drawBoots(r: Run, dead: boolean){
+/** one pair of boots, mid-swing if it has an animation. `head` keeps each boot's eased facing */
+function drawPair(lv: Level, boots: [Vec, Vec], anim: SwingAnim | null, head: number[], style: (who: Boot, lifted: boolean) => BootStyle){
   const s = L.s;
-  const pos: Vec[] = [{ x: cx(r.boots[0].x), y: cy(r.boots[0].y) }, { x: cx(r.boots[1].x), y: cy(r.boots[1].y) }];
+  const pos: Vec[] = [{ x: cx(boots[0].x), y: cy(boots[0].y) }, { x: cx(boots[1].x), y: cy(boots[1].y) }];
   let lift = -1, liftK = 0;
-  const an = F.live ? S.anim : null;
+  const an = F.live ? anim : null;
   if (an) {
     const k = (F.now - an.t0) / SWING_S;
     if (k < 1) {
@@ -237,15 +245,13 @@ function drawBoots(r: Run, dead: boolean){
   for (const who of [0, 1] as Boot[]) {
     // each boot faces along its own path: the next tile ahead, even when the edge is in the
     // way and the press will step it back. It never turns around
-    const p = r.boots[who], t = nextTile(r, who).ahead;
+    const p = boots[who], t = nextTileOf(lv, boots, who).ahead;
     const want = Math.atan2(t.y - p.y, t.x - p.x);
-    let dh = want - heading[who];
+    let dh = want - head[who];
     while (dh > Math.PI) dh -= Math.PI * 2; while (dh < -Math.PI) dh += Math.PI * 2;
-    heading[who] += dh * 0.35;
-    const face = F.live ? heading[who] : want;
-    const st: BootStyle = dead
-      ? { body: "#ff8a95", edge: C.hazard, detail: "#7a1520", glow: C.hazard, glowSize: s * 0.5 }
-      : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: s * (who === lift ? 0.6 : 0.3) };
+    head[who] += dh * 0.35;
+    const face = F.live ? head[who] : want;
+    const st = style(who, who === lift);
     const scale = 1 + (who === lift ? 0.18 * liftK : 0);
     drawBoot(ctx, pos[who].x, pos[who].y, face + Math.PI / 2, who === 0, s * 0.7 * scale, st);
   }
@@ -259,6 +265,77 @@ function drawWin(r: Run, accent: string){
     ctx.beginPath(); ctx.arc(cx(p.x), cy(p.y), L.s * (0.5 + kk * 5), 0, Math.PI * 2);
     ctx.lineWidth = 4 * (1 - kk); ctx.strokeStyle = rgba(accent, 1 - kk); ctx.stroke();
   }
+}
+
+// ---- co-op rooms --------------------------------------------------------------------------
+// Every pair is drawn in its player's colour; the local player's goes on top and is the only
+// one with the L / R next-tile marks. A pair that's out flashes red where it died, and its
+// start tiles fill in its colour until it's back.
+const roomHeads: number[][] = [];
+const DEAD_STYLE: BootStyle = { body: "#ff8a95", edge: C.hazard, detail: "#7a1520", glow: C.hazard, glowSize: 20 };
+function playerStyle(color: string, lifted: boolean): BootStyle {
+  return { body: mix(color, "#ffffff", 0.8), edge: color, detail: mix(color, "#000000", 0.5), glow: color, glowSize: L.s * (lifted ? 0.6 : 0.3) };
+}
+function bigText(text: string, k: number, color: string){
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, 1 - k);
+  ctx.font = `900 ${Math.round(Math.min(view.h * 0.32, 140, (view.w * 1.1) / text.length) * (1 + 0.25 * k))}px ui-sans-serif,system-ui,sans-serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.shadowColor = color; ctx.shadowBlur = 30; ctx.fillStyle = "#f2fffd";
+  ctx.fillText(text, view.w / 2, view.h / 2);
+  ctx.restore();
+}
+
+function drawRoom(){
+  const r = M.room; if (!r) return;
+  const lv = r.lv;
+  F = { b: r, tf: matchTickF(), now: M.now, live: true, picked: M.pickedAt };
+  L = layoutIn(lv, 0, HUD_TOP, view.w, view.h - HUD_TOP - BOTTOM, 76, BIGGEST);
+  const youOut = M.you >= 0 ? M.now - M.diedAt[M.you] : 9;
+  ctx.save();
+  if (youOut < 0.16) { const a = (0.16 - youOut) * 25; ctx.translate(Math.sin(M.now * 90) * a, Math.cos(M.now * 70) * a); }
+  drawBoard();
+  const order = r.pairs.map((_, i) => i).filter(i => i !== M.you);
+  if (M.you >= 0) order.push(M.you);
+  for (const i of order) {
+    const p = r.pairs[i], color = PLAYER_COLORS[i];
+    const head = roomHeads[i] = roomHeads[i] || [-Math.PI / 2, -Math.PI / 2];
+    if (p.alive) {
+      if (i === M.you && r.status === "play" && M.phase !== "count") drawNext(lv, p.boots, color);
+      const k = (M.now - M.spawnAt[i]) / 0.45;      // a ring as it lands back on its start
+      if (k < 1) for (const b of p.boots) {
+        ctx.beginPath(); ctx.arc(cx(b.x), cy(b.y), L.s * (0.3 + 0.5 * k), 0, Math.PI * 2);
+        ctx.lineWidth = 3 * (1 - k); ctx.strokeStyle = rgba(color, 1 - k); ctx.stroke();
+      }
+      drawPair(lv, p.boots, M.anims[i], head, (_who, lifted) => playerStyle(color, lifted));
+      if (i === M.you && M.phase === "count") {        // which pair is yours
+        const mx = (cx(p.boots[0].x) + cx(p.boots[1].x)) / 2, my = Math.min(cy(p.boots[0].y), cy(p.boots[1].y)) - L.s * 0.62;
+        ctx.font = `800 ${Math.round(L.s * 0.24)}px ui-sans-serif,system-ui,sans-serif`;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = color;
+        ctx.fillText("YOU", mx, my);
+      }
+      continue;
+    }
+    const since = M.now - M.diedAt[i];
+    if (since < 0.45 && p.diedAt) {
+      ctx.globalAlpha = 1 - since / 0.45;
+      drawPair(lv, p.diedAt, null, head, () => DEAD_STYLE);
+      ctx.globalAlpha = 1;
+    }
+    const k = 1 - Math.min(1, Math.max(0, (p.backAt - F.tf) / RESPAWN_TICKS));   // 0 -> 1 as it comes back
+    for (const st of p.start) {
+      panel(st.x, st.y, rgba(color, 0.05 + 0.2 * k));
+      outline(st.x, st.y, rgba(color, 0.3 + 0.5 * k), 2, 0.1, [L.s * 0.1, L.s * 0.07]);
+    }
+  }
+  ctx.restore();
+  if (youOut < RETRY_MS / 1000) { ctx.fillStyle = rgba(C.hazard, 0.22 * (1 - youOut / (RETRY_MS / 1000))); ctx.fillRect(0, 0, view.w, view.h); }
+  const inPhase = M.now - M.phaseAt;
+  if (M.phase === "count") {
+    const left = COUNTDOWN_S - inPhase;
+    bigText(String(Math.max(1, Math.ceil(left))), 1 - (left - Math.floor(left)), PLAYER_COLORS[0]);
+  } else if (M.phase === "play" && inPhase < 0.6 && r.tick < 6) bigText("GO", inPhase / 0.6, ACCENT[lv.def.mode]);
+  if (M.phase === "over") bigText(r.status === "won" ? "CLEARED" : r.why === "time" ? "TIME" : "OUT", Math.max(0, inPhase - 0.5) * 2, r.status === "won" ? ACCENT[lv.def.mode] : C.hazard);
 }
 
 /** the main-menu logo: the two boots mid-step on three lit tiles */

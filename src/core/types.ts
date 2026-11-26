@@ -66,6 +66,15 @@ export interface LevelDef {
   need?: number;
   /** waves: what each pass of sweep 0 leaves behind, one "x,y x,y" string per pass (cycled) */
   drops?: string[];
+  /**
+   * co-op rooms: where each pair of boots starts, one "ax,ay bx,by" per player (left boot
+   * first). Up to 4. A room map has no A / B; solo levels leave this out
+   */
+  starts?: string[];
+  /** co-op rooms: lives the team shares. default 5 */
+  lives?: number;
+  /** co-op rooms: beats before time runs out and the team loses. 0 / absent = no limit */
+  limit?: number;
   /** a one-line tip shown on the level's first attempt */
   hint?: string;
   /**
@@ -95,6 +104,11 @@ export interface Level {
   w: number; h: number;
   /** [left boot, right boot] at the start */
   start: [Vec, Vec];
+  /** every pair's start: just `start` in a solo level, one per player in a co-op room */
+  starts: [Vec, Vec][];
+  /** co-op rooms: shared lives, and the time limit in beats (0 = none) */
+  lives: number;
+  limit: number;
   goal: Vec | null;
   items: Item[];
   sentries: Sentry[];

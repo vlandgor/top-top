@@ -67,8 +67,22 @@ export function parseLevel(def: LevelDef): Level {
       else if (ch !== ".") throw new Error(`${where}: unknown tile "${ch}" at ${x},${y}`);
     });
   });
-  if (!a || !b) throw new Error(`${where}: needs an A and a B`);
-  if (!isNeighbour(a, b)) throw new Error(`${where}: A and B must be neighbours`);
+  // a co-op room lists a start per player instead of putting A and B on the map
+  let starts: [Vec, Vec][];
+  if (def.starts?.length) {
+    if (a || b) throw new Error(`${where}: a room lists its starts, so its map has no A / B`);
+    if (def.starts.length > 4) throw new Error(`${where}: at most 4 starts`);
+    starts = def.starts.map((s, i) => {
+      const p = points(s, `${where} start ${i}`);
+      if (p.length !== 2) throw new Error(`${where} start ${i}: needs two points, left boot first`);
+      for (const q of p) if (q.x < 0 || q.y < 0 || q.x >= w || q.y >= h) throw new Error(`${where} start ${i}: off the board`);
+      return [p[0], p[1]];
+    });
+  } else {
+    if (!a || !b) throw new Error(`${where}: needs an A and a B`);
+    starts = [[a, b]];
+  }
+  for (const [p, q] of starts) if (!isNeighbour(p, q)) throw new Error(`${where}: a pair's boots must be neighbours`);
 
   const sentries: Sentry[] = (def.sentries || []).map((s, i) => {
     const tiles = sentryTiles(s.path, !!s.pingpong, `${where} sentry ${i}`);
@@ -104,10 +118,12 @@ export function parseLevel(def: LevelDef): Level {
   items.forEach((it, i) => { const k = it.y * w + it.x; itemsAt.set(k, (itemsAt.get(k) || []).concat(i)); });
 
   return {
-    def, w, h, itemsAt, start: [a, b], goal, items, sentries, sweeps,
+    def, w, h, itemsAt, start: starts[0], starts, goal, items, sentries, sweeps,
     beat: def.beat || 4,
     survive: def.survive || 0,
     need: def.need || 0,
+    lives: def.lives || 5,
+    limit: def.limit || 0,
     ordered,
   };
 }

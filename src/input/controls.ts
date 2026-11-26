@@ -1,11 +1,13 @@
 import type { Boot } from "../core/types";
-import { input, pause, restart, S } from "../game/session";
-import { $, showPause, unpause } from "../ui/menus";
+import { input, restart, S } from "../game/session";
+import { M, matchInput, restartMatch } from "../game/match";
+import { $, pauseAny, unpause } from "../ui/menus";
+import { enterRoom } from "../ui/room";
 
 // CONTROLS — one button per boot, on each side of the board, or tap the left / right half of
 // the board. Keys: A / ← the left boot · D / → the right boot · R restart · Esc pause.
 function tap(who: Boot){
-  input(who);
+  if (M.active) matchInput(who); else input(who);
   const b = $(who === 0 ? "bLeft" : "bRight");
   b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 90);
 }
@@ -24,9 +26,11 @@ export function initControls(){
     const k = e.key.toLowerCase();
     if (k === "arrowleft" || k === "a") { tap(0); e.preventDefault(); }
     else if (k === "arrowright" || k === "d") { tap(1); e.preventDefault(); }
+    else if (k === "r" && M.active && M.phase !== "over") { restartMatch(); enterRoom(); }
     else if (k === "r" && (S.screen === "play" || S.screen === "paused")) { S.attempt++; restart(); unpause(); }
     else if (k === "escape") {
-      if (S.screen === "play") { pause(); showPause(); }
+      if (M.active) { if (M.phase === "paused") unpause(); else pauseAny(); }
+      else if (S.screen === "play") pauseAny();
       else if (S.screen === "paused") unpause();
     }
   });

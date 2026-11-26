@@ -75,6 +75,46 @@ hazard, shows a tip.
 The first level of each mode is open; clearing one opens the next (in the dev build too). The game is landscape only (either way up), with a boot button on each side of
 the board.
 
+## Co-op rooms
+
+Inspired by the Grid rooms at Activate: 2–4 players on one floor, playing short challenges
+together. Solo stays exactly as it is; rooms are a separate menu entry (**Co-op**) with their
+own levels (`src/levels/rooms.ts`).
+
+- **Every player steers their own pair** with the solo movement and buttons. Pairs never
+  block each other; they just overlap. Each pair has its own colour (you are always teal).
+- **One team:** lights are shared, so any player's pickup counts. The team shares a pool of
+  **lives** (5 by default). A pair that dies loses one, sits out 1 s, then comes back at its
+  start. The run is lost when the lives or the **clock** (`limit`, in beats) run out.
+- **Flow:** lobby → 3-2-1 countdown → play → results (team time, lives left, each player's
+  lights and falls). Pausing counts back in from 3. The team's best time is kept per room and
+  player count.
+- **Room levels** list one start per player (`starts: ["ax,ay bx,by", …]`) instead of A / B on
+  the map, plus `lives` and `limit`. There is no proof: the tests prove a room by having bot
+  teams clear it at every player count and skill.
+- **First room:** *Light Hunt*, Collect All, 11×7, 13 lights, 2 sentries, 60 s. Only Collect
+  has co-op rules so far.
+
+### Bots
+
+Until there is online play, bots fill the other seats, so the whole flow can be built and
+tested solo. In the lobby each of the three extra slots is Open or a bot (Easy / Normal / Hard).
+
+A bot steers its pair through the same rules a person does, one decision per tick. It looks
+5 s ahead with a breadth-first search over its own pair against the real hazard schedule,
+heads for the soonest light that another bot hasn't claimed and that a teammate isn't clearly
+closer to, and rethinks when that light is gone. Skill is three knobs: press pace (4 / 3 / 2
+ticks), reaction time before acting on a new goal, and how often a press goes to the wrong
+boot (5% / 2% / 0%), which can cost the team a life like a person's slip. Everything random
+is seeded, so a match replays the same way.
+
+### Toward online play
+
+The rules (`src/game/room.ts`) don't know who presses: the local player, bots and later
+remote players all go through `pressPair()`, at most once per tick per pair. The game is
+deterministic, so online play can be lockstep: send presses tagged with their tick, not
+positions. The lobby's open slots are where friends will join.
+
 ## Still open
 
 - Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only
@@ -82,6 +122,8 @@ the board.
 
 - Waves: tuning, more levels, whether it needs a time limit.
 - Achievements screen.
+- Co-op: rules for the other modes (shared sequence, team survival, everyone to the goal),
+  more rooms, lights and lives scaled by player count, versus rules, then online play.
 - In-app level editor with sharing. The level format is plain data and the solver can
   validate player-made levels before they're shared.
 - Practice mode or checkpoints; how progression and saves should work.

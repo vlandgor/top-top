@@ -23,3 +23,10 @@ export function rgba(hex: string, a: number): string {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${Math.max(0, Math.min(1, a)).toFixed(3)})`;
 }
+
+/** a blend of two "#rrggbb" colours: k = 0 gives a, 1 gives b */
+export function mix(a: string, b: string, k: number): string {
+  const p = parseInt(a.slice(1), 16), q = parseInt(b.slice(1), 16);
+  const ch = (sh: number) => Math.round(((p >> sh) & 255) * (1 - k) + ((q >> sh) & 255) * k);
+  return "#" + ((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1);
+}

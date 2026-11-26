@@ -1,5 +1,6 @@
-# Deploys the dev channel of the game to GitHub Pages on every push to main:
-# https://vlandgor.github.io/top-top/
+# Deploys the dev channel of the game to GitHub Pages on every push to main, and to the
+# feature branches listed below so they can be tried on a phone before merging:
+# https://vlandgor.github.io/top-top/  (whichever of them was pushed last is live)
 #
 # The "Top Top Dev" Android app (android.yml) loads this page, so it always runs the
 # newest commit. The dev channel shows its commit on the main menu.
@@ -9,7 +10,7 @@ name: Dev web build
 
 on:
   push:
-    branches: [main]
+    branches: [main, coop-bots]
   workflow_dispatch:
 
 permissions:
@@ -42,6 +43,7 @@ jobs:
       - run: npm run build:devweb
         env:
           VITE_COMMIT: ${{ github.sha }}
+          VITE_BRANCH: ${{ github.ref_name }}
 
       - uses: actions/configure-pages@v5
 

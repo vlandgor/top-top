@@ -38,14 +38,17 @@ export const TURN = [1, -1] as const;
  * the next tile on its normal path, even when that is off the board: the boot always faces
  * it, so a step back is a step backwards, not a turn around.
  */
-export function nextTile(r: Run, who: Boot): Vec & { back: boolean; ahead: Vec } {
-  const mv = r.boots[who], an = r.boots[1 - who];
+export function nextTile(r: Run, who: Boot): Vec & { back: boolean; ahead: Vec } { return nextTileOf(r.lv, r.boots, who); }
+
+/** the same for any pair of boots on a level: co-op rooms and bots move several pairs */
+export function nextTileOf(lv: Level, boots: readonly [Vec, Vec], who: Boot): Vec & { back: boolean; ahead: Vec } {
+  const mv = boots[who], an = boots[1 - who];
   const d = dirBetween(an, mv), t = TURN[who];
   const at = (k: number) => ({ x: an.x + DIRS[rot(d, k)].x, y: an.y + DIRS[rot(d, k)].y });
   const ahead = at(t);
-  if (inBounds(r.lv, ahead)) return { ...ahead, back: false, ahead };
+  if (inBounds(lv, ahead)) return { ...ahead, back: false, ahead };
   // blocked ahead: back around the other boot until there is a tile
-  for (let k = 1; k < 8; k++) { const p = at(-t * k); if (inBounds(r.lv, p)) return { ...p, back: true, ahead }; }
+  for (let k = 1; k < 8; k++) { const p = at(-t * k); if (inBounds(lv, p)) return { ...p, back: true, ahead }; }
   return { ...mv, back: true, ahead };            // unreachable on a 2x2 board or bigger
 }
 
