@@ -248,6 +248,25 @@ Every moment that matters gets an answer you can feel, see and hear.
 - Particles live in `src/render/fx.ts`, in tile coordinates; the game only records when things
   happened and the drawing notices each new moment once.
 
+## Daily level
+
+A new level every day, on the Play tab between Play together and Solo
+(`src/levels/daily.ts`, `src/game/daily.ts`).
+
+- **Built on the phone from the date**, with the same recipes and judge as the 100 levels
+  (`src/levels/generator.ts`, shared with `tools/gen-levels.ts`): the date is the seed, so
+  everyone gets the same level on the same day, and it is proven beatable at a human pace. It
+  is built once, in a background worker (well under a second), and kept in the save.
+- **The mode goes round all five**, one a day. **The weekday sets the difficulty**: gentle on
+  Monday, harder through the week, hardest on Sunday (slots 5 to 14 of the 20-level curve).
+- **The row** shows the date, the mode, your streak, and Play, or once cleared, how many hours
+  until the next one. Its first try says the mode and goal, since it can be any mode.
+- **Results:** no Next level; the first clear's badge counts the **streak** (days in a row
+  with a clear; today not cleared yet doesn't break it). Retry chases a better best. Menu,
+  Back and Levels from a daily go to the main menu.
+- Clears go in the save like any level (`daily-2026-11-27`), so bests and attempts work the
+  same, and the streak is just counting them. Each day gets its own melody.
+
 ## Still open
 
 - Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only

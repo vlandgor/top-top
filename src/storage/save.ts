@@ -2,6 +2,8 @@
 // SAVE — cleared levels, attempts and settings, kept in localStorage. How progression and
 // saves should finally work is still open; this is the simplest thing that works offline.
 // ---------------------------------------------------------------------------
+import type { LevelDef } from "../core/types";
+
 export interface Save {
   /** best clear per level: fewest presses, then fewest ticks */
   done?: Record<string, { presses: number; ticks: number }>;
@@ -22,6 +24,8 @@ export interface Save {
   sfx?: number;
   /** 0 = music off */
   music?: number;
+  /** today's daily level, built once on this phone (game/daily.ts) */
+  daily?: { key: string; def: LevelDef };
   /** 0 = vibration off */
   haptics?: number;
 }

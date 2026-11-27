@@ -95,7 +95,15 @@ export function listOf(xs: string[]): string {
 }
 
 /** a level's or room's name */
-export const levelName = (d: LevelDef): string => pack.names[d.id] ?? d.name;
+export const levelName = (d: LevelDef): string => d.id.startsWith("daily-") ? dayName(d.id.slice(6)) : pack.names[d.id] ?? d.name;
+/** a day's name in the current language: "Friday, November 27" */
+export function dayName(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  let s: string;
+  try { s = new Date(y, m - 1, d).toLocaleDateString(cur, { weekday: "long", month: "long", day: "numeric" }); }
+  catch { s = key; }
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 /** a level's tip, if it has one */
 export const levelHint = (d: LevelDef): string => d.hint ? (pack.hints[d.hint] ?? d.hint) : "";
 

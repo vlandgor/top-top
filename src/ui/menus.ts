@@ -14,6 +14,8 @@ import { drawBoots, enterBoots, initBoots } from "./skins";
 import { drawSettings, enterSettings, onLanguage } from "./settings";
 import { drawHowTo, initHowTo, openHowTo } from "./howto";
 import { levelHint, levelName, t, tn } from "../i18n";
+import { dailyBest, dailyStreak, hoursToNext, onDailyReady, todaysDaily } from "../game/daily";
+import { dailyId, dayKey, isDaily } from "../levels/daily";
 import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
@@ -86,8 +88,24 @@ export function goMenu(which: Tab = "play"){
   show("sMenu");
 }
 
-/** the Play tab: the lobby's team on the multiplayer floor, and a column per solo mode */
+const PLAY_ICON = `<svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg>`;
+const modeName = (m: Mode) => MODES.find(x => x.id === m)!.name;
+
+/** the Play tab's daily row: today's date and mode, your streak, and Play (or when the next one comes) */
+function renderDaily(){
+  const def = todaysDaily(), key = dayKey(), best = dailyBest(key), streak = dailyStreak(), b = $<HTMLButtonElement>("bDaily");
+  b.style.setProperty("--c", def ? ACCENT[def.mode] : "var(--dim)");
+  b.classList.toggle("done", !!best);
+  b.disabled = !def;
+  $("dName").textContent = levelName({ id: dailyId(key), name: key } as LevelDef);
+  $("dMode").textContent = def ? modeName(def.mode) : "";
+  $("dStreak").textContent = streak ? tn("daily.streak", streak) : "";
+  $("dGo").innerHTML = !def ? t("daily.building") : best ? t("daily.cleared", { n: hoursToNext() }) : PLAY_ICON + t("play");
+}
+
+/** the Play tab: the lobby's team on the multiplayer floor, today's daily, and a column per solo mode */
 function renderMenu(){
+  renderDaily();
   const n = teamSize();
   $("menuTeam").innerHTML = PLAYER_COLORS.map((c, i) => i < n ? `<i style="--c:${c}"></i>` : `<i class="open"></i>`).join("")
     + `<span>${n === 1 ? t("menu.justYou") : tn("menu.withBots", n - 1)}</span>`;
@@ -270,7 +288,7 @@ export function goLevels(m: Mode = curMode(), c: boolean = coop){
 
 /** what you have to do, in one line */
 function goalText(def: LevelDef): string {
-  if (coop) return roomGoal(def);
+  if (coop && !isDaily(def)) return roomGoal(def);
   const lights = def.map.join("").replace(/[^o1-9]/g, "").length;
   switch (def.mode) {
     case "destination": return t("goal.destination");
@@ -350,13 +368,14 @@ export function pauseAny(){
 export function play(def: LevelDef){
   startLevel(def);
   setAccent(ACCENT[def.mode]);
-  $("hMode").textContent = MODES.find(m => m.id === def.mode)!.name;
+  $("hMode").textContent = isDaily(def) ? t("daily.title") : modeName(def.mode);
   $("hName").textContent = levelName(def);
   $("hGoalLabel").textContent = t(def.mode === "survival" ? "hud.goal.survive" : def.mode === "destination" ? "hud.goal.time" : "hud.goal.lights");
   $("hTeam").classList.remove("on");
   show(null);
   const first = (save.attempts?.[def.id] || 0) === 0;
-  toast(first ? levelHint(def) : "");
+  // the daily can be any mode: its first try says what to do
+  toast(first ? (isDaily(def) ? `${modeName(def.mode)} · ${goalText(def)}` : levelHint(def)) : "");
 }
 
 let toastTimer = 0;
@@ -369,13 +388,16 @@ export function toast(text: string){
 
 function onWin(){
   const r = S.run!, def = S.def!;
-  $("winMode").textContent = MODES.find(m => m.id === def.mode)!.name;
+  const daily = isDaily(def);
+  $("winMode").textContent = daily ? `${t("daily.title")} · ${modeName(def.mode)}` : modeName(def.mode);
+  $("bWinLevels").textContent = daily ? t("daily.menu") : t("levels");
   $("winName").textContent = levelName(def);
   $("winSwings").textContent = String(r.moves);
   $("winTime").textContent = fmtTime(r.tick);
   $("winAttempts").textContent = String(S.attempt);
   const badge = $("winBadge");
-  badge.textContent = S.best === "first" ? t("win.first") : S.best === "better" ? t("win.best") : "";
+  // a daily's first clear counts the streak instead
+  badge.textContent = S.best === "first" ? (daily ? tn("daily.streak", dailyStreak()) : t("win.first")) : S.best === "better" ? t("win.best") : "";
   badge.classList.toggle("on", !!S.best);
   const next = nextLevel(def);
   $("bNext").style.display = next ? "" : "none";
@@ -395,6 +417,9 @@ export function syncHud(){
   if (at.textContent !== label) at.textContent = label;
   at.classList.toggle("on", S.screen === "play" && r.tick < 12 && S.attempt > 1);
 }
+
+/** out of a solo level: to its mode's levels, or the main menu from the daily */
+export function leaveSolo(){ if (isDaily(S.def)) goMenu(); else goLevels(S.def?.mode, false); }
 
 /** back from the game modes screen: to the lobby in co-op, the main menu solo */
 function modesBack(){ if (coop) goLobby(); else goMenu(); }
@@ -435,8 +460,10 @@ export function initMenus(){
     if (M.active) { restartMatch(); enterRoom(); return; }
     S.attempt++; restart(); show(null);
   });
-  on("bPauseLevels", () => { if (M.active) roomLevels(); else goLevels(S.def?.mode, false); });
+  on("bPauseLevels", () => { if (M.active) roomLevels(); else leaveSolo(); });
   on("bNext", () => { const n = S.def && nextLevel(S.def); if (n) play(n); });
   on("bRetry", () => { S.attempt++; play(S.def!); });
-  on("bWinLevels", () => goLevels(S.def?.mode, false));
+  on("bWinLevels", () => leaveSolo());
+  on("bDaily", () => { const d = todaysDaily(); if (d) play(d); });
+  onDailyReady(() => { if (screenOn("sMenu")) renderDaily(); });
 }

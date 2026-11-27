@@ -1,7 +1,7 @@
 import { resumeAudio, sfx, suspendAudio } from "../audio/audio";
 import { S } from "../game/session";
 import { M } from "../game/match";
-import { back, goLevels, pauseAny, unpause } from "../ui/menus";
+import { back, leaveSolo, pauseAny, unpause } from "../ui/menus";
 
 // ---- inside the Android app (Capacitor). in a plain browser this does nothing.
 // the hardware back button steps back one screen; on the main menu it leaves the app.
@@ -11,7 +11,7 @@ function onBack(){
   if (M.active && M.phase !== "over") { if (M.phase === "paused") unpause(); else pauseAny(); return; }
   if (S.screen === "play") { pauseAny(); return; }
   if (S.screen === "paused") { unpause(); return; }
-  if (S.screen === "won") { goLevels(S.def?.mode, false); return; }
+  if (S.screen === "won") { leaveSolo(); return; }
   if (back()) return;
   app()?.exitApp();
 }

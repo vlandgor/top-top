@@ -1,6 +1,7 @@
 import type { Boot, Level, LevelDef, Run, Vec } from "../core/types";
 import { parseLevel } from "../levels/parse";
 import { LEVELS } from "../levels/levels";
+import { isDaily } from "../levels/daily";
 import { sfx } from "../audio/audio";
 import { buzz } from "../platform/haptics";
 import { lethalAt } from "./hazards";
@@ -173,6 +174,7 @@ export function isOpen(def: LevelDef): boolean {
   return i <= 0 || isDone(same[i - 1].id);
 }
 export function nextLevel(def: LevelDef): LevelDef | null {
+  if (isDaily(def)) return null;
   const same = LEVELS.filter(l => l.mode === def.mode);
   return same[same.indexOf(def) + 1] || null;
 }
