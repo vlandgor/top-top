@@ -198,6 +198,33 @@ language misses a key, and the tests check each language has a name for every le
 every tip, the same `{placeholders}` as English, and the plural forms it needs (Ukrainian has
 four). To add a language: copy `uk.ts`, translate it, list it in `LANGS`.
 
+## Music and sound
+
+Everything is synthesised with Web Audio in code: no audio files. **Settings → Sound** has two
+switches, **Music** and **Sound effects**, kept in the save (Reset progress keeps them).
+
+- **Locked to the beat.** The music runs on the game's tick clock, not its own: one step of
+  music is one tick, one beat is the level's beat (4, 5 or 6 ticks: 120, 100 or 80 bpm), so
+  the kick lands exactly when the hazards step. Every frame the game tells the music where its
+  clock is and the music schedules the next ~120 ms on the audio clock, so frame hiccups don't
+  make it wobble (`src/audio/music.ts`).
+- **A track per mode:** its own key, four-chord progression and groove. Destination: A minor,
+  four on the floor. Collect All: G major, bright. Sequence: E minor, half-time. Survival:
+  F♯ harmonic minor, a driving pulse. Waves: F lydian, half-time and floating. The menus have
+  a slow, soft track of their own (`src/audio/score.ts`).
+- **A melody per level**, composed from the level's id: the same level always plays the same
+  tune. Melodies follow an A A′ A B shape over 8 bars and are written relative to the chord
+  under them, so they stay in tune over the whole progression.
+- **Layers:** a first try starts with drums, bass and chords; the melody joins on bar 3 and an
+  arpeggio on bar 5, with a short fill every 4th bar. A retry of the same level starts with
+  everything at once.
+- **The song follows the game:** it fades on pause and on a fall and starts again from its top
+  with the level; a win fades it under the win chord. In co-op the 3-2-1 countdown clicks the
+  beat in, so the room starts on the first kick.
+- **Effects in tune:** the left boot's step plays the current chord's root, the right one its
+  fifth; pickups climb the current chord; the win plays the key's own chord. With the music
+  off, effects fall back to fixed pitches and a quiet tick marks the beat.
+
 ## Still open
 
 - Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only

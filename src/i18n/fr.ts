@@ -216,6 +216,8 @@ const fr: Pack = {
     "set.sound": "Son",
     "set.on": "Activé",
     "set.off": "Désactivé",
+    "set.music": "Musique",
+    "set.musicSub": "Une bande-son au rythme de chaque niveau",
     "set.sfx": "Effets sonores",
     "set.sfxSub": "Pas, ramassages et rythme",
     "set.language": "Langue",

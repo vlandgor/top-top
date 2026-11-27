@@ -231,6 +231,8 @@ const ui = {
   "set.sound": "Sound",
   "set.on": "On",
   "set.off": "Off",
+  "set.music": "Music",
+  "set.musicSub": "A soundtrack in time with each level",
   "set.sfx": "Sound effects",
   "set.sfxSub": "Swings, pickups and the beat",
   "set.language": "Language",

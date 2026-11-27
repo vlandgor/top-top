@@ -216,6 +216,8 @@ const de: Pack = {
     "set.sound": "Ton",
     "set.on": "An",
     "set.off": "Aus",
+    "set.music": "Musik",
+    "set.musicSub": "Ein Soundtrack im Takt jedes Levels",
     "set.sfx": "Soundeffekte",
     "set.sfxSub": "Schritte, Lichter und der Beat",
     "set.language": "Sprache",

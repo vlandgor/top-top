@@ -230,6 +230,8 @@ const uk: Pack = {
     "set.sound": "Звук",
     "set.on": "Увімк.",
     "set.off": "Вимк.",
+    "set.music": "Музика",
+    "set.musicSub": "Саундтрек у такт кожного рівня",
     "set.sfx": "Звукові ефекти",
     "set.sfxSub": "Кроки, вогники й ритм",
     "set.language": "Мова",

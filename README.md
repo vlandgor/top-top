@@ -17,7 +17,7 @@ Needs Node 22.
 ```
 npm ci
 npm run dev        # local server with hot reload
-npm test           # rules tests, and the solver proving every level can be beaten
+npm test           # rules tests, the solver proving every level can be beaten, and the music
 npm run build      # strict type-check, then a production build into dist/
 npm run solve      # level design: fewest presses and time for each level (npm run solve d3 r2)
 npm run gen-levels # regenerate the levels of one or more modes (npm run gen-levels waves)
@@ -45,7 +45,7 @@ On a phone: the button on each side of the board, or tap the left / right half o
 | `src/render/` | Canvas, palette, the boot drawing and its skins, and drawing a frame. |
 | `src/ui/` | Menus, level select, HUD, styles; the co-op lobby and results in `room.ts`; Customize in `skins.ts`. |
 | `src/input/` | Buttons, screen halves and keyboard. |
-| `src/audio/` | Synthesised sound effects. |
+| `src/audio/` | Synthesised sound: effects (`audio.ts`), the music's tracks and melodies as data (`score.ts`), and the player that keeps them on the game's beat (`music.ts`). |
 | `src/platform/` | Capacitor glue: the Android back button, app pause/resume, the dev channel. |
 | `src/i18n/` | Translations: one file per language, English the source; `t()` and `tn()` (plurals). |
 | `src/storage/` | The save (cleared levels, attempts, settings) in localStorage. |

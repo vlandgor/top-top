@@ -18,8 +18,10 @@ export interface Save {
   skin?: string;
   /** the language picked in Settings; left out, the phone's language (i18n) */
   lang?: string;
-  /** 0 = sound off */
+  /** 0 = sound effects off */
   sfx?: number;
+  /** 0 = music off */
+  music?: number;
 }
 
 const SAVE_KEY = "topTop.v1";
@@ -32,9 +34,10 @@ function loadSave(): Save {
 export function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* full or blocked */ } }
 export function resetSave(){
   // settings (sound, language) and the boots you wear stay; progress goes
-  const { sfx, skin, lang } = save;
+  const { sfx, music, skin, lang } = save;
   for (const k of Object.keys(save) as (keyof Save)[]) delete save[k];
   if (sfx !== undefined) save.sfx = sfx;
+  if (music !== undefined) save.music = music;
   if (skin !== undefined) save.skin = skin;
   if (lang !== undefined) save.lang = lang;
   writeSave();

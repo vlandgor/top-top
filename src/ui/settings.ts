@@ -1,4 +1,4 @@
-import { setSound, sfx, soundOn } from "../audio/audio";
+import { musicOn, setMusic, setSound, sfx, soundOn } from "../audio/audio";
 import { isDone } from "../game/session";
 import { LEVELS } from "../levels/levels";
 import { IS_DEV } from "../platform/dev";
@@ -38,8 +38,9 @@ function langRow(id: LangId | "auto"){
 
 const SECTIONS: Section[] = [
   {
-    id: "sound", name: () => t("set.sound"), peek: () => soundOn() ? t("set.on") : t("set.off"),
-    body: () => row(t("set.sfx"), t("set.sfxSub"), sw("optSfx", soundOn())),
+    id: "sound", name: () => t("set.sound"), peek: () => soundOn() || musicOn() ? t("set.on") : t("set.off"),
+    body: () => row(t("set.music"), t("set.musicSub"), sw("optMusic", musicOn()))
+      + row(t("set.sfx"), t("set.sfxSub"), sw("optSfx", soundOn())),
   },
   {
     id: "language", name: () => t("set.language"), peek: () => langName(lang()),
@@ -100,6 +101,8 @@ function render(){
 function wire(){
   const sfxSw = document.getElementById("optSfx");
   if (sfxSw) sfxSw.onclick = () => { setSound(!soundOn()); writeSave(); sfx("click"); render(); };
+  const musicSw = document.getElementById("optMusic");
+  if (musicSw) musicSw.onclick = () => { setMusic(!musicOn()); writeSave(); sfx("click"); render(); };
   const how = document.getElementById("setHow");
   if (how) how.onclick = () => { sfx("click"); openHowTo(); };
   const reset = document.getElementById("setReset");
