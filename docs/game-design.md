@@ -163,7 +163,7 @@ filled button is Play.
 - **Play tab:** *Play together* on top, with the lobby's floor and team, opening the co-op lobby.
   Below it, **Solo**: the five modes in a row, each with its progress; the mode you were last in
   is picked out in its colour with its next level. Tapping a mode goes straight to its levels.
-- **Settings tab:** its sections on the left (Sound, Controls, Help, Your save, About), each
+- **Settings tab:** its sections on the left (Sound, Language, Controls, Help, Your save, About), each
   with a short value (On, 0%, the version), and the open section on the right as rows: a
   switch, a link or a fact. Controls shows your boots between the two edge rails. New settings
   go into the section they belong to, or a new section (`src/ui/settings.ts`).
