@@ -132,8 +132,10 @@ positions. The lobby's open slots are where friends will join.
 
 ## Customize
 
-**Boots** in the main menu's tab rail (or your boots in its top line) opens the boot skins: a grid of 12 on the left, the chosen pair
-walking on the right, with **Equip** (tapping the previewed skin again equips it too). A skin is
+The main menu's **Boots** tab (also opened by your boots in its top line) holds the boot skins: a
+grid of 12 on the left, the chosen pair walking on the right, with **Equip** (tapping the
+previewed skin again equips it too). The previewed skin has a teal name and a glowing underline;
+the one you wear, a dot before its name. A skin is
 the pattern printed on the boots; colour stays who you are (teal solo, your seat's colour in
 co-op) and the pattern is drawn in it, so every skin works for every player. In co-op each bot
 wears a different skin from yours, so pairs read apart by pattern as well as colour. Your skin
@@ -153,6 +155,8 @@ filled button is Play.
   buttons in a level.
 - **Top line**, like the HUD: the tab's name, your boots and how many solo levels you've cleared
   (tap them for Boots), and *How to play*.
+- **Tabs** switch in place: the rail and the top line stay, only the content beside them
+  changes. Play and Boots are built; Settings still opens its own screen.
 - **Play tab:** *Play together* on top, with the lobby's floor and team, opening the co-op lobby.
   Below it, **Solo**: the five modes in a row, each with its progress; the mode you were last in
   is picked out in its colour with its next level. Tapping a mode goes straight to its levels.

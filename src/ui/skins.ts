@@ -1,27 +1,25 @@
 import { sfx } from "../audio/audio";
 import { drawSkinStage, drawSkinThumb } from "../render/draw";
 import { mySkin, SKINS, type Skin } from "../render/skins";
-import { C } from "../render/theme";
 import { save, writeSave } from "../storage/save";
-import { $, screenOn, setAccent, show } from "./menus";
+import { $ } from "./menus";
 
 // ---------------------------------------------------------------------------
-// CUSTOMIZE — pick the pattern on your boots. The skins in a grid on the left, the chosen one
-// walking on the right with Equip. Your colour doesn't change (teal solo, your seat's colour
-// in co-op); the skin is printed in it. Every skin is open for now.
+// BOOTS — the main menu's Boots tab: pick the pattern on your boots. The skins in a grid on
+// the left, the chosen one walking on the right with Equip. Your colour doesn't change (teal
+// solo, your seat's colour in co-op); the skin is printed in it. Every skin is open for now.
 // ---------------------------------------------------------------------------
 
 /** the skin being looked at; Equip makes it the one you wear */
 let picked: Skin = mySkin();
 let t0 = 0;
 
-export function goSkins(){
+/** opening the tab: the grid, with the skin you wear picked */
+export function enterBoots(){
   picked = mySkin();
   t0 = performance.now() / 1000;
-  setAccent(C.teal);
   buildGrid();
   select(picked);
-  show("sSkins");
 }
 
 function buildGrid(){
@@ -39,17 +37,18 @@ function buildGrid(){
 
 function select(s: Skin){
   picked = s;
-  const worn = s === mySkin();
+  const worn = mySkin(), wearing = s === worn;
   document.querySelectorAll<HTMLElement>(".skin").forEach(b => {
     b.classList.toggle("sel", b.dataset.id === s.id);
-    b.classList.toggle("worn", b.dataset.id === mySkin().id);
+    b.classList.toggle("worn", b.dataset.id === worn.id);
   });
-  $("skTag").textContent = worn ? "Wearing" : `${SKINS.indexOf(s) + 1} of ${SKINS.length}`;
+  $("skTag").textContent = wearing ? "Wearing" : `${SKINS.indexOf(s) + 1} of ${SKINS.length}`;
   $("skName").textContent = s.name;
   $("skAbout").textContent = s.about;
+  $("skWearing").innerHTML = wearing ? "" : `Wearing <b>${worn.name}</b>`;
   const btn = $<HTMLButtonElement>("bSkinEquip");
-  btn.disabled = worn;
-  btn.textContent = worn ? "Equipped ✓" : "Equip";
+  btn.disabled = wearing;
+  btn.textContent = wearing ? "Equipped ✓" : "Equip";
 }
 
 function equip(){
@@ -67,9 +66,8 @@ function fit(cv: HTMLCanvasElement): { c: CanvasRenderingContext2D; w: number; h
   return { c, w, h };
 }
 
-/** every frame while the screen is up: the tiles and the walking preview */
-export function drawSkins(){
-  if (!screenOn("sSkins")) return;
+/** every frame while the tab is open: the tiles and the walking preview */
+export function drawBoots(){
   document.querySelectorAll<HTMLElement>(".skin").forEach(b => {
     const f = fit(b.querySelector("canvas")!);
     const s = SKINS.find(x => x.id === b.dataset.id);
@@ -79,7 +77,6 @@ export function drawSkins(){
   if (f) drawSkinStage(f.c, f.w, f.h, performance.now() / 1000 - t0, picked);
 }
 
-export function initSkins(back: () => void){
-  $("bSkinsBack").addEventListener("click", () => { sfx("click"); back(); });
+export function initBoots(){
   $("bSkinEquip").addEventListener("click", () => { sfx("click"); equip(); });
 }

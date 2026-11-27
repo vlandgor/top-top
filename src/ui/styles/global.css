@@ -74,6 +74,10 @@ canvas{display:block}
 #sMenu{flex-direction:row;align-items:stretch;justify-content:flex-start;gap:0;overflow:hidden;text-align:left;
   --dimmer:#5f716e;--hair:#142024}
 #sMenu .grow{flex:1}
+/* one pane per tab, under the shared top line */
+#pPlay{display:none;flex-direction:column;gap:clamp(4px,2.4vh,12px)}
+#pPlay.on{display:flex}
+.pane{flex:1;min-height:0}
 .rail{position:relative;flex:none;width:clamp(58px,9vw,76px);display:flex;flex-direction:column;align-items:stretch;gap:2px}
 .rail::after{content:"";position:absolute;right:0;top:10%;bottom:10%;width:1px;
   background:linear-gradient(transparent,var(--line) 20%,var(--line) 80%,transparent)}
@@ -300,23 +304,31 @@ em.new{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:upper
 #roPlayers b{display:block;font-size:14px}
 #roPlayers span{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}
 
-/* ---- customize: the skins in a grid on the left, the chosen pair walking on the right ---- */
-.skinsplit{display:grid;grid-template-columns:1fr minmax(220px,38%);gap:16px;width:100%;max-width:980px;flex:1;min-height:0}
-#skinGrid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:8px;min-height:0}
-.skin{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 5px;min-height:0;
-  background:var(--panel);border:1px solid var(--line);border-radius:14px;transition:border-color .12s,background .12s}
+/* ---- Boots tab: the skins in a grid on the left, the chosen pair walking on the right. Like the
+   rest of the main menu, no boxes: the previewed skin has a teal name and a glowing underline,
+   the one you wear a dot before its name ---- */
+#pBoots{display:none;grid-template-columns:1fr 38%;gap:clamp(14px,3vw,24px)}
+#pBoots.on{display:grid}
+#skinGrid{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:2px 6px;min-height:0}
+.skin{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-height:0;background:none;border:0;
+  padding:2px 0 6px;color:#9fb2ae;font:inherit;cursor:pointer}
 .skin canvas{flex:1;width:100%;min-height:0}
-.skin b{flex:none;font-size:11.5px;font-weight:700;color:#c3d6d2;white-space:nowrap}
-.skin.sel{background:color-mix(in srgb,var(--teal) 10%,var(--panel));border:1.5px solid var(--teal);
-  box-shadow:0 0 16px color-mix(in srgb,var(--teal) 22%,transparent)}
-.skin.sel b{color:var(--txt)}
-.skin.worn:after{content:"✓";position:absolute;right:8px;top:4px;font-size:11px;color:var(--teal)}
+.skin b{flex:none;font-size:11px;font-weight:650;white-space:nowrap}
+.skin.sel b{color:var(--teal);text-shadow:0 0 10px rgba(25,227,200,.5)}
+.skin.sel::after{content:"";position:absolute;left:30%;right:30%;bottom:0;height:2px;border-radius:2px;
+  background:var(--teal);box-shadow:0 0 8px var(--teal)}
+.skin.worn b::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal);
+  box-shadow:0 0 6px var(--teal);margin-right:5px;vertical-align:middle}
 .skin:active{transform:scale(.97)}
-#skinInfo{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--line);
-  border-radius:18px;padding:14px;text-align:left;min-height:0}
-#skinStage{width:100%;flex:1;min-height:0;border-radius:12px;background:#04070a}
-#skinInfo .info{display:flex;flex-direction:column;gap:5px;flex:none}
-#skinInfo h3{margin:0;font-size:21px;font-weight:850;line-height:1.1}
-#skinInfo p{margin:0;color:#c3d6d2;font-size:13px;line-height:1.4}
-#bSkinEquip{flex:none;padding:12px}
-#bSkinEquip:disabled{background:var(--line);color:var(--dim);box-shadow:none}
+#skinInfo{position:relative;display:flex;flex-direction:column;min-height:0;text-align:left}
+#skinInfo::before{content:"";position:absolute;left:calc(-1 * clamp(7px,1.5vw,12px));top:8%;bottom:8%;width:1px;
+  background:linear-gradient(transparent,var(--line) 20%,var(--line) 80%,transparent)}
+#skinStage{flex:1;width:100%;min-height:0}
+#skTag{font-size:9.5px;color:var(--dim)}
+#skName{font-size:clamp(18px,6vh,22px);font-weight:850;line-height:1.15;margin-top:3px}
+#skAbout{color:var(--dim);font-size:12px;line-height:1.35;margin-top:2px}
+.skrow{display:flex;align-items:center;gap:10px;margin-top:clamp(6px,2.6vh,10px)}
+#skWearing{color:var(--dim);font-size:12px;margin-right:auto;white-space:nowrap}
+#skWearing b{color:var(--txt)}
+#bSkinEquip{padding:clamp(8px,3vh,11px) 24px;font-size:15px;border-radius:12px;box-shadow:0 0 24px rgba(25,227,200,.3)}
+#bSkinEquip:disabled{background:none;color:var(--teal);box-shadow:none;border:1px solid color-mix(in srgb,var(--teal) 40%,transparent)}

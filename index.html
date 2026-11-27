@@ -33,14 +33,14 @@
   </div>
 
   <div id="ui">
-    <!-- the main menu: the tab rail on the left, the Play tab on the right (multiplayer on top,
-         the solo modes below). Boots and Settings open their own screens; Friends and Awards are
-         still to come -->
+    <!-- the main menu: the tab rail on the left and the selected tab beside it, under one top line.
+         Play: multiplayer on top, the solo modes below. Boots: the skins and the chosen pair.
+         Settings still opens its own screen; Friends and Awards are still to come -->
     <section class="screen" id="sMenu">
       <nav class="rail">
         <div class="rlogo">TOP<br>TOP</div>
-        <button class="tab sel" id="tPlay"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg>Play</button>
-        <button class="tab" id="bSkins"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 0 15c1.2 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2h1.8a3.2 3.2 0 0 0 3.2-3.2C17.5 6 14.2 2.5 10 2.5z"/><circle cx="6.5" cy="9" r=".8" fill="currentColor"/><circle cx="9" cy="6" r=".8" fill="currentColor"/><circle cx="12.8" cy="6.6" r=".8" fill="currentColor"/></svg>Boots</button>
+        <button class="tab sel" id="tPlay" data-tab="play"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg>Play</button>
+        <button class="tab" id="tBoots" data-tab="boots"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 0 15c1.2 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2h1.8a3.2 3.2 0 0 0 3.2-3.2C17.5 6 14.2 2.5 10 2.5z"/><circle cx="6.5" cy="9" r=".8" fill="currentColor"/><circle cx="9" cy="6" r=".8" fill="currentColor"/><circle cx="12.8" cy="6.6" r=".8" fill="currentColor"/></svg>Boots</button>
         <button class="tab" id="tFriends" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7" r="3"/><path d="M2 16.5c.6-3 2.8-4.6 5.5-4.6S12.4 13.5 13 16.5"/><path d="M13 4.2a3 3 0 0 1 0 5.6M15 11.8c1.6.6 2.6 2 3 4.4"/></svg>Friends<em>soon</em></button>
         <button class="tab" id="tAwards" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8v5a4 4 0 0 1-8 0z"/><path d="M6 5H3.5a2.5 2.5 0 0 0 3 3.2M14 5h2.5a2.5 2.5 0 0 1-3 3.2M10 12v3M7 17h6"/></svg>Awards<em>soon</em></button>
         <span class="grow"></span>
@@ -48,22 +48,35 @@
       </nav>
       <div class="mmain">
         <div class="mtop">
-          <i class="mdot"></i><h2>Play</h2><span class="msub">Together or solo</span>
+          <i class="mdot"></i><h2 id="mTitle">Play</h2><span class="msub" id="mSub">Together or solo</span>
           <span class="grow"></span>
           <button class="me" id="bMe" aria-label="Your boots"><canvas id="meCv"></canvas><span id="meCleared"></span></button>
           <button class="mhelp" id="bHow" aria-label="How to play"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3.2 2.1c-.7.3-1 .8-1 1.5v.4"/><circle cx="10" cy="14.3" r=".5" fill="currentColor"/></svg></button>
         </div>
-        <button class="mplay" id="bCoop">
-          <canvas id="menuFloor"></canvas>
-          <span class="mtext">
-            <span class="eyebrow">Multiplayer · co-op</span>
-            <b>Play together</b>
-            <span class="mteam" id="menuTeam"></span>
-          </span>
-          <span class="btn"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg>Play</span>
-        </button>
-        <div class="msolo"><span class="mlabel">Solo</span><span id="soloCleared"></span></div>
-        <div id="soloModes"></div>
+        <div class="pane on" id="pPlay">
+          <button class="mplay" id="bCoop">
+            <canvas id="menuFloor"></canvas>
+            <span class="mtext">
+              <span class="eyebrow">Multiplayer · co-op</span>
+              <b>Play together</b>
+              <span class="mteam" id="menuTeam"></span>
+            </span>
+            <span class="btn"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg>Play</span>
+          </button>
+          <div class="msolo"><span class="mlabel">Solo</span><span id="soloCleared"></span></div>
+          <div id="soloModes"></div>
+        </div>
+        <!-- Boots: the skins on the left, the chosen pair walking on the right with Equip -->
+        <div class="pane" id="pBoots">
+          <div id="skinGrid"></div>
+          <div id="skinInfo">
+            <canvas id="skinStage"></canvas>
+            <span class="eyebrow" id="skTag"></span>
+            <b id="skName"></b>
+            <span id="skAbout"></span>
+            <div class="skrow"><span id="skWearing"></span><button class="btn" id="bSkinEquip">Equip</button></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -157,22 +170,6 @@
     </section>
 
     <!-- customize: the boot skins on the left, the chosen one walking on the right -->
-    <section class="screen top" id="sSkins">
-      <div class="bar"><button class="back" id="bSkinsBack" aria-label="Back">‹</button><h2>Customize</h2><div class="sub">The pattern on your boots, solo and in co-op</div></div>
-      <div class="skinsplit">
-        <div id="skinGrid"></div>
-        <div id="skinInfo">
-          <canvas id="skinStage"></canvas>
-          <div class="info">
-            <div class="eyebrow" id="skTag">Boots</div>
-            <h3 id="skName"></h3>
-            <p id="skAbout"></p>
-          </div>
-          <button class="btn" id="bSkinEquip">Equip</button>
-        </div>
-      </div>
-    </section>
-
     <section class="screen" id="sHow">
       <h2>How to play</h2>
       <div class="howgrid">

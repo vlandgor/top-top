@@ -11,16 +11,16 @@ import { drawLobbyFloor, drawPreview, drawSkinThumb } from "../render/draw";
 import { mySkin } from "../render/skins";
 import { ACCENT } from "../render/theme";
 import { leaveMatch, M, PLAYER_COLORS, pauseMatch, restartMatch, resumeMatch } from "../game/match";
-import { drawSkins, goSkins, initSkins } from "./skins";
+import { drawBoots, enterBoots, initBoots } from "./skins";
 import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
 // MENUS — one overlay, one screen at a time, plus the in-game HUD.
-//   main menu: a tab rail (Play, Boots, Friends and Awards still to come, Settings) and the Play
-//   tab: multiplayer on top, the five solo modes in a row below.
+//   main menu: a tab rail (Play, Boots, Friends and Awards still to come, Settings) beside the
+//   selected tab. Play: multiplayer on top, the five solo modes in a row below. Boots (skins.ts):
+//   the pattern on your boots.
 //   solo:  main menu -> a mode's levels -> play (or Game modes, from the levels screen's back)
 //   co-op: main menu -> lobby (room.ts) -> game modes -> levels -> play
-//   main menu -> Boots (skins.ts): the pattern on your boots
 // The game modes and levels screens are shared: in co-op they list the rooms (src/levels/
 // rooms.ts) instead of the solo levels, explain each mode's co-op rule, show the team in the
 // header, and Play starts a room with the lobby's team.
@@ -65,9 +65,24 @@ function setTeamChips(){
 }
 
 // ---- the main menu ----------------------------------------------------------------------------
-export function goMenu(){
+/** the main menu's tabs that are built so far, each a pane under the shared top line */
+type Tab = "play" | "boots";
+const TABS: Record<Tab, { pane: string; title: string; sub: string }> = {
+  play: { pane: "pPlay", title: "Play", sub: "Together or solo" },
+  boots: { pane: "pBoots", title: "Boots", sub: "The pattern on your boots" },
+};
+let tab: Tab = "play";
+
+/** the main menu, on one of its tabs: Play unless told otherwise */
+export function goMenu(t: Tab = "play"){
   S.screen = "menu"; S.run = null; leaveMatch(); setAccent(ACCENT.destination);
+  tab = t;
+  for (const k of Object.keys(TABS) as Tab[]) $(TABS[k].pane).classList.toggle("on", k === t);
+  document.querySelectorAll<HTMLElement>("#sMenu .tab").forEach(b => b.classList.toggle("sel", b.dataset.tab === t));
+  $("mTitle").textContent = TABS[t].title;
+  $("mSub").textContent = TABS[t].sub;
   renderMenu();
+  if (t === "boots") enterBoots();
   show("sMenu");
 }
 
@@ -96,12 +111,14 @@ function renderMenu(){
   $("meCleared").textContent = `${cleared}/${all}`;
 }
 
-/** every frame on the main menu: the multiplayer floor and your boots in the top line */
+/** every frame on the main menu: your boots in the top line, and the open tab's drawings */
 function drawMenu(){
   if (!screenOn("sMenu")) return;
-  const n = teamSize(), floor = fitCanvas("menuFloor"), me = fitCanvas("meCv");
-  if (floor) drawLobbyFloor(floor.c, floor.w, floor.h, [0, 1, 2, 3].map(i => i < n ? PLAYER_COLORS[i] : null), performance.now() / 1000);
+  const me = fitCanvas("meCv");
   if (me) drawSkinThumb(me.c, me.w, me.h, mySkin(), false);
+  if (tab === "boots") { drawBoots(); return; }
+  const n = teamSize(), floor = fitCanvas("menuFloor");
+  if (floor) drawLobbyFloor(floor.c, floor.w, floor.h, [0, 1, 2, 3].map(i => i < n ? PLAYER_COLORS[i] : null), performance.now() / 1000);
 }
 
 // ---- game modes ---------------------------------------------------------------------------
@@ -204,7 +221,6 @@ export function drawPreviews(){
   drawMenu();
   if (preview && screenOn("sModes")) previewInto("modePreview", preview);
   drawLobby();
-  drawSkins();
 }
 
 // ---- levels of one mode: tiles on the left, the selected level and Play on the right --------
@@ -380,7 +396,8 @@ function modesBack(){ if (coop) goLobby(); else goMenu(); }
 export function back(): boolean {
   if (screenOn("sLevels")) { goModes(); return true; }
   if (screenOn("sModes")) { modesBack(); return true; }
-  if (screenOn("sHow") || screenOn("sSet") || screenOn("sRoom") || screenOn("sSkins")) { goMenu(); return true; }
+  if (screenOn("sMenu") && tab !== "play") { goMenu(); return true; }
+  if (screenOn("sHow") || screenOn("sSet") || screenOn("sRoom")) { goMenu(); return true; }
   if (screenOn("sRoomOver")) { roomLevels(); return true; }
   return false;
 }
@@ -388,10 +405,11 @@ export function back(): boolean {
 export function initMenus(){
   S.onWin = onWin;
   initRoom();
-  initSkins(goMenu);
+  initBoots();
   on("bCoop", goLobby);
-  on("bSkins", goSkins);
-  on("bMe", goSkins);
+  on("tPlay", () => goMenu("play"));
+  on("tBoots", () => goMenu("boots"));
+  on("bMe", () => goMenu("boots"));
   on("bRoomBack", goMenu);
   on("bHow", () => show("sHow"));
   on("bHowOk", goMenu);
