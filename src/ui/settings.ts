@@ -1,7 +1,7 @@
 import { musicOn, setMusic, setSound, sfx, soundOn } from "../audio/audio";
 import { isDone } from "../game/session";
 import { LEVELS } from "../levels/levels";
-import { IS_DEV } from "../platform/dev";
+import { DEV_BUILD, IS_DEV } from "../platform/dev";
 import { drawSkinStage } from "../render/draw";
 import { mySkin } from "../render/skins";
 import { resetSave, writeSave } from "../storage/save";
@@ -28,6 +28,8 @@ const row = (title: string, sub: string, end = "", cls = "", id = "") =>
 const cleared = () => LEVELS.filter(d => isDone(d.id)).length;
 const pct = () => `${Math.round((100 * cleared()) / LEVELS.length)}%`;
 const version = () => IS_DEV ? t("set.devBuild") : "v" + __VERSION__;
+/** the dev build also says which commit (and branch) it is */
+const versionLong = () => IS_DEV ? `${t("set.devBuild")} · ${DEV_BUILD}` : version();
 
 /** one choice in the language list: Automatic, then each language in its own name */
 function langRow(id: LangId | "auto"){
@@ -66,7 +68,7 @@ const SECTIONS: Section[] = [
   },
   {
     id: "about", name: () => t("set.about"), peek: version,
-    body: () => row(t("set.version"), t("set.versionSub", { v: version(), n: LEVELS.length }))
+    body: () => row(t("set.version"), t("set.versionSub", { v: versionLong(), n: LEVELS.length }))
       + row(t("set.madeBy"), "Playcebo Games"),
   },
 ];

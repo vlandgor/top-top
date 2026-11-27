@@ -29,13 +29,11 @@ function checkForUpdate(){
     .catch(() => {});                                               // offline: keep playing this build
 }
 
+/** which build is running, for Settings → About: the commit, and the branch when it isn't main */
+export const DEV_BUILD = (BRANCH === "main" ? "" : BRANCH + " · ") + COMMIT;
+
 export function initDev(){
   if (!IS_DEV) return;
-  // which commit is running, on the main menu only
-  const tag = document.createElement("div");
-  tag.textContent = "DEV · " + (BRANCH === "main" ? "" : BRANCH + " · ") + COMMIT;
-  tag.className = "devtag";
-  document.getElementById("sMenu")?.appendChild(tag);
   // an older Top Top Dev install was locked to portrait and can't turn: say what to do
   const rot = document.querySelector("#rotate span");
   if (rot && window.Capacitor) rot.textContent = "If the app won't turn, reinstall Top Top Dev from the dev release";
