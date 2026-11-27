@@ -156,10 +156,14 @@ filled button is Play.
 - **Top line**, like the HUD: the tab's name, your boots and how many solo levels you've cleared
   (tap them for Boots), and *How to play*.
 - **Tabs** switch in place: the rail and the top line stay, only the content beside them
-  changes. Play and Boots are built; Settings still opens its own screen.
+  changes. Play, Boots and Settings are built.
 - **Play tab:** *Play together* on top, with the lobby's floor and team, opening the co-op lobby.
   Below it, **Solo**: the five modes in a row, each with its progress; the mode you were last in
   is picked out in its colour with its next level. Tapping a mode goes straight to its levels.
+- **Settings tab:** its sections on the left (Sound, Controls, Help, Your save, About), each
+  with a short value (On, 0%, the version), and the open section on the right as rows: a
+  switch, a link or a fact. Controls shows your boots between the two edge rails. New settings
+  go into the section they belong to, or a new section (`src/ui/settings.ts`).
 
 ## Still open
 

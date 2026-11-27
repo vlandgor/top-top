@@ -1,24 +1,24 @@
 import type { LevelDef, Mode, Run } from "../core/types";
-import { setSound, sfx, soundOn } from "../audio/audio";
-import { LEVELS, MODES, levelById, levelsOf } from "../levels/levels";
+import { sfx } from "../audio/audio";
+import { MODES, levelById, levelsOf } from "../levels/levels";
 import { parseLevel } from "../levels/parse";
 import { roomsOf } from "../levels/rooms";
 import { isDone, isOpen, nextLevel, pause, restart, resume, S, startLevel, TICK_MS } from "../game/session";
 import { newRun, progress } from "../game/rules";
-import { IS_DEV } from "../platform/dev";
-import { resetSave, save, writeSave } from "../storage/save";
+import { save, writeSave } from "../storage/save";
 import { drawLobbyFloor, drawPreview, drawSkinThumb } from "../render/draw";
 import { mySkin } from "../render/skins";
 import { ACCENT } from "../render/theme";
 import { leaveMatch, M, PLAYER_COLORS, pauseMatch, restartMatch, resumeMatch } from "../game/match";
 import { drawBoots, enterBoots, initBoots } from "./skins";
+import { drawSettings, enterSettings } from "./settings";
 import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
 // MENUS — one overlay, one screen at a time, plus the in-game HUD.
 //   main menu: a tab rail (Play, Boots, Friends and Awards still to come, Settings) beside the
 //   selected tab. Play: multiplayer on top, the five solo modes in a row below. Boots (skins.ts):
-//   the pattern on your boots.
+//   the pattern on your boots. Settings (settings.ts): sections on the left, the open one beside.
 //   solo:  main menu -> a mode's levels -> play (or Game modes, from the levels screen's back)
 //   co-op: main menu -> lobby (room.ts) -> game modes -> levels -> play
 // The game modes and levels screens are shared: in co-op they list the rooms (src/levels/
@@ -66,10 +66,11 @@ function setTeamChips(){
 
 // ---- the main menu ----------------------------------------------------------------------------
 /** the main menu's tabs that are built so far, each a pane under the shared top line */
-type Tab = "play" | "boots";
+type Tab = "play" | "boots" | "settings";
 const TABS: Record<Tab, { pane: string; title: string; sub: string }> = {
   play: { pane: "pPlay", title: "Play", sub: "Together or solo" },
   boots: { pane: "pBoots", title: "Boots", sub: "The pattern on your boots" },
+  settings: { pane: "pSet", title: "Settings", sub: "Sound, controls and your save" },
 };
 let tab: Tab = "play";
 
@@ -83,6 +84,7 @@ export function goMenu(t: Tab = "play"){
   $("mSub").textContent = TABS[t].sub;
   renderMenu();
   if (t === "boots") enterBoots();
+  if (t === "settings") enterSettings();
   show("sMenu");
 }
 
@@ -117,6 +119,7 @@ function drawMenu(){
   const me = fitCanvas("meCv");
   if (me) drawSkinThumb(me.c, me.w, me.h, mySkin(), false);
   if (tab === "boots") { drawBoots(); return; }
+  if (tab === "settings") { drawSettings(); return; }
   const n = teamSize(), floor = fitCanvas("menuFloor");
   if (floor) drawLobbyFloor(floor.c, floor.w, floor.h, [0, 1, 2, 3].map(i => i < n ? PLAYER_COLORS[i] : null), performance.now() / 1000);
 }
@@ -397,7 +400,8 @@ export function back(): boolean {
   if (screenOn("sLevels")) { goModes(); return true; }
   if (screenOn("sModes")) { modesBack(); return true; }
   if (screenOn("sMenu") && tab !== "play") { goMenu(); return true; }
-  if (screenOn("sHow") || screenOn("sSet") || screenOn("sRoom")) { goMenu(); return true; }
+  if (screenOn("sHow")) { goMenu(tab); return true; }
+  if (screenOn("sRoom")) { goMenu(); return true; }
   if (screenOn("sRoomOver")) { roomLevels(); return true; }
   return false;
 }
@@ -412,11 +416,9 @@ export function initMenus(){
   on("bMe", () => goMenu("boots"));
   on("bRoomBack", goMenu);
   on("bHow", () => show("sHow"));
-  on("bHowOk", goMenu);
-  on("bSet", () => { ($("optSfx") as HTMLInputElement).checked = soundOn(); show("sSet"); });
-  on("bSetOk", goMenu);
-  $("optSfx").addEventListener("change", e => { setSound((e.target as HTMLInputElement).checked); writeSave(); });
-  on("bReset", () => { if (confirm("Reset all progress?")) resetSave(); });
+  // How to play goes back to the tab it was opened from
+  on("bHowOk", () => goMenu(tab));
+  on("tSet", () => goMenu("settings"));
   on("bModesBack", modesBack);
   on("bModeSelect", () => { if (!coop || playable(curMode())) goLevels(curMode()); });
   on("bLevelsBack", () => goModes());
@@ -430,7 +432,4 @@ export function initMenus(){
   on("bNext", () => { const n = S.def && nextLevel(S.def); if (n) play(n); });
   on("bRetry", () => { S.attempt++; play(S.def!); });
   on("bWinLevels", () => goLevels(S.def?.mode, false));
-  $("version").textContent = `${LEVELS.length} levels · ${IS_DEV ? "dev build" : "v" + __VERSION__}`;
 }
-
-declare const __VERSION__: string;
