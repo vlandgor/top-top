@@ -1,5 +1,6 @@
 import type { Boot, LevelDef, Level } from "../core/types";
 import { sfx } from "../audio/audio";
+import { buzz } from "../platform/haptics";
 import { parseLevel } from "../levels/parse";
 import { forPlayers } from "../levels/rooms";
 import { save, writeSave } from "../storage/save";
@@ -25,7 +26,7 @@ export interface Slot { kind: SlotKind; skill: SkillId }
 export const PLAYER_COLORS = ["#19e3c8", "#ffd23f", "#ff5ce1", "#8dff5a"];
 export const COUNTDOWN_S = 3;
 /** seconds the result shows on the board before the results screen */
-const OVER_S = 0.9;
+const OVER_S = 1.2;
 
 export type Phase = "count" | "play" | "paused" | "over";
 
@@ -93,24 +94,25 @@ function doPress(i: number, who: Boot){
   if (p.lastMoveTick !== r.tick) return;
   const back = p.last?.result === "back";
   M.anims[i] = { t0: M.now, idx: who, pivot, from, to: { ...p.boots[who] }, back };
-  if (i === M.you) sfx(back ? "bump" : who ? "stepR" : "stepL");     // only your own steps click
+  if (i === M.you) { sfx(back ? "bump" : who ? "stepR" : "stepL"); buzz(back ? "bump" : "press"); }   // only your own steps click
 }
 
 /** run a change to the room and turn what it did into effects and sounds */
 function track(change: () => void){
-  const r = M.room!, got = r.got, alive = r.pairs.map(p => p.alive);
+  const r = M.room!, got = r.got, alive = r.pairs.map(p => p.alive), mine = M.you >= 0 ? r.pairs[M.you].got : 0;
   change();
   if (r.got > got) {
     r.taken.forEach((t, i) => { if (t && !M.pickedAt.has(i)) M.pickedAt.set(i, M.now); });
     sfx("pick", r.got);
+    if (M.you >= 0 && r.pairs[M.you].got > mine) buzz("pick");
   }
   r.pairs.forEach((p, i) => {
-    if (alive[i] && !p.alive) { M.diedAt[i] = M.now; M.anims[i] = null; if (i === M.you) M.buffered = 0; sfx("die"); }
+    if (alive[i] && !p.alive) { M.diedAt[i] = M.now; M.anims[i] = null; if (i === M.you) { M.buffered = 0; buzz("hit"); } sfx("die"); }
     if (!alive[i] && p.alive) M.spawnAt[i] = M.now;
   });
   if (r.status !== "play" && M.phase === "play") {
     setPhase("over");
-    if (r.status === "won") { sfx("win"); recordWin(); }
+    if (r.status === "won") { sfx("win"); buzz("win"); recordWin(); }
   }
 }
 

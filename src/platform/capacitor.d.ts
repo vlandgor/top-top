@@ -6,10 +6,15 @@ interface AppBridge {
   exitApp(): Promise<void>;
 }
 
+interface HapticsBridge {
+  impact(o: { style: "LIGHT" | "MEDIUM" | "HEAVY" }): Promise<void>;
+  notification(o: { type: "SUCCESS" | "WARNING" | "ERROR" }): Promise<void>;
+}
+
 interface Window {
   Capacitor?: {
     isNativePlatform?: () => boolean;
-    Plugins?: { App?: AppBridge };
+    Plugins?: { App?: AppBridge; Haptics?: HapticsBridge };
   };
   webkitAudioContext?: typeof AudioContext;
 }

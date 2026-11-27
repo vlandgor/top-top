@@ -1,5 +1,6 @@
 import type { Boot, LevelDef, Run } from "../core/types";
 import { sfx } from "../audio/audio";
+import { buzz } from "../platform/haptics";
 import { advance, newRun, press } from "../game/rules";
 import { TICK_MS } from "../game/session";
 import { parseLevel } from "../levels/parse";
@@ -115,6 +116,7 @@ function tap(who: Boot){
 
 function pressed(who: Boot){
   sfx(run.last?.result === "back" ? "bump" : who === 0 ? "stepL" : "stepR");
+  buzz(run.last?.result === "back" ? "bump" : "press");
   track.streak = track.lastBoot === who ? track.streak + 1 : 1;
   track.lastBoot = who;
   if (run.last?.result === "back") track.backs++;
@@ -139,7 +141,7 @@ export function drawHowTo(){
   const now = performance.now() / 1000, t = now - t0;
   // a lesson board that is lost starts over after a moment
   if (run.status === "dead") {
-    if (!deadAt) { deadAt = now; sfx("die"); }
+    if (!deadAt) { deadAt = now; sfx("die"); buzz("hit"); }
     else if (now - deadAt > 0.6) restartLesson();
   } else {
     const want = Math.floor((t * 1000) / TICK_MS);

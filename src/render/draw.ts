@@ -4,7 +4,8 @@ import { RESPAWN_TICKS } from "../game/room";
 import { nextTileOf } from "../game/rules";
 import { sentryAt, sweepAt } from "../game/hazards";
 import { itemLive } from "../game/rules";
-import { RETRY_MS, S, tickF, type SwingAnim } from "../game/session";
+import { RETRY_MS, S, tickF, WIN_S, type SwingAnim } from "../game/session";
+import { burst, clearFx, drawFx } from "./fx";
 import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
 import { t } from "../i18n";
@@ -65,6 +66,47 @@ function outline(x: number, y: number, color: string, width: number, inset = 0.1
 }
 const ease = (k: number) => 1 - Math.pow(1 - Math.min(1, Math.max(0, k)), 3);
 
+// ---- moments: a hit, a pickup, a clear --------------------------------------------------------
+// The game only records when things happened (S.deadAt, S.pickedAt, S.wonAt, …); this notices
+// each new one once and starts its particles. A new level or room clears what's left.
+const seen = { key: "", dead: -1, won: -1, pick: -1, died: [] as number[] };
+function newScene(key: string, now: number){
+  if (seen.key === key) return;
+  seen.key = key; seen.dead = seen.won = -1; seen.pick = now; seen.died = [];
+  clearFx();
+}
+const SHARDS = [C.hazard, "#ffffff", "#ff8a95"];
+function shards(x: number, y: number, now: number, n = 16){
+  burst(x, y, now, { n, colors: SHARDS, speed: 6, life: 0.55, size: 0.09 });
+}
+function sparks(picked: Map<number, number>, lv: Level, accent: string, now: number){
+  for (const [i, at] of picked) if (at > seen.pick) {
+    const it = lv.items[i];
+    burst(it.x, it.y, now, { n: 10, colors: [accent, "#ffffff"], speed: 4, life: 0.4, size: 0.07 });
+  }
+  seen.pick = now;
+}
+function confetti(x: number, y: number, now: number, accent: string, n = 46){
+  const colors = [accent, "#ffffff", C.teal, "#ffd23f", "#ff5ce1"];
+  burst(x, y, now, { n, colors, speed: 11, life: 1.4, size: 0.17, kind: "confetti", dir: -Math.PI / 2, spread: 2.2 });
+  burst(x, y, now, { n: 18, colors: [accent, "#ffffff"], speed: 7, life: 0.5, size: 0.08 });
+}
+/** the floor lights up in a ring spreading from a point, for a clear */
+let ripple: { x: number; y: number; r: number; color: string } | null = null;
+/** a hit: a white flash over everything for a moment */
+function impactFlash(since: number){
+  if (since >= 0.09) return;
+  ctx.fillStyle = rgba("#ffffff", 0.38 * (1 - since / 0.09)); ctx.fillRect(0, 0, view.w, view.h);
+}
+/** the tile that hit you: lit up hot, with a ring going out from it */
+function hitMark(p: Vec, since: number){
+  if (since > 0.4) return;
+  const k = since / 0.4;
+  panel(p.x, p.y, rgba("#ffffff", 0.9 * (1 - k)), L.s * 0.8 * (1 - k), 0.06);
+  ctx.beginPath(); ctx.arc(cx(p.x), cy(p.y), L.s * (0.4 + 1.6 * ease(k)), 0, Math.PI * 2);
+  ctx.lineWidth = 5 * (1 - k); ctx.strokeStyle = rgba(C.hazard, 1 - k); ctx.stroke();
+}
+
 export function draw(){
   ctx = mainCtx;
   ctx.fillStyle = C.bg; ctx.fillRect(0, 0, view.w, view.h);
@@ -73,21 +115,38 @@ export function draw(){
   F = { b: r, tf: tickF(), now: S.now, live: true, picked: S.pickedAt };
   L = layoutIn(r.lv, 0, HUD_TOP, view.w, view.h - HUD_TOP - BOTTOM, 76, BIGGEST);
   const dead = r.status === "dead", deadK = dead ? Math.min(1, (S.now - S.deadAt) / (RETRY_MS / 1000)) : 0;
+  const won = r.status === "won", winT = S.now - S.wonAt, accent = ACCENT[r.lv.def.mode];
+  const at = r.boots[r.last?.boot ?? 0];
+
+  newScene("solo:" + r.lv.def.id, S.now);
+  sparks(S.pickedAt, r.lv, accent, S.now);
+  if (dead && seen.dead !== S.deadAt) { seen.dead = S.deadAt; for (const h of S.hit) shards(h.x, h.y, S.now); }
+  if (won && seen.won !== S.wonAt) { seen.won = S.wonAt; confetti(at.x, at.y, S.now, accent); }
 
   ctx.save();
-  if (dead && deadK < 0.4) {                         // a short shake on death
-    const a = (0.4 - deadK) * 10;
+  if (dead && deadK < 0.45) {                        // a hard shake on the hit, settling fast
+    const a = Math.pow((0.45 - deadK) / 0.45, 2) * 9;
     ctx.translate(Math.sin(S.now * 90) * a, Math.cos(S.now * 70) * a);
   }
+  ripple = won ? { x: at.x, y: at.y, r: (winT / 0.9) * (Math.max(r.lv.w, r.lv.h) + 2), color: accent } : null;
   drawBoard();
-  if (r.status === "play") drawNext(r.lv, r.boots, ACCENT[r.lv.def.mode]);
+  ripple = null;
+  if (dead) for (const h of S.hit) hitMark(h, S.now - S.deadAt);
+  if (r.status === "play") drawNext(r.lv, r.boots, accent);
   const skin = mySkin();
+  // hit: the boots shrink a little; a clear: they hop for joy, three times, settling
+  const wk = Math.min(1, winT / WIN_S);
+  const grow = dead ? 1 - 0.18 * ease(deadK * 2) : won ? 1 + 0.28 * Math.abs(Math.sin(wk * Math.PI * 3)) * (1 - wk) : 1;
   drawPair(r.lv, r.boots, S.anim, heading, (_who, lifted) => dead
     ? { ...DEAD_STYLE, glowSize: L.s * 0.5, skin }
-    : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: L.s * (lifted ? 0.6 : 0.3), skin });
+    : { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: won ? accent : C.teal, glowSize: L.s * (lifted || won ? 0.6 : 0.3), skin }, grow);
+  drawFx(ctx, S.now, L.s, L.ox, L.oy);
   ctx.restore();
-  if (dead) { ctx.fillStyle = rgba(C.hazard, 0.28 * (1 - deadK)); ctx.fillRect(0, 0, view.w, view.h); }
-  if (r.status === "won") drawWin(r, ACCENT[r.lv.def.mode]);
+  if (dead) {
+    ctx.fillStyle = rgba(C.hazard, 0.3 * (1 - deadK)); ctx.fillRect(0, 0, view.w, view.h);
+    impactFlash(S.now - S.deadAt);
+  }
+  if (won) drawWin(r, accent);
 }
 
 /**
@@ -141,6 +200,10 @@ function drawFloor(lv: Level, frac: number, accent: string){
     ctx.lineWidth = 1; ctx.strokeStyle = C.tileEdge; ctx.stroke();
     const checker = (x + y) % 2 ? 0.045 : 0.07;
     panel(x, y, rgba(accent, checker + 0.05 * pulse));
+    if (ripple) {
+      const d = Math.hypot(x - ripple.x, y - ripple.y) - ripple.r, g = Math.exp(-d * d / 0.9);
+      if (g > 0.02) panel(x, y, rgba(ripple.color, 0.6 * g), L.s * 0.5 * g);
+    }
   }
 }
 
@@ -244,7 +307,7 @@ function drawNext(lv: Level, boots: [Vec, Vec], accent: string){
 
 // ---- the boots ---------------------------------------------------------------------------
 /** one pair of boots, mid-swing if it has an animation. `head` keeps each boot's eased facing */
-function drawPair(lv: Level, boots: [Vec, Vec], anim: SwingAnim | null, head: number[], style: (who: Boot, lifted: boolean) => BootStyle){
+function drawPair(lv: Level, boots: [Vec, Vec], anim: SwingAnim | null, head: number[], style: (who: Boot, lifted: boolean) => BootStyle, grow = 1){
   const s = L.s;
   const pos: Vec[] = [{ x: cx(boots[0].x), y: cy(boots[0].y) }, { x: cx(boots[1].x), y: cy(boots[1].y) }];
   let lift = -1, liftK = 0;
@@ -274,7 +337,7 @@ function drawPair(lv: Level, boots: [Vec, Vec], anim: SwingAnim | null, head: nu
     head[who] += dh * 0.35;
     const face = F.live ? head[who] : want;
     const st = style(who, who === lift);
-    const scale = 1 + (who === lift ? 0.18 * liftK : 0);
+    const scale = (1 + (who === lift ? 0.18 * liftK : 0)) * grow;
     drawBoot(ctx, pos[who].x, pos[who].y, face + Math.PI / 2, who === 0, s * 0.7 * scale, st);
   }
 }
@@ -314,9 +377,25 @@ function drawRoom(){
   F = { b: r, tf: matchTickF(), now: M.now, live: true, picked: M.pickedAt };
   L = layoutIn(lv, 0, HUD_TOP, view.w, view.h - HUD_TOP - BOTTOM, 76, BIGGEST);
   const youOut = M.you >= 0 ? M.now - M.diedAt[M.you] : 9;
+  const accent = ACCENT[lv.def.mode], cleared = M.phase === "over" && r.status === "won", overT = M.now - M.phaseAt;
+  newScene("room:" + lv.def.id + ":" + M.seed, M.now);
+  sparks(M.pickedAt, lv, accent, M.now);
+  r.pairs.forEach((p, i) => {
+    if (M.diedAt[i] > 0 && seen.died[i] !== M.diedAt[i] && p.diedAt) {
+      seen.died[i] = M.diedAt[i];
+      for (const b of p.diedAt) shards(b.x, b.y, M.now, i === M.you ? 14 : 7);
+    }
+  });
+  if (cleared && seen.won !== M.phaseAt) {
+    seen.won = M.phaseAt;
+    r.pairs.forEach(p => { if (p.alive) confetti(p.boots[0].x, p.boots[0].y, M.now, accent, 26); });
+  }
   ctx.save();
-  if (youOut < 0.16) { const a = (0.16 - youOut) * 25; ctx.translate(Math.sin(M.now * 90) * a, Math.cos(M.now * 70) * a); }
+  if (youOut < 0.3) { const a = Math.pow((0.3 - youOut) / 0.3, 2) * 8; ctx.translate(Math.sin(M.now * 90) * a, Math.cos(M.now * 70) * a); }
+  ripple = cleared ? { x: (lv.w - 1) / 2, y: (lv.h - 1) / 2, r: (overT / 0.9) * (Math.max(lv.w, lv.h) / 2 + 2), color: accent } : null;
   drawBoard();
+  ripple = null;
+  if (M.you >= 0 && youOut < 0.4 && r.pairs[M.you].diedAt) for (const b of r.pairs[M.you].diedAt!) hitMark(b, youOut);
   const order = r.pairs.map((_, i) => i).filter(i => i !== M.you);
   if (M.you >= 0) order.push(M.you);
   for (const i of order) {
@@ -329,7 +408,8 @@ function drawRoom(){
         ctx.beginPath(); ctx.arc(cx(b.x), cy(b.y), L.s * (0.3 + 0.5 * k), 0, Math.PI * 2);
         ctx.lineWidth = 3 * (1 - k); ctx.strokeStyle = rgba(color, 1 - k); ctx.stroke();
       }
-      drawPair(lv, p.boots, M.anims[i], head, (_who, lifted) => playerStyle(color, lifted, skin));
+      const hop = cleared ? 1 + 0.28 * Math.abs(Math.sin(Math.min(1, overT / 1.1) * Math.PI * 3)) * (1 - Math.min(1, overT / 1.1)) : 1;
+      drawPair(lv, p.boots, M.anims[i], head, (_who, lifted) => playerStyle(color, lifted, skin), hop);
       if (i === M.you && M.phase === "count") {        // which pair is yours
         const mx = (cx(p.boots[0].x) + cx(p.boots[1].x)) / 2, my = Math.min(cy(p.boots[0].y), cy(p.boots[1].y)) - L.s * 0.62;
         ctx.font = `800 ${Math.round(L.s * 0.24)}px ui-sans-serif,system-ui,sans-serif`;
@@ -350,8 +430,10 @@ function drawRoom(){
       outline(st.x, st.y, rgba(color, 0.3 + 0.5 * k), 2, 0.1, [L.s * 0.1, L.s * 0.07]);
     }
   }
+  drawFx(ctx, M.now, L.s, L.ox, L.oy);
   ctx.restore();
   if (youOut < RETRY_MS / 1000) { ctx.fillStyle = rgba(C.hazard, 0.22 * (1 - youOut / (RETRY_MS / 1000))); ctx.fillRect(0, 0, view.w, view.h); }
+  impactFlash(youOut);
   const inPhase = M.now - M.phaseAt;
   if (M.phase === "count") {
     const left = COUNTDOWN_S - inPhase;

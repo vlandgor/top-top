@@ -125,7 +125,12 @@ export function sfx(s: Sound, n = 0){
     }
     case "bump": tone(b, t, 150, 0.09, { type: "square", vol: 0.1, to: 110 }); tone(b, t + 0.05, 520, 0.06, { type: "triangle", vol: 0.08, to: 300 }); break;
     case "pick": { const f = pickHz(n); tone(b, t, f, 0.18, { vol: 0.18 }); tone(b, t + 0.04, f * 2, 0.12, { vol: 0.08 }); break; }
-    case "die": tone(b, t, 180, 0.28, { type: "sawtooth", vol: 0.14, to: 60 }); noise(b, t, 0.18, 0.25, 700); break;
+    case "die":
+      // a crack, a low thump under it, and the falling buzz
+      noise(b, t, 0.05, 0.4, 3200, "highpass");
+      tone(b, t, 110, 0.32, { vol: 0.4, to: 38 });
+      tone(b, t, 180, 0.28, { type: "sawtooth", vol: 0.14, to: 60 }); noise(b, t, 0.18, 0.25, 700);
+      break;
     case "win": {
       // the key's tonic chord, rising, whatever chord the song was on
       const h = harmony, notes = h ? [0, 2, 4, 7].map(d => midiHz(degMidi(h.root + 12, h.scale, d))) : [0, 4, 7, 12].map(x => note(x + 3));

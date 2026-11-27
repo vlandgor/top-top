@@ -40,6 +40,8 @@ const de: Pack = {
     "win.title": "Geschafft",
     "win.next": "Nächstes Level",
     "win.retry": "Nochmal",
+    "win.best": "Neue Bestleistung",
+    "win.first": "Erster Abschluss",
 
     "tab.play": "Spielen",
     "tab.boots": "Stiefel",
@@ -229,6 +231,8 @@ const de: Pack = {
     "set.tapBoardSub": "Die linke oder rechte Feldhälfte bewegt auch diesen Stiefel",
     "set.keyboard": "Tastatur",
     "set.keyboardSub": "A / ← links · D / → rechts · R Neustart · Esc Pause",
+    "set.hapticsSub": "Ein Tippen bei jedem Druck, ein Ruck bei einem Treffer",
+    "set.haptics": "Vibration",
     "set.help": "Hilfe",
     "set.howSub": "Die Tasten, der Rand, die Gefahren",
     "set.save": "Spielstand",

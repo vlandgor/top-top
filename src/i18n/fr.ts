@@ -40,6 +40,8 @@ const fr: Pack = {
     "win.title": "Réussi",
     "win.next": "Niveau suivant",
     "win.retry": "Réessayer",
+    "win.best": "Nouveau record",
+    "win.first": "Premier passage",
 
     "tab.play": "Jouer",
     "tab.boots": "Bottes",
@@ -229,6 +231,8 @@ const fr: Pack = {
     "set.tapBoardSub": "La moitié gauche ou droite du plateau actionne aussi cette botte",
     "set.keyboard": "Clavier",
     "set.keyboardSub": "A / ← gauche · D / → droite · R recommencer · Échap pause",
+    "set.hapticsSub": "Un petit retour à chaque appui, une secousse quand vous êtes touché",
+    "set.haptics": "Vibration",
     "set.help": "Aide",
     "set.howSub": "Les boutons, le bord, les dangers",
     "set.save": "Sauvegarde",

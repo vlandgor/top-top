@@ -225,6 +225,29 @@ switches, **Music** and **Sound effects**, kept in the save (Reset progress keep
   fifth; pickups climb the current chord; the win plays the key's own chord. With the music
   off, effects fall back to fixed pitches and a quiet tick marks the beat.
 
+## Feel
+
+Every moment that matters gets an answer you can feel, see and hear.
+
+- **Haptics** (`src/platform/haptics.ts`): a light tap on each press, a firmer one when a boot
+  steps back at the edge, a tick on a pickup, an error jolt when you're hit, a success pattern
+  when you clear. In the app it uses the phone's haptic engine (`@capacitor/haptics`); in a
+  mobile browser plain vibration. In co-op only your own pair buzzes. **Settings → Controls →
+  Vibration** turns it off (kept in the save; Reset progress keeps it).
+- **The hit:** a white flash, the tile that hit you lit up hot with a red ring going out from
+  it, shards flying off, a hard shake that settles fast, the boots shrinking a little in red,
+  and a crack-and-thump under the death sound. The level still restarts in about 0.4 s; the
+  shards keep flying into the fresh start. In co-op every pair breaks into shards where it
+  fell; only your own fall flashes and shakes the screen.
+- **A pickup:** a small burst of sparks in the mode's colour.
+- **A clear:** the floor lights up in a ring spreading from the winning boot, confetti bursts
+  up from it, the boots hop three times, then the results arrive: the title pops in, a badge
+  says **First clear** or **New best** (fewer presses, or as few and faster), the stats rise
+  one by one. The board celebrates for 1.1 s before the results (1.2 s in co-op, where every
+  pair hops and throws confetti).
+- Particles live in `src/render/fx.ts`, in tile coordinates; the game only records when things
+  happened and the drawing notices each new moment once.
+
 ## Still open
 
 - Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only

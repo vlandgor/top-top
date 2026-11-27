@@ -6,6 +6,7 @@ import { drawSkinStage } from "../render/draw";
 import { mySkin } from "../render/skins";
 import { resetSave, writeSave } from "../storage/save";
 import { $ } from "./menus";
+import { buzz, hapticsOn, setHaptics } from "../platform/haptics";
 import { openHowTo } from "./howto";
 import { deviceLang, lang, langName, LANGS, langSetting, setLang, t, type LangId } from "../i18n";
 
@@ -51,7 +52,8 @@ const SECTIONS: Section[] = [
     body: () => `<div class="sdemo"><span class="sk">L</span><canvas id="setStage"></canvas><span class="sk">R</span></div>`
       + row(t("set.buttons"), t("set.buttonsSub"))
       + row(t("set.tapBoard"), t("set.tapBoardSub"))
-      + row(t("set.keyboard"), t("set.keyboardSub")),
+      + row(t("set.keyboard"), t("set.keyboardSub"))
+      + row(t("set.haptics"), t("set.hapticsSub"), sw("optHaptics", hapticsOn())),
   },
   {
     id: "help", name: () => t("set.help"), peek: () => "",
@@ -101,6 +103,8 @@ function render(){
 function wire(){
   const sfxSw = document.getElementById("optSfx");
   if (sfxSw) sfxSw.onclick = () => { setSound(!soundOn()); writeSave(); sfx("click"); render(); };
+  const hapSw = document.getElementById("optHaptics");
+  if (hapSw) hapSw.onclick = () => { setHaptics(!hapticsOn()); writeSave(); sfx("click"); buzz("press"); render(); };
   const musicSw = document.getElementById("optMusic");
   if (musicSw) musicSw.onclick = () => { setMusic(!musicOn()); writeSave(); sfx("click"); render(); };
   const how = document.getElementById("setHow");

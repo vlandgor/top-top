@@ -42,11 +42,11 @@ On a phone: the button on each side of the board, or tap the left / right half o
 | `src/game/bot.ts` | Bot teammates: a short look-ahead over the rules, with Easy / Normal / Hard knobs. |
 | `src/game/match.ts` | A live co-op room: countdown, the local player's and the bots' presses, results. |
 | `src/levels/` | The levels (ASCII maps plus hazard lists) and their parser; co-op rooms in `rooms.ts`. |
-| `src/render/` | Canvas, palette, the boot drawing and its skins, and drawing a frame. |
+| `src/render/` | Canvas, palette, the boot drawing and its skins, drawing a frame, and particles (`fx.ts`). |
 | `src/ui/` | Menus, level select, HUD, styles; the co-op lobby and results in `room.ts`; Customize in `skins.ts`. |
 | `src/input/` | Buttons, screen halves and keyboard. |
 | `src/audio/` | Synthesised sound: effects (`audio.ts`), the music's tracks and melodies as data (`score.ts`), and the player that keeps them on the game's beat (`music.ts`). |
-| `src/platform/` | Capacitor glue: the Android back button, app pause/resume, the dev channel. |
+| `src/platform/` | Capacitor glue: the Android back button, app pause/resume, haptics, the dev channel. |
 | `src/i18n/` | Translations: one file per language, English the source; `t()` and `tn()` (plurals). |
 | `src/storage/` | The save (cleared levels, attempts, settings) in localStorage. |
 | `tools/` | The dev-app shell, the level solver CLI, and the icon art. |

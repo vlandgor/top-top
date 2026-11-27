@@ -22,6 +22,8 @@ export interface Save {
   sfx?: number;
   /** 0 = music off */
   music?: number;
+  /** 0 = vibration off */
+  haptics?: number;
 }
 
 const SAVE_KEY = "topTop.v1";
@@ -34,10 +36,11 @@ function loadSave(): Save {
 export function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* full or blocked */ } }
 export function resetSave(){
   // settings (sound, language) and the boots you wear stay; progress goes
-  const { sfx, music, skin, lang } = save;
+  const { sfx, music, haptics, skin, lang } = save;
   for (const k of Object.keys(save) as (keyof Save)[]) delete save[k];
   if (sfx !== undefined) save.sfx = sfx;
   if (music !== undefined) save.music = music;
+  if (haptics !== undefined) save.haptics = haptics;
   if (skin !== undefined) save.skin = skin;
   if (lang !== undefined) save.lang = lang;
   writeSave();

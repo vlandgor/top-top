@@ -40,6 +40,8 @@ const es: Pack = {
     "win.title": "Superado",
     "win.next": "Siguiente nivel",
     "win.retry": "Reintentar",
+    "win.best": "Nuevo récord",
+    "win.first": "Primera vez",
 
     "tab.play": "Jugar",
     "tab.boots": "Botas",
@@ -229,6 +231,8 @@ const es: Pack = {
     "set.tapBoardSub": "La mitad izquierda o derecha del tablero también mueve esa bota",
     "set.keyboard": "Teclado",
     "set.keyboardSub": "A / ← izquierda · D / → derecha · R reiniciar · Esc pausa",
+    "set.hapticsSub": "Un toque en cada pulsación y una sacudida al recibir un golpe",
+    "set.haptics": "Vibración",
     "set.help": "Ayuda",
     "set.howSub": "Los botones, el borde, los peligros",
     "set.save": "Tu partida",

@@ -2,6 +2,8 @@ import type { Boot, Level, LevelDef, Run, Vec } from "../core/types";
 import { parseLevel } from "../levels/parse";
 import { LEVELS } from "../levels/levels";
 import { sfx } from "../audio/audio";
+import { buzz } from "../platform/haptics";
+import { lethalAt } from "./hazards";
 import { save, writeSave } from "../storage/save";
 import { advance, canPress, newRun, press } from "./rules";
 
@@ -14,6 +16,8 @@ import { advance, canPress, newRun, press } from "./rules";
 export const TICK_MS = 125;
 /** how long the death flash shows before the level restarts by itself */
 export const RETRY_MS = 380;
+/** how long the clear celebrates on the board before the results */
+export const WIN_S = 1.1;
 
 export type Screen = "menu" | "play" | "paused" | "won";
 
@@ -42,6 +46,10 @@ export const S = {
   /** seconds at which each item index was picked up, for the pop animation */
   pickedAt: new Map<number, number>(),
   anim: null as SwingAnim | null,
+  /** the tiles where the boots were hit, for the death effect */
+  hit: [] as Vec[],
+  /** the last clear: the level's first, a better one than before, or neither */
+  best: "" as "" | "first" | "better",
   lastBeat: -1,
   onWin: null as null | (() => void),
 };
@@ -77,6 +85,7 @@ function doPress(who: Boot){
   const back = r.last?.result === "back";
   S.anim = { t0: S.now, idx: who, pivot, from, to: { ...r.boots[who] }, back };
   sfx(back ? "bump" : who ? "stepR" : "stepL");
+  buzz(back ? "bump" : "press");
   afterChange(before);
 }
 
@@ -86,13 +95,19 @@ function afterChange(gotBefore: number){
   if (r.got > gotBefore) {
     r.taken.forEach((t, i) => { if (t && !S.pickedAt.has(i)) S.pickedAt.set(i, S.now); });
     sfx("pick", r.got);
+    buzz("pick");
   }
   if (r.status === "dead") onDeath();
   else if (r.status === "won") onWon();
 }
 
 function onDeath(){
+  const r = S.run!;
   S.deadAt = S.now; S.buffered = 0;
+  // where it hit: the boots on a lethal tile; a wrong light in Sequence, the boot that stepped on it
+  const on = r.boots.filter(b => lethalAt(r.lv, b.x, b.y, r.tick));
+  S.hit = (on.length ? on : [r.boots[r.last?.boot ?? 0]]).map(b => ({ ...b }));
+  buzz("hit");
   bumpAttempts();
   sfx("die");
 }
@@ -106,9 +121,12 @@ function onWon(){
   save.done = save.done || {};
   const prev = save.done[id];
   const ticks = r.tick;
-  if (!prev || r.moves < prev.presses || (r.moves === prev.presses && ticks < prev.ticks)) save.done[id] = { presses: r.moves, ticks };
+  const better = !!prev && (r.moves < prev.presses || (r.moves === prev.presses && ticks < prev.ticks));
+  S.best = !prev ? "first" : better ? "better" : "";
+  if (!prev || better) save.done[id] = { presses: r.moves, ticks };
   writeSave();
   sfx("win");
+  buzz("win");
 }
 
 function bumpAttempts(){
@@ -125,7 +143,7 @@ export function update(dt: number){
   if (!r || S.screen !== "play") return;
   if (r.status === "dead") { if (S.now - S.deadAt > RETRY_MS / 1000) retry(); return; }
   if (r.status === "won") {
-    if (S.onWin && S.now - S.wonAt > 0.7) { S.screen = "won"; S.onWin(); }
+    if (S.onWin && S.now - S.wonAt > WIN_S) { S.screen = "won"; S.onWin(); }
     return;
   }
   S.acc += dt * 1000;

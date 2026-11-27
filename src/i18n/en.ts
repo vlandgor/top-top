@@ -48,6 +48,8 @@ const ui = {
   "win.title": "Cleared",
   "win.next": "Next level",
   "win.retry": "Retry",
+  "win.best": "New best",
+  "win.first": "First clear",
 
   // the main menu
   "tab.play": "Play",
@@ -244,6 +246,8 @@ const ui = {
   "set.tapBoardSub": "The left or right half of the board presses that boot too",
   "set.keyboard": "Keyboard",
   "set.keyboardSub": "A / ← left · D / → right · R restart · Esc pause",
+  "set.hapticsSub": "A tap on each press, a jolt when you're hit",
+  "set.haptics": "Vibration",
   "set.help": "Help",
   "set.howSub": "The buttons, the edge, the hazards",
   "set.save": "Your save",

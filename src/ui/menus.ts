@@ -374,6 +374,9 @@ function onWin(){
   $("winSwings").textContent = String(r.moves);
   $("winTime").textContent = fmtTime(r.tick);
   $("winAttempts").textContent = String(S.attempt);
+  const badge = $("winBadge");
+  badge.textContent = S.best === "first" ? t("win.first") : S.best === "better" ? t("win.best") : "";
+  badge.classList.toggle("on", !!S.best);
   const next = nextLevel(def);
   $("bNext").style.display = next ? "" : "none";
   show("sWin");
