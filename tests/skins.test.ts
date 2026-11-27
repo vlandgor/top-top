@@ -10,7 +10,7 @@ describe("skins", () => {
   it("give every co-op player a different skin, yours first", () => {
     for (const s of SKINS) {
       save.skin = s.id;
-      const four = [0, 1, 2, 3].map(skinOfPlayer);
+      const four = [0, 1, 2, 3].map(i => skinOfPlayer(i));
       expect(four[0]).toBe(s);
       expect(new Set(four).size).toBe(4);
     }

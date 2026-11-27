@@ -67,10 +67,20 @@
           <div class="msolo"><span class="mlabel">Solo</span><span id="soloCleared"></span></div>
           <div id="soloModes"></div>
         </div>
-        <!-- Boots: the skins on the left, the chosen pair walking on the right with Equip -->
+        <!-- Boots: the kinds of item and the skins on the left; the chosen pair on the right, alone
+             or in a team, with Equip -->
         <div class="pane" id="pBoots">
-          <div id="skinGrid"></div>
+          <div class="bleft">
+            <div class="kinds">
+              <button class="kind sel">Patterns</button>
+              <button class="kind" disabled>Colours<em>soon</em></button>
+              <button class="kind" disabled>Trails<em>soon</em></button>
+              <span id="skCount"></span>
+            </div>
+            <div id="skinGrid"></div>
+          </div>
           <div id="skinInfo">
+            <div class="pvseg"><button class="sel" id="pvSolo">Solo</button><button id="pvTeam">In a team</button></div>
             <canvas id="skinStage"></canvas>
             <span class="eyebrow" id="skTag"></span>
             <b id="skName"></b>

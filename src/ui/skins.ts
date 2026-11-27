@@ -1,25 +1,32 @@
 import { sfx } from "../audio/audio";
-import { drawSkinStage, drawSkinThumb } from "../render/draw";
+import { PLAYER_COLORS } from "../game/match";
+import { drawLobbyFloor, drawSkinStage, drawSkinThumb } from "../render/draw";
 import { mySkin, SKINS, type Skin } from "../render/skins";
 import { save, writeSave } from "../storage/save";
 import { $ } from "./menus";
 
 // ---------------------------------------------------------------------------
-// BOOTS — the main menu's Boots tab: pick the pattern on your boots. The skins in a grid on
-// the left, the chosen one walking on the right with Equip. Your colour doesn't change (teal
-// solo, your seat's colour in co-op); the skin is printed in it. Every skin is open for now.
+// BOOTS — the main menu's Boots tab: what you wear. The kinds of item across the top (only
+// Patterns so far; Colours and Trails are marked soon), the skins in a grid below, and on the
+// right the chosen one walking alone, or on the co-op floor with a team, with Equip. Your
+// colour doesn't change (teal solo, your seat's colour in co-op); the skin is printed in it.
+// Every skin is open for now.
 // ---------------------------------------------------------------------------
 
 /** the skin being looked at; Equip makes it the one you wear */
 let picked: Skin = mySkin();
+/** the preview: your pair alone, or with a full team on the co-op floor */
+let inTeam = false;
 let t0 = 0;
 
 /** opening the tab: the grid, with the skin you wear picked */
 export function enterBoots(){
   picked = mySkin();
   t0 = performance.now() / 1000;
+  $("skCount").textContent = `${SKINS.length} / ${SKINS.length} unlocked`;
   buildGrid();
   select(picked);
+  setPreview(inTeam);
 }
 
 function buildGrid(){
@@ -42,13 +49,19 @@ function select(s: Skin){
     b.classList.toggle("sel", b.dataset.id === s.id);
     b.classList.toggle("worn", b.dataset.id === worn.id);
   });
-  $("skTag").textContent = wearing ? "Wearing" : `${SKINS.indexOf(s) + 1} of ${SKINS.length}`;
+  $("skTag").textContent = `Pattern · ${wearing ? "wearing" : `${SKINS.indexOf(s) + 1} of ${SKINS.length}`}`;
   $("skName").textContent = s.name;
   $("skAbout").textContent = s.about;
   $("skWearing").innerHTML = wearing ? "" : `Wearing <b>${worn.name}</b>`;
   const btn = $<HTMLButtonElement>("bSkinEquip");
   btn.disabled = wearing;
   btn.textContent = wearing ? "Equipped ✓" : "Equip";
+}
+
+function setPreview(team: boolean){
+  inTeam = team;
+  $("pvSolo").classList.toggle("sel", !team);
+  $("pvTeam").classList.toggle("sel", team);
 }
 
 function equip(){
@@ -66,7 +79,7 @@ function fit(cv: HTMLCanvasElement): { c: CanvasRenderingContext2D; w: number; h
   return { c, w, h };
 }
 
-/** every frame while the tab is open: the tiles and the walking preview */
+/** every frame while the tab is open: the tiles and the preview */
 export function drawBoots(){
   document.querySelectorAll<HTMLElement>(".skin").forEach(b => {
     const f = fit(b.querySelector("canvas")!);
@@ -74,9 +87,15 @@ export function drawBoots(){
     if (f && s) drawSkinThumb(f.c, f.w, f.h, s, s === picked);
   });
   const f = fit($<HTMLCanvasElement>("skinStage"));
-  if (f) drawSkinStage(f.c, f.w, f.h, performance.now() / 1000 - t0, picked);
+  if (!f) return;
+  const t = performance.now() / 1000 - t0;
+  // in a team: a full team on the co-op floor, you in the skin you're looking at
+  if (inTeam) drawLobbyFloor(f.c, f.w, f.h, PLAYER_COLORS, t, picked);
+  else drawSkinStage(f.c, f.w, f.h, t, picked);
 }
 
 export function initBoots(){
   $("bSkinEquip").addEventListener("click", () => { sfx("click"); equip(); });
+  $("pvSolo").addEventListener("click", () => { sfx("click"); setPreview(false); });
+  $("pvTeam").addEventListener("click", () => { sfx("click"); setPreview(true); });
 }

@@ -132,10 +132,13 @@ positions. The lobby's open slots are where friends will join.
 
 ## Customize
 
-The main menu's **Boots** tab (also opened by your boots in its top line) holds the boot skins: a
-grid of 12 on the left, the chosen pair walking on the right, with **Equip** (tapping the
-previewed skin again equips it too). The previewed skin has a teal name and a glowing underline;
-the one you wear, a dot before its name. A skin is
+The main menu's **Boots** tab (also opened by your boots in its top line) holds what you wear.
+Across the top, the kinds of item: **Patterns** (the skins), with Colours and Trails marked
+*soon*, and how many are unlocked (all of them, for now). Below, the 12 skins in a 6×2 grid;
+on the right, the chosen pair with **Equip** (tapping the previewed skin again equips it too).
+The preview switches between **Solo** (your pair walking) and **In a team** (the co-op floor
+with a full team, you in the skin you're looking at and each teammate in another). The
+previewed skin has a teal name and a glowing underline; the one you wear, a dot before its name. A skin is
 the pattern printed on the boots; colour stays who you are (teal solo, your seat's colour in
 co-op) and the pattern is drawn in it, so every skin works for every player. In co-op each bot
 wears a different skin from yours, so pairs read apart by pattern as well as colour. Your skin

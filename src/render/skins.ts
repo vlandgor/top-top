@@ -193,10 +193,10 @@ export const mySkin = (): Skin => skinById(save.skin);
 
 /**
  * The skin of co-op player `i` (0 is you). Bots each wear a different one, never yours, so
- * every pair on the floor reads apart by pattern as well as colour.
+ * every pair on the floor reads apart by pattern as well as colour. `mine` is the skin you
+ * wear, or one you are trying on in the Boots tab.
  */
-export function skinOfPlayer(i: number): Skin {
-  const mine = mySkin();
+export function skinOfPlayer(i: number, mine: Skin = mySkin()): Skin {
   if (i === 0) return mine;
   const others = SKINS.filter(s => s !== mine && s.id !== "classic");
   return others[((i - 1) * 4) % others.length];

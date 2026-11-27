@@ -348,7 +348,7 @@ function drawRoom(){
  * seat (its start tiles are drawn dashed). `t` is seconds.
  */
 let lobbyLv: Level | null = null;
-export function drawLobbyFloor(c: CanvasRenderingContext2D, w: number, h: number, seats: (string | null)[], t: number){
+export function drawLobbyFloor(c: CanvasRenderingContext2D, w: number, h: number, seats: (string | null)[], t: number, you: Skin = mySkin()){
   ctx = c;
   ctx.clearRect(0, 0, w, h);
   const lv = lobbyLv = lobbyLv || parseLevel({ ...ROOMS[0], map: ROOMS[0].map.map(r => r.replace(/[^.]/g, ".")) });
@@ -364,7 +364,7 @@ export function drawLobbyFloor(c: CanvasRenderingContext2D, w: number, h: number
       panel(p.x, p.y, rgba(col, 0.14));
       // each boot lifts in turn, two steps a second, the pairs a little out of step
       const lift = Math.max(0, Math.sin((t * 2 + k * 0.5 + i * 0.25) * Math.PI));
-      drawBoot(ctx, cx(p.x), cy(p.y), 0, k === 0, L.s * 0.7 * (1 + 0.1 * lift), playerStyle(col, lift > 0.6, skinOfPlayer(i)));
+      drawBoot(ctx, cx(p.x), cy(p.y), 0, k === 0, L.s * 0.7 * (1 + 0.1 * lift), playerStyle(col, lift > 0.6, skinOfPlayer(i, you)));
     });
   });
   ctx = mainCtx;
