@@ -7,6 +7,7 @@ import { itemLive } from "../game/rules";
 import { RETRY_MS, S, tickF, type SwingAnim } from "../game/session";
 import { ctx as mainCtx, view } from "./canvas";
 import { drawBoot, type BootStyle } from "./boot";
+import { t } from "../i18n";
 import { mySkin, skinOfPlayer, type Skin } from "./skins";
 import { ACCENT, C, mix, rgba } from "./theme";
 import { LEVELS } from "../levels/levels";
@@ -333,7 +334,7 @@ function drawRoom(){
         const mx = (cx(p.boots[0].x) + cx(p.boots[1].x)) / 2, my = Math.min(cy(p.boots[0].y), cy(p.boots[1].y)) - L.s * 0.62;
         ctx.font = `800 ${Math.round(L.s * 0.24)}px ui-sans-serif,system-ui,sans-serif`;
         ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = color;
-        ctx.fillText("YOU", mx, my);
+        ctx.fillText(t("board.you"), mx, my);
       }
       continue;
     }
@@ -355,8 +356,8 @@ function drawRoom(){
   if (M.phase === "count") {
     const left = COUNTDOWN_S - inPhase;
     bigText(String(Math.max(1, Math.ceil(left))), 1 - (left - Math.floor(left)), PLAYER_COLORS[0]);
-  } else if (M.phase === "play" && inPhase < 0.6 && r.tick < 6) bigText("GO", inPhase / 0.6, ACCENT[lv.def.mode]);
-  if (M.phase === "over") bigText(r.status === "won" ? "CLEARED" : r.why === "time" ? "TIME" : "OUT", Math.max(0, inPhase - 0.5) * 2, r.status === "won" ? ACCENT[lv.def.mode] : C.hazard);
+  } else if (M.phase === "play" && inPhase < 0.6 && r.tick < 6) bigText(t("board.go"), inPhase / 0.6, ACCENT[lv.def.mode]);
+  if (M.phase === "over") bigText(t(r.status === "won" ? "board.cleared" : r.why === "time" ? "board.time" : "board.out"), Math.max(0, inPhase - 0.5) * 2, r.status === "won" ? ACCENT[lv.def.mode] : C.hazard);
 }
 
 /**

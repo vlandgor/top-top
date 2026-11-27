@@ -17,3 +17,10 @@ describe("skins", () => {
     delete save.skin;
   });
 });
+
+describe("skin text", () => {
+  it("has a name and blurb for every skin", async () => {
+    const en = (await import("../src/i18n/en")).default.ui as Record<string, string>;
+    for (const s of SKINS) { expect(en[`skin.${s.id}`]).toBeTruthy(); expect(en[`skin.${s.id}.about`]).toBeTruthy(); }
+  });
+});

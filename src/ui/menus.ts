@@ -11,8 +11,9 @@ import { mySkin } from "../render/skins";
 import { ACCENT } from "../render/theme";
 import { leaveMatch, M, PLAYER_COLORS, pauseMatch, restartMatch, resumeMatch } from "../game/match";
 import { drawBoots, enterBoots, initBoots } from "./skins";
-import { drawSettings, enterSettings } from "./settings";
+import { drawSettings, enterSettings, onLanguage } from "./settings";
 import { drawHowTo, initHowTo, openHowTo } from "./howto";
+import { levelHint, levelName, t, tn } from "../i18n";
 import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
@@ -40,7 +41,7 @@ const on = (id: string, fn: () => void) => $(id).addEventListener("click", () =>
 export function screenOn(id: string): boolean { return $(id).classList.contains("on"); }
 
 export function setAccent(c: string){ document.documentElement.style.setProperty("--accent", c); }
-const fmtTime = (ticks: number) => (ticks * TICK_MS / 1000).toFixed(1) + "s";
+const fmtTime = (ticks: number) => t("secs", { n: (ticks * TICK_MS / 1000).toFixed(1) });
 
 // ---- solo or co-op: what the shared screens show -------------------------------------------
 /** whether the modes / levels screens are showing co-op rooms */
@@ -68,24 +69,20 @@ function setTeamChips(){
 // ---- the main menu ----------------------------------------------------------------------------
 /** the main menu's tabs that are built so far, each a pane under the shared top line */
 type Tab = "play" | "boots" | "settings";
-const TABS: Record<Tab, { pane: string; title: string; sub: string }> = {
-  play: { pane: "pPlay", title: "Play", sub: "Together or solo" },
-  boots: { pane: "pBoots", title: "Boots", sub: "The pattern on your boots" },
-  settings: { pane: "pSet", title: "Settings", sub: "Sound, controls and your save" },
-};
+const TABS: Record<Tab, { pane: string }> = { play: { pane: "pPlay" }, boots: { pane: "pBoots" }, settings: { pane: "pSet" } };
 let tab: Tab = "play";
 
 /** the main menu, on one of its tabs: Play unless told otherwise */
-export function goMenu(t: Tab = "play"){
+export function goMenu(which: Tab = "play"){
   S.screen = "menu"; S.run = null; leaveMatch(); setAccent(ACCENT.destination);
-  tab = t;
-  for (const k of Object.keys(TABS) as Tab[]) $(TABS[k].pane).classList.toggle("on", k === t);
-  document.querySelectorAll<HTMLElement>("#sMenu .tab").forEach(b => b.classList.toggle("sel", b.dataset.tab === t));
-  $("mTitle").textContent = TABS[t].title;
-  $("mSub").textContent = TABS[t].sub;
+  tab = which;
+  for (const k of Object.keys(TABS) as Tab[]) $(TABS[k].pane).classList.toggle("on", k === which);
+  document.querySelectorAll<HTMLElement>("#sMenu .tab").forEach(b => b.classList.toggle("sel", b.dataset.tab === which));
+  $("mTitle").textContent = t(`tab.${which}`);
+  $("mSub").textContent = t(`tab.${which}.sub`);
   renderMenu();
-  if (t === "boots") enterBoots();
-  if (t === "settings") enterSettings();
+  if (which === "boots") enterBoots();
+  if (which === "settings") enterSettings();
   show("sMenu");
 }
 
@@ -93,7 +90,7 @@ export function goMenu(t: Tab = "play"){
 function renderMenu(){
   const n = teamSize();
   $("menuTeam").innerHTML = PLAYER_COLORS.map((c, i) => i < n ? `<i style="--c:${c}"></i>` : `<i class="open"></i>`).join("")
-    + `<span>${n === 1 ? "Just you" : `You and ${n - 1} ${n === 2 ? "bot" : "bots"}`} · up to 4</span>`;
+    + `<span>${n === 1 ? t("menu.justYou") : tn("menu.withBots", n - 1)}</span>`;
   let all = 0, cleared = 0;
   const box = $("soloModes"); box.innerHTML = "";
   for (const m of MODES) {
@@ -105,12 +102,12 @@ function renderMenu(){
     b.className = "smode" + (cur ? " next" : "");
     b.style.setProperty("--c", ACCENT[m.id]);
     b.style.setProperty("--p", `${lvls.length ? (100 * c) / lvls.length : 0}%`);
-    b.innerHTML = `<i></i><b>${m.name}${m.wip ? "<em>new</em>" : ""}</b><u></u>`
-      + `<small>${cur && next >= 0 ? `Next · level ${next + 1}` : `${c} / ${lvls.length}`}</small>`;
+    b.innerHTML = `<i></i><b>${m.name}${m.wip ? `<em>${t("new")}</em>` : ""}</b><u></u>`
+      + `<small>${cur && next >= 0 ? t("menu.next", { n: next + 1 }) : `${c} / ${lvls.length}`}</small>`;
     b.onclick = () => { sfx("click"); soloMode = m.id; save.lastMode = m.id; writeSave(); goLevels(m.id, false); };
     box.appendChild(b);
   }
-  $("soloCleared").textContent = `${cleared} / ${all} cleared`;
+  $("soloCleared").textContent = t("ofTotal", { a: cleared, b: all });
   $("meCleared").textContent = `${cleared}/${all}`;
 }
 
@@ -154,7 +151,7 @@ function buildModeList(){
     const b = document.createElement("button");
     b.className = "mbtn"; b.dataset.mode = m.id;
     b.style.setProperty("--c", ACCENT[m.id]);
-    const tag = coop ? (playable(m.id) ? "" : "<em>soon</em>") : m.wip ? "<em>new</em>" : "";
+    const tag = coop ? (playable(m.id) ? "" : `<em>${t("soon")}</em>`) : m.wip ? `<em>${t("new")}</em>` : "";
     b.innerHTML = `<i></i><b>${m.name}</b>${tag}<small>${st.total ? `${st.cleared}/${st.total}` : ""}</small>`;
     b.onclick = () => { sfx("click"); selectMode(m.id); };
     list.appendChild(b);
@@ -171,19 +168,19 @@ function selectMode(m: Mode){
   $("modeInfo").style.setProperty("--c", ACCENT[m]);
   document.querySelectorAll<HTMLElement>(".mbtn").forEach(b => b.classList.toggle("sel", b.dataset.mode === m));
   $("miTag").textContent = coop
-    ? (st.total ? `Co-op · ${st.total} ${st.total === 1 ? "room" : "rooms"}` : "Co-op · coming soon")
-    : info.wip ? "In progress" : `${st.total} levels`;
+    ? (st.total ? tn("modes.coopRooms", st.total) : t("modes.coopSoon"))
+    : info.wip ? t("modes.inProgress") : t("modes.levels", { n: st.total });
   $("miName").textContent = info.name;
   $("miAbout").textContent = coop ? info.coop.about : info.about;
   $("miChips").innerHTML = features(m).map(f => `<span>${f}</span>`).join("");
   $("miCleared").textContent = st.total ? `${st.cleared}/${st.total}` : "–";
   // co-op keeps no attempts; the second stat is the team instead
   $("miAttempts").textContent = coop ? String(teamSize()) : String(st.attempts);
-  $("miAttemptsL").textContent = coop ? "players" : "attempts";
+  $("miAttemptsL").textContent = coop ? t("players") : t("attempts");
   $("miBest").textContent = st.best === null ? "–" : fmtTime(st.best);
   const btn = $<HTMLButtonElement>("bModeSelect");
   btn.disabled = coop && !playable(m);
-  btn.textContent = btn.disabled ? "Coming soon" : "Select";
+  btn.textContent = btn.disabled ? t("modes.comingSoon") : t("modes.select");
   // the mode's first room in co-op; the solo sample level otherwise, and for modes without rooms
   const def = (coop && levelsFor(m)[0]) || levelById(info.preview);
   preview = def ? { run: newRun(parseLevel(def)), t0: performance.now() / 1000 } : null;
@@ -192,13 +189,13 @@ function selectMode(m: Mode){
 /** what you'll meet in a mode's levels, read from the levels themselves */
 function features(m: Mode): string[] {
   const lv = levelsFor(m).length ? levelsFor(m) : levelsOf(m), out: string[] = [];
-  if (lv.some(l => l.sentries?.length)) out.push("Sentries");
+  if (lv.some(l => l.sentries?.length)) out.push(t("feat.sentries"));
   const dirs = new Set(lv.flatMap(l => (l.sweeps || []).map(s => s.dir)));
-  if (dirs.has("diag") || dirs.has("antidiag")) out.push("Waterfalls");
-  if (dirs.has("all")) out.push("Pulses");
-  if (dirs.has("down") || dirs.has("up") || dirs.has("left") || dirs.has("right")) out.push("Waves");
-  if (m === "survival" || m === "waves" || coop) out.push("Timer");
-  if (coop) out.push("Shared lives");
+  if (dirs.has("diag") || dirs.has("antidiag")) out.push(t("feat.waterfalls"));
+  if (dirs.has("all")) out.push(t("feat.pulses"));
+  if (dirs.has("down") || dirs.has("up") || dirs.has("left") || dirs.has("right")) out.push(t("feat.waves"));
+  if (m === "survival" || m === "waves" || coop) out.push(t("feat.timer"));
+  if (coop) out.push(t("feat.sharedLives"));
   return out;
 }
 
@@ -245,7 +242,7 @@ export function goLevels(m: Mode = curMode(), c: boolean = coop){
   const info = MODES.find(x => x.id === m)!, st = modeStats(m), lvls = levelsFor(m);
   $("lvTitle").textContent = info.name;
   $("lvBlurb").textContent = coop ? info.coop.blurb : info.blurb;
-  $("lvCleared").textContent = `${st.cleared} / ${st.total} cleared`;
+  $("lvCleared").textContent = t("ofTotal", { a: st.cleared, b: st.total });
   $("lvBar").style.width = `${st.total ? (100 * st.cleared) / st.total : 0}%`;
   // the first open level not cleared yet: where the player is up to
   const next = lvls.find(d => !done(d) && open(d));
@@ -257,7 +254,7 @@ export function goLevels(m: Mode = curMode(), c: boolean = coop){
     b.disabled = !isOpenNow;                     // locked levels can't be selected
     b.dataset.id = def.id;
     b.innerHTML = (isOpenNow ? String(i + 1) : LOCK) + (done(def) ? `<span class="mark">✓</span>` : "");
-    b.setAttribute("aria-label", `Level ${i + 1}: ${def.name}`);
+    b.setAttribute("aria-label", t("lv.aria", { n: i + 1, name: levelName(def) }));
     // tap selects; tapping the selected level again plays it
     b.onclick = () => {
       sfx("click");
@@ -276,27 +273,27 @@ function goalText(def: LevelDef): string {
   if (coop) return roomGoal(def);
   const lights = def.map.join("").replace(/[^o1-9]/g, "").length;
   switch (def.mode) {
-    case "destination": return "Walk the boots onto the glowing goal.";
-    case "collect": return lights === 2 ? "Pick up both lights, in any order." : `Pick up all ${lights} lights, in any order.`;
-    case "sequence": return `Pick up the ${lights} numbered lights in order, 1 to ${lights}.`;
-    case "survival": return `Stay alive for ${Math.round((def.survive || 0) * (def.beat || 4) * TICK_MS / 1000)} seconds.`;
-    case "waves": return `Collect ${def.need} lights left behind by the waves.`;
+    case "destination": return t("goal.destination");
+    case "collect": return lights === 2 ? t("goal.collect2") : t("goal.collect", { n: lights });
+    case "sequence": return t("goal.sequence", { n: lights });
+    case "survival": return t("goal.survival", { n: Math.round((def.survive || 0) * (def.beat || 4) * TICK_MS / 1000) });
+    case "waves": return t("goal.waves", { n: def.need ?? 0 });
   }
 }
 
 /** what is in a level: its hazards, board size and tempo */
 function levelChips(def: LevelDef): string[] {
   const out: string[] = [];
-  if (coop && def.mode === "collect") out.push(`${roomFacts(def).lights} lights`);
+  if (coop && def.mode === "collect") out.push(t("chip.lights", { n: roomFacts(def).lights }));
   const n = def.sentries?.length || 0;
-  if (n) out.push(n === 1 ? "1 sentry" : `${n} sentries`);
+  if (n) out.push(tn("chip.sentries", n));
   for (const sw of def.sweeps || []) {
-    const name = sw.dir === "all" ? "pulse" : sw.dir === "diag" || sw.dir === "antidiag" ? "waterfall" : "wave";
+    const name = t(sw.dir === "all" ? "chip.pulse" : sw.dir === "diag" || sw.dir === "antidiag" ? "chip.waterfall" : "chip.wave");
     if (!out.includes(name)) out.push(name);
   }
-  if (!out.length) out.push("no hazards");
+  if (!out.length) out.push(t("chip.noHazards"));
   out.push(`${def.map[0].length}×${def.map.length}`);
-  out.push(`${Math.round(60000 / ((def.beat || 4) * TICK_MS))} bpm`);
+  out.push(t("chip.bpm", { n: Math.round(60000 / ((def.beat || 4) * TICK_MS)) }));
   return out;
 }
 
@@ -305,27 +302,28 @@ function selectLevel(def: LevelDef){
   const lvls = levelsFor(def.mode), i = lvls.indexOf(def), isOpenNow = open(def), cleared = done(def);
   const next = lvls.find(d => !done(d) && open(d));
   document.querySelectorAll<HTMLElement>(".lvl").forEach(b => b.classList.toggle("sel", b.dataset.id === def.id));
-  $("liTag").textContent = `${coop ? "Room" : "Level"} ${i + 1}` + (cleared ? " · cleared" : !isOpenNow ? " · locked" : def === next ? " · up next" : "");
-  $("liName").textContent = def.name;
+  const state = cleared ? t("lv.isCleared") : !isOpenNow ? t("lv.isLocked") : def === next ? t("lv.upNext") : "";
+  $("liTag").textContent = t(coop ? "lv.room" : "lv.level", { n: i + 1 }) + (state ? ` · ${state}` : "");
+  $("liName").textContent = levelName(def);
   $("liGoal").textContent = goalText(def);
   $("liChips").innerHTML = levelChips(def).map(c => `<span>${c}</span>`).join("");
   const btn = $<HTMLButtonElement>("bLevelPlay");
   if (coop) {
     // a room's stats are the team's: its shared lives, its best clear, its size
     const best = roomBest(def);
-    $("liPresses").textContent = String(roomFacts(def).lives); $("liPressesL").textContent = "team lives";
+    $("liPresses").textContent = String(roomFacts(def).lives); $("liPressesL").textContent = t("lv.teamLives");
     $("liTime").textContent = best === undefined ? "–" : def.mode === "survival" ? "✓" : fmtTime(best);
-    $("liTimeL").textContent = def.mode === "survival" ? "survived" : "team best";
-    $("liAttempts").textContent = String(teamSize()); $("liAttemptsL").textContent = "players";
+    $("liTimeL").textContent = def.mode === "survival" ? t("lv.survived") : t("lv.teamBest");
+    $("liAttempts").textContent = String(teamSize()); $("liAttemptsL").textContent = t("players");
     btn.disabled = false;
-    btn.textContent = `Play · ${teamSize()} players`;
+    btn.textContent = t("lv.playTeam", { n: teamSize() });
   } else {
     const best = save.done?.[def.id];
-    $("liPresses").textContent = best?.presses != null ? String(best.presses) : "–"; $("liPressesL").textContent = "presses";
-    $("liTime").textContent = best ? fmtTime(best.ticks) : "–"; $("liTimeL").textContent = "best time";
-    $("liAttempts").textContent = String(save.attempts?.[def.id] || 0); $("liAttemptsL").textContent = "attempts";
+    $("liPresses").textContent = best?.presses != null ? String(best.presses) : "–"; $("liPressesL").textContent = t("presses");
+    $("liTime").textContent = best ? fmtTime(best.ticks) : "–"; $("liTimeL").textContent = t("bestTime");
+    $("liAttempts").textContent = String(save.attempts?.[def.id] || 0); $("liAttemptsL").textContent = t("attempts");
     btn.disabled = !isOpenNow;
-    btn.textContent = !isOpenNow ? `Clear level ${i} first` : best ? "Play again" : "Play";
+    btn.textContent = !isOpenNow ? t("lv.clearFirst", { n: i }) : best ? t("playAgain") : t("play");
   }
   btn.onclick = () => { sfx("click"); if (isOpenNow) playAny(def); };
 }
@@ -339,7 +337,8 @@ export function unpause(){
   resume(); if (S.screen === "play") show(null);
 }
 export function showPause(){
-  $("pauseName").textContent = (M.active ? M.def?.name : S.def?.name) || "";
+  const d = M.active ? M.def : S.def;
+  $("pauseName").textContent = d ? levelName(d) : "";
   show("sPause");
 }
 /** pause whichever game is running: the solo level or the co-op room */
@@ -352,12 +351,12 @@ export function play(def: LevelDef){
   startLevel(def);
   setAccent(ACCENT[def.mode]);
   $("hMode").textContent = MODES.find(m => m.id === def.mode)!.name;
-  $("hName").textContent = def.name;
-  $("hGoalLabel").textContent = def.mode === "survival" ? "survive" : def.mode === "destination" ? "time" : "lights";
+  $("hName").textContent = levelName(def);
+  $("hGoalLabel").textContent = t(def.mode === "survival" ? "hud.goal.survive" : def.mode === "destination" ? "hud.goal.time" : "hud.goal.lights");
   $("hTeam").classList.remove("on");
   show(null);
   const first = (save.attempts?.[def.id] || 0) === 0;
-  toast(first && def.hint ? def.hint : "");
+  toast(first ? levelHint(def) : "");
 }
 
 let toastTimer = 0;
@@ -371,7 +370,7 @@ export function toast(text: string){
 function onWin(){
   const r = S.run!, def = S.def!;
   $("winMode").textContent = MODES.find(m => m.id === def.mode)!.name;
-  $("winName").textContent = def.name;
+  $("winName").textContent = levelName(def);
   $("winSwings").textContent = String(r.moves);
   $("winTime").textContent = fmtTime(r.tick);
   $("winAttempts").textContent = String(S.attempt);
@@ -386,10 +385,10 @@ export function syncHud(){
   const r = S.run; if (!r) return;
   const [a, b] = progress(r);
   const v = r.lv.def.mode === "survival"
-    ? Math.max(0, (b - a) * r.lv.beat * TICK_MS / 1000).toFixed(0) + "s"
+    ? t("secs", { n: Math.max(0, (b - a) * r.lv.beat * TICK_MS / 1000).toFixed(0) })
     : r.lv.def.mode === "destination" ? fmtTime(r.tick) : `${a}/${b}`;
   const el = $("hGoalVal"); if (el.textContent !== v) el.textContent = v;
-  const at = $("attempt"), label = `Attempt ${S.attempt}`;
+  const at = $("attempt"), label = t("hud.attempt", { n: S.attempt });
   if (at.textContent !== label) at.textContent = label;
   at.classList.toggle("on", S.screen === "play" && r.tick < 12 && S.attempt > 1);
 }
@@ -412,6 +411,8 @@ export function initMenus(){
   S.onWin = onWin;
   initRoom();
   initBoots();
+  // a new language: the whole main menu again, still on Settings
+  onLanguage(() => goMenu("settings"));
   on("bCoop", goLobby);
   on("tPlay", () => goMenu("play"));
   on("tBoots", () => goMenu("boots"));

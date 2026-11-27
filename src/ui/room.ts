@@ -9,6 +9,7 @@ import { forPlayers, ROOMS } from "../levels/rooms";
 import { drawLobbyFloor } from "../render/draw";
 import { ACCENT } from "../render/theme";
 import { save, writeSave } from "../storage/save";
+import { levelHint, levelName, listOf, t, tn } from "../i18n";
 import { $, goLevels, goModes, screenOn, setAccent, show, toast } from "./menus";
 
 // ---------------------------------------------------------------------------
@@ -20,8 +21,9 @@ import { $, goLevels, goModes, screenOn, setAccent, show, toast } from "./menus"
 
 /** what tapping an open / bot slot cycles through */
 const CYCLE: ("open" | SkillId)[] = ["open", "easy", "normal", "hard"];
-/** bots are teammates, so their skill reads as experience rather than difficulty */
-const SKILL_NAME: Record<SkillId, string> = { easy: "Rookie", normal: "Regular", hard: "Pro" };
+/** bots are teammates, so their skill reads as experience rather than difficulty: Rookie,
+ *  Regular, Pro (i18n: skill.<id>) */
+const skillName = (k: SkillId) => t(`skill.${k}`);
 
 /** the three slots after yours: "open" or a bot's skill. One Regular bot to begin with */
 let others: ("open" | SkillId)[] = loadSlots();
@@ -40,14 +42,14 @@ function colorOf(slotIndex: number): string {
   const filled = slots().slice(0, slotIndex + 1).filter(s => s.kind !== "open").length;
   return PLAYER_COLORS[Math.max(0, filled - 1)];
 }
-const fmt = (ticks: number) => (ticks * TICK_MS / 1000).toFixed(1) + "s";
+const fmt = (ticks: number) => t("secs", { n: (ticks * TICK_MS / 1000).toFixed(1) });
 const secs = (beats: number, d: LevelDef) => Math.round(beats * (d.beat || 4) * TICK_MS / 1000);
 
 // ---- what the shared modes / levels screens need to know about the team ----------------------
 /** the team's colours as dots, with its size, for the screen headers */
 export function teamChip(): string {
   const n = teamSize();
-  return PLAYER_COLORS.slice(0, n).map(c => `<i style="--c:${c}"></i>`).join("") + `<span>${n} players</span>`;
+  return PLAYER_COLORS.slice(0, n).map(c => `<i style="--c:${c}"></i>`).join("") + `<span>${t("coop.nPlayers", { n })}</span>`;
 }
 /** the team's best clear of a room at its current size, in ticks */
 export const roomBest = (def: LevelDef): number | undefined => save.roomBest?.[bestKey(def.id, teamSize())];
@@ -60,8 +62,8 @@ export function roomFacts(def: LevelDef): { lights: number; lives: number } {
 export function roomGoal(def: LevelDef): string {
   const { lights } = roomFacts(def);
   switch (def.mode) {
-    case "collect": return `Pick up all ${lights} lights together, within ${secs(def.limit || 0, def)} seconds.`;
-    case "survival": return `Keep the team alive for ${secs(def.survive || 0, def)} seconds.`;
+    case "collect": return t("goal.coopCollect", { n: lights, s: secs(def.limit || 0, def) });
+    case "survival": return t("goal.coopSurvival", { s: secs(def.survive || 0, def) });
     default: return "";
   }
 }
@@ -80,9 +82,9 @@ function renderSlots(){
     const b = document.createElement("button");
     b.className = "slot " + s.kind;
     b.style.setProperty("--c", s.kind === "open" ? "#3e504d" : colorOf(i));
-    b.innerHTML = s.kind === "you" ? `<i></i><b>You</b><small>this phone</small>`
-      : s.kind === "bot" ? `<i></i><b>Bot</b><small>${SKILL_NAME[s.skill]}</small>`
-      : `<i></i><b>Open</b><small>+ add a bot</small>`;
+    b.innerHTML = s.kind === "you" ? `<i></i><b>${t("coop.you")}</b><small>${t("coop.thisPhone")}</small>`
+      : s.kind === "bot" ? `<i></i><b>${t("coop.bot")}</b><small>${skillName(s.skill)}</small>`
+      : `<i></i><b>${t("coop.open")}</b><small>${t("coop.addBot")}</small>`;
     if (i > 0) b.onclick = () => {
       sfx("click");
       others[i - 1] = CYCLE[(CYCLE.indexOf(others[i - 1]) + 1) % CYCLE.length];
@@ -97,26 +99,18 @@ function renderSlots(){
 /** the right side of the lobby: who's in, what that means, and the way to the games */
 function renderTeam(){
   const n = teamSize(), bots = others.filter(o => o !== "open") as SkillId[];
-  $("lbTitle").textContent = n < 2 ? "Just you" : `${n} players`;
+  $("lbTitle").textContent = n < 2 ? t("coop.justYou") : t("coop.nPlayers", { n });
   const skills = [...new Set(bots)];
-  const who = !bots.length ? "Add at least one bot to play a room."
-    : `You and ${bots.length === 1 ? "a bot" : `${bots.length} bots`}: ${listOf(bots.map(b => `${article(SKILL_NAME[b])} ${SKILL_NAME[b]}`))}.`;
-  const what = skills.map(b => SKILL_ABOUT[b]).join(" ");
-  $("lbAbout").textContent = `${who} ${what} Lights and lives grow with the team.`.trim();
+  const who = !bots.length ? t("coop.needBot") : tn("coop.withBots", bots.length, { list: listOf(bots.map(skillName)) });
+  const what = skills.map(b => t(`skill.${b}.about`)).join(" ");
+  $("lbAbout").textContent = `${who} ${what} ${bots.length ? t("coop.grows") : ""}`.replace(/\s+/g, " ").trim();
   $("lbLives").textContent = String(Math.ceil(5 * Math.max(2, n) / 2));
   $("lbCleared").textContent = `${ROOMS.filter(r => save.roomBest?.[bestKey(r.id, n)] !== undefined).length}/${ROOMS.length}`;
   $("lbBots").textContent = String(bots.length);
   const next = $<HTMLButtonElement>("bRoomNext");
   next.disabled = n < 2;
-  next.textContent = n < 2 ? "Add a bot to play" : "Choose a game";
+  next.textContent = n < 2 ? t("coop.addBotToPlay") : t("coop.chooseGame");
 }
-const SKILL_ABOUT: Record<SkillId, string> = {
-  easy: "Rookies are slow and slip now and then.",
-  normal: "Regulars keep a relaxed pace.",
-  hard: "Pros keep up with a quick player.",
-};
-const article = (w: string) => (/^[aeiou]/i.test(w) ? "an" : "a");
-const listOf = (xs: string[]) => xs.length < 2 ? xs.join("") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1];
 
 /** every frame: the lobby's floor, with the team standing on it */
 export function drawLobby(){
@@ -143,13 +137,13 @@ export function startRoom(def: LevelDef){
 export function enterRoom(){
   const d = M.def!;
   setAccent(ACCENT[d.mode]);
-  $("hMode").textContent = `Co-op · ${M.slots.length} players`;
-  $("hName").textContent = d.name;
-  $("hGoalLabel").textContent = d.mode === "survival" ? "survive" : "lights";
+  $("hMode").textContent = t("coop.hudMode", { n: M.slots.length });
+  $("hName").textContent = levelName(d);
+  $("hGoalLabel").textContent = t(d.mode === "survival" ? "hud.goal.survive" : "hud.goal.lights");
   $("hDots").innerHTML = M.slots.map((_, i) => `<i style="--c:${PLAYER_COLORS[i]}"></i>`).join("");
   $("hTeam").classList.add("on");
   show(null);
-  toast(d.hint || "");
+  toast(levelHint(d));
 }
 
 const clockText = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
@@ -175,19 +169,19 @@ export function syncRoomHud(){
 function onOver(){
   const r = M.room!, d = M.def!, won = r.status === "won", survival = d.mode === "survival";
   $("hTeam").classList.remove("on");
-  $("roTag").textContent = `Co-op · ${d.name} · ${M.slots.length} players`;
-  $("roTitle").textContent = won ? (survival ? "Survived" : "Cleared") : r.why === "time" ? "Time's up" : "Out of lives";
-  const lives = `${r.lives} ${r.lives === 1 ? "life" : "lives"} left`;
+  $("roTag").textContent = t("coop.overTag", { name: levelName(d), n: M.slots.length });
+  $("roTitle").textContent = t(won ? (survival ? "coop.survived" : "coop.cleared") : r.why === "time" ? "coop.timesUp" : "coop.outOfLives");
+  const lives = tn("coop.livesLeft", r.lives);
   const best = save.roomBest?.[bestKey(d.id, M.slots.length)];
   $("roSub").textContent = !won
-    ? (survival ? `held on for ${fmt(r.tick)} of ${secs(d.survive || 0, d)}s` : `${r.got} of ${r.lv.items.length} lights`)
+    ? (survival ? t("coop.heldOn", { t: fmt(r.tick), s: t("secs", { n: secs(d.survive || 0, d) }) }) : t("coop.gotLights", { a: r.got, b: r.lv.items.length }))
     : survival ? lives
-    : `${fmt(r.tick)} · ${lives}` + (best === r.tick ? " · team best" : best ? ` · best ${fmt(best)}` : "");
+    : `${fmt(r.tick)} · ${lives}` + (best === r.tick ? ` · ${t("coop.teamBest")}` : best ? ` · ${t("coop.best", { t: fmt(best) })}` : "");
   $("roPlayers").innerHTML = M.slots.map((s, i) => {
     const p = r.pairs[i];
-    const name = s.kind === "you" ? "You" : `Bot · ${SKILL_NAME[s.skill]}`;
-    const falls = `${p.deaths} ${p.deaths === 1 ? "fall" : "falls"}`;
-    const line = survival ? falls : `${p.got} ${p.got === 1 ? "light" : "lights"} · ${falls}`;
+    const name = s.kind === "you" ? t("coop.you") : t("coop.botSkill", { skill: skillName(s.skill) });
+    const falls = tn("coop.falls", p.deaths);
+    const line = survival ? falls : `${tn("coop.lights", p.got)} · ${falls}`;
     return `<div style="--c:${PLAYER_COLORS[i]}"><b>${name}</b><span>${line}</span></div>`;
   }).join("");
   show("sRoomOver");

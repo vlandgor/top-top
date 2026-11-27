@@ -4,6 +4,7 @@ import { drawLobbyFloor, drawSkinStage, drawSkinThumb } from "../render/draw";
 import { mySkin, SKINS, type Skin } from "../render/skins";
 import { save, writeSave } from "../storage/save";
 import { $ } from "./menus";
+import { t } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // BOOTS — the main menu's Boots tab: what you wear. The kinds of item across the top (only
@@ -23,7 +24,7 @@ let t0 = 0;
 export function enterBoots(){
   picked = mySkin();
   t0 = performance.now() / 1000;
-  $("skCount").textContent = `${SKINS.length} / ${SKINS.length} unlocked`;
+  $("skCount").textContent = t("boots.unlocked", { a: SKINS.length, b: SKINS.length });
   buildGrid();
   select(picked);
   setPreview(inTeam);
@@ -49,13 +50,13 @@ function select(s: Skin){
     b.classList.toggle("sel", b.dataset.id === s.id);
     b.classList.toggle("worn", b.dataset.id === worn.id);
   });
-  $("skTag").textContent = `Pattern · ${wearing ? "wearing" : `${SKINS.indexOf(s) + 1} of ${SKINS.length}`}`;
+  $("skTag").textContent = `${t("boots.pattern")} · ${wearing ? t("boots.wearingTag") : t("boots.nOfM", { a: SKINS.indexOf(s) + 1, b: SKINS.length })}`;
   $("skName").textContent = s.name;
   $("skAbout").textContent = s.about;
-  $("skWearing").innerHTML = wearing ? "" : `Wearing <b>${worn.name}</b>`;
+  $("skWearing").innerHTML = wearing ? "" : t("boots.wearing", { name: `<b>${worn.name}</b>` });
   const btn = $<HTMLButtonElement>("bSkinEquip");
   btn.disabled = wearing;
-  btn.textContent = wearing ? "Equipped ✓" : "Equip";
+  btn.textContent = wearing ? t("boots.equipped") : t("boots.equip");
 }
 
 function setPreview(team: boolean){

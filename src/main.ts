@@ -1,5 +1,6 @@
 import "./ui/styles/global.css";
 import { initAudio } from "./audio/audio";
+import { initI18n } from "./i18n";
 import { update } from "./game/session";
 import { updateMatch } from "./game/match";
 import { initControls } from "./input/controls";
@@ -31,6 +32,6 @@ function lockLandscape(){
 lockLandscape();
 window.addEventListener("pointerdown", lockLandscape, { once: true });
 
-initAudio(); initCanvas(); initControls(); initMenus(); initNative(); initDev();
+initI18n(); initAudio(); initCanvas(); initControls(); initMenus(); initNative(); initDev();
 resize(); goMenu();
 requestAnimationFrame(loop);

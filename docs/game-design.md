@@ -185,6 +185,19 @@ A lesson ticks off when it is done; **Next** moves on, **Skip** jumps ahead, and
 be opened from the list. Nothing is saved: opening How to play again starts at the first
 lesson not done since the app started (`src/ui/howto.ts`).
 
+## Languages
+
+English, Українська, Français, Español and Deutsch. **Settings → Language** lists
+**Automatic** (follows the phone's language, English if it isn't one of these) and each language
+in its own name; a choice applies at once and is kept in the save (Reset progress keeps it).
+Everything is translated: menus, modes, level and room names, tips, How to play, the skins
+and the words drawn on the board.
+
+`src/i18n/`: one file per language, English (`en.ts`) the source. The type check fails if a
+language misses a key, and the tests check each language has a name for every level and room,
+every tip, the same `{placeholders}` as English, and the plural forms it needs (Ukrainian has
+four). To add a language: copy `uk.ts`, translate it, list it in `LANGS`.
+
 ## Still open
 
 - Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only

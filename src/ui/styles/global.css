@@ -421,3 +421,18 @@ em.new{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:upper
 .hwpad.l::before{left:2px}
 .hwpad.r::before{right:2px}
 
+
+/* settings: a note over a list, and a list to pick one from (Language) */
+.snote{margin:0 0 4px;color:var(--dim);font-size:12.5px}
+.srow.pick .send{color:var(--accent);min-width:16px}
+.srow.pick.sel b{color:var(--accent)}
+/* a list that can outgrow a short screen scrolls inside the section */
+.slist{display:flex;flex-direction:column;overflow-y:auto;min-height:0}
+.slist>.srow:first-child{border-top:0}
+.slist>.srow{min-height:clamp(34px,10.5vh,46px)}
+
+/* longer languages: the lobby's team text scrolls rather than being cut off, and the small
+   stat labels keep to their box */
+#lobbyInfo p{overflow-y:auto;flex:0 1 auto;min-height:0}
+.mstats div{padding-left:7px;padding-right:6px}
+.mstats span{letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis}

@@ -1,5 +1,12 @@
 import { save } from "../storage/save";
 import type { BootStyle } from "./boot";
+import { t, type Key } from "../i18n";
+
+/** a skin's name and blurb, looked up in the current language */
+const text = (id: string) => ({
+  get name(){ return t(`skin.${id}` as Key); },
+  get about(){ return t(`skin.${id}.about` as Key); },
+});
 
 // ---------------------------------------------------------------------------
 // SKINS — the pattern on a pair of boots. Colour says who a pair belongs to (teal is you, each
@@ -11,7 +18,8 @@ import type { BootStyle } from "./boot";
 // ---------------------------------------------------------------------------
 type Paint = (c: CanvasRenderingContext2D, L: number, W: number, st: BootStyle) => void;
 export interface Skin {
-  id: string; name: string; about: string;
+  /** name and about are in the current language (i18n: skin.<id>) */
+  id: string; readonly name: string; readonly about: string;
   paint?: Paint;
   /** a dark print: the toe cap, laces and opening are drawn light so they still show */
   dark?: boolean;
@@ -51,9 +59,9 @@ function flames(c: CanvasRenderingContext2D, L: number, W: number, reach: number
 }
 
 export const SKINS: Skin[] = [
-  { id: "classic", name: "Classic", about: "Clean and bright. The original pair." },
+  { id: "classic", ...text("classic") },
   {
-    id: "racer", name: "Racer", about: "Two stripes from toe to heel.",
+    id: "racer", ...text("racer"),
     paint(c, L, W, st){
       c.fillStyle = st.detail; c.globalAlpha = 0.85;
       c.fillRect(-W * 0.27, -L, W * 0.16, L * 2);
@@ -61,7 +69,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "tiger", name: "Tiger", about: "Bold stripes clawing in from the sides.",
+    id: "tiger", ...text("tiger"),
     paint(c, L, W, st){
       c.fillStyle = st.detail; c.globalAlpha = 0.9;
       for (let k = 0; k < 7; k++) {
@@ -77,7 +85,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "dots", name: "Polka", about: "Dots, all over.",
+    id: "dots", ...text("dots"),
     paint(c, L, W, st){
       c.fillStyle = st.detail; c.globalAlpha = 0.85;
       for (let gy = -4; gy <= 4; gy++) for (let gx = -2; gx <= 2; gx++) {
@@ -88,7 +96,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "checker", name: "Checker", about: "The dance floor, on your feet.",
+    id: "checker", ...text("checker"),
     paint(c, L, W, st){
       const q = W * 0.2, qy = L * 0.125;
       c.fillStyle = st.detail; c.globalAlpha = 0.7;
@@ -96,7 +104,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "zigzag", name: "Zigzag", about: "Sharp lines that never sit still.",
+    id: "zigzag", ...text("zigzag"),
     paint(c, L, W, st){
       c.strokeStyle = st.detail; c.globalAlpha = 0.85; c.lineWidth = L * 0.05; c.lineJoin = "miter";
       for (let y = -L * 0.5; y <= L * 0.55; y += L * 0.17) {
@@ -110,7 +118,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "camo", name: "Camo", about: "Hard to spot. Not on a neon floor, though.",
+    id: "camo", ...text("camo"),
     paint(c, L, W, st){
       CAMO.forEach(([x, y, r], i) => {
         c.fillStyle = i % 2 ? st.detail : st.edge; c.globalAlpha = i % 2 ? 0.75 : 0.7;
@@ -122,7 +130,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "stars", name: "Stars", about: "A few stars for the main act.",
+    id: "stars", ...text("stars"),
     paint(c, L, W, st){
       c.fillStyle = st.detail; c.globalAlpha = 0.9;
       const at: [number, number, number][] = [[-0.16, -0.34, 1], [0.22, -0.12, 0.85], [-0.2, 0.08, 0.8], [0.16, 0.3, 1]];
@@ -130,14 +138,14 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "flames", name: "Flames", about: "Hot-rod flames from the toe back.",
+    id: "flames", ...text("flames"),
     paint(c, L, W, st){
       c.fillStyle = st.detail; c.globalAlpha = 0.9; flames(c, L, W, 0.7);
       c.fillStyle = st.edge; c.globalAlpha = 1; flames(c, L * 0.92, W * 0.75, 0.42);
     },
   },
   {
-    id: "circuit", name: "Circuit", about: "Traces and pads, wired for the beat.",
+    id: "circuit", ...text("circuit"),
     paint(c, L, W, st){
       const lines: [number, number][][] = [
         [[-0.3, -0.5], [-0.3, -0.2], [-0.1, -0.05], [-0.1, 0.5]],
@@ -159,7 +167,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "twotone", name: "Two-Tone", about: "A coloured toe, a light heel.",
+    id: "twotone", ...text("twotone"),
     paint(c, L, W, st){
       c.fillStyle = st.edge; c.globalAlpha = 1;
       c.beginPath(); c.moveTo(-W, -L); c.lineTo(W, -L); c.lineTo(W, -L * 0.12); c.lineTo(-W, L * 0.02); c.closePath(); c.fill();
@@ -170,7 +178,7 @@ export const SKINS: Skin[] = [
     },
   },
   {
-    id: "galaxy", name: "Galaxy", about: "Deep space with a glint of stars.", dark: true,
+    id: "galaxy", ...text("galaxy"), dark: true,
     paint(c, L, W, st){
       c.fillStyle = st.detail; c.fillRect(-W, -L, W * 2, L * 2);
       c.fillStyle = st.edge; c.globalAlpha = 0.35;

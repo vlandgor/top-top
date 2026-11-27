@@ -9,7 +9,7 @@
 </head>
 <body>
 <div id="wrap">
-  <button class="pad" id="bLeft" aria-label="Left boot"><b>L</b><span>↻</span></button>
+  <button class="pad" id="bLeft" data-i18n-aria="hud.leftBoot" aria-label="Left boot"><b>L</b><span>↻</span></button>
   <div id="stage">
     <canvas id="cv"></canvas>
     <!-- one slim line: mode dot and level on the left, the objective and pause on the right -->
@@ -18,18 +18,18 @@
       <!-- co-op only: a dot per player (dim while out), the team's lives and the clock -->
       <div id="hTeam"><span id="hDots"></span><span id="hLives"></span><span id="hClock"></span></div>
       <div id="hGoal"><span id="hGoalLabel">goal</span><b id="hGoalVal">0/1</b></div>
-      <button class="hbtn" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/></svg></button>
+      <button class="hbtn" id="pauseBtn" data-i18n-aria="hud.pause" aria-label="Pause"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/></svg></button>
     </div>
     <div id="attempt"></div>
     <div id="toast"></div>
   </div>
-  <button class="pad" id="bRight" aria-label="Right boot"><b>R</b><span>↺</span></button>
+  <button class="pad" id="bRight" data-i18n-aria="hud.rightBoot" aria-label="Right boot"><b>R</b><span>↺</span></button>
 
   <!-- shown only when the screen is portrait: the game is landscape only -->
   <div id="rotate">
     <div class="phone"></div>
-    <b>Turn your phone sideways</b>
-    <span>Top Top plays in landscape only</span>
+    <b data-i18n="rotate.title">Turn your phone sideways</b>
+    <span data-i18n="rotate.sub">Top Top plays in landscape only</span>
   </div>
 
   <div id="ui">
@@ -40,31 +40,31 @@
     <section class="screen" id="sMenu">
       <nav class="rail">
         <div class="rlogo">TOP<br>TOP</div>
-        <button class="tab sel" id="tPlay" data-tab="play"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg>Play</button>
-        <button class="tab" id="tBoots" data-tab="boots"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 0 15c1.2 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2h1.8a3.2 3.2 0 0 0 3.2-3.2C17.5 6 14.2 2.5 10 2.5z"/><circle cx="6.5" cy="9" r=".8" fill="currentColor"/><circle cx="9" cy="6" r=".8" fill="currentColor"/><circle cx="12.8" cy="6.6" r=".8" fill="currentColor"/></svg>Boots</button>
-        <button class="tab" id="tFriends" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7" r="3"/><path d="M2 16.5c.6-3 2.8-4.6 5.5-4.6S12.4 13.5 13 16.5"/><path d="M13 4.2a3 3 0 0 1 0 5.6M15 11.8c1.6.6 2.6 2 3 4.4"/></svg>Friends<em>soon</em></button>
-        <button class="tab" id="tAwards" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8v5a4 4 0 0 1-8 0z"/><path d="M6 5H3.5a2.5 2.5 0 0 0 3 3.2M14 5h2.5a2.5 2.5 0 0 1-3 3.2M10 12v3M7 17h6"/></svg>Awards<em>soon</em></button>
+        <button class="tab sel" id="tPlay" data-tab="play"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg><span data-i18n="tab.play">Play</span></button>
+        <button class="tab" id="tBoots" data-tab="boots"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 0 15c1.2 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2h1.8a3.2 3.2 0 0 0 3.2-3.2C17.5 6 14.2 2.5 10 2.5z"/><circle cx="6.5" cy="9" r=".8" fill="currentColor"/><circle cx="9" cy="6" r=".8" fill="currentColor"/><circle cx="12.8" cy="6.6" r=".8" fill="currentColor"/></svg><span data-i18n="tab.boots">Boots</span></button>
+        <button class="tab" id="tFriends" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="7" r="3"/><path d="M2 16.5c.6-3 2.8-4.6 5.5-4.6S12.4 13.5 13 16.5"/><path d="M13 4.2a3 3 0 0 1 0 5.6M15 11.8c1.6.6 2.6 2 3 4.4"/></svg><span data-i18n="tab.friends">Friends</span><em data-i18n="soon">soon</em></button>
+        <button class="tab" id="tAwards" disabled><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8v5a4 4 0 0 1-8 0z"/><path d="M6 5H3.5a2.5 2.5 0 0 0 3 3.2M14 5h2.5a2.5 2.5 0 0 1-3 3.2M10 12v3M7 17h6"/></svg><span data-i18n="tab.awards">Awards</span><em data-i18n="soon">soon</em></button>
         <span class="grow"></span>
-        <button class="tab" id="tSet" data-tab="settings"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.8"/><path d="M10 2.5v2.2M10 15.3v2.2M2.5 10h2.2M15.3 10h2.2M4.7 4.7l1.6 1.6M13.7 13.7l1.6 1.6M4.7 15.3l1.6-1.6M13.7 6.3l1.6-1.6"/></svg>Settings</button>
+        <button class="tab" id="tSet" data-tab="settings"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2.8"/><path d="M10 2.5v2.2M10 15.3v2.2M2.5 10h2.2M15.3 10h2.2M4.7 4.7l1.6 1.6M13.7 13.7l1.6 1.6M4.7 15.3l1.6-1.6M13.7 6.3l1.6-1.6"/></svg><span data-i18n="tab.settings">Settings</span></button>
       </nav>
       <div class="mmain">
         <div class="mtop">
           <i class="mdot"></i><h2 id="mTitle">Play</h2><span class="msub" id="mSub">Together or solo</span>
           <span class="grow"></span>
-          <button class="me" id="bMe" aria-label="Your boots"><canvas id="meCv"></canvas><span id="meCleared"></span></button>
-          <button class="mhelp" id="bHow" aria-label="How to play"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3.2 2.1c-.7.3-1 .8-1 1.5v.4"/><circle cx="10" cy="14.3" r=".5" fill="currentColor"/></svg></button>
+          <button class="me" id="bMe" data-i18n-aria="menu.yourBoots" aria-label="Your boots"><canvas id="meCv"></canvas><span id="meCleared"></span></button>
+          <button class="mhelp" id="bHow" data-i18n-aria="menu.howTo" aria-label="How to play"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M7.8 7.8a2.3 2.3 0 1 1 3.2 2.1c-.7.3-1 .8-1 1.5v.4"/><circle cx="10" cy="14.3" r=".5" fill="currentColor"/></svg></button>
         </div>
         <div class="pane on" id="pPlay">
           <button class="mplay" id="bCoop">
             <canvas id="menuFloor"></canvas>
             <span class="mtext">
-              <span class="eyebrow">Multiplayer · co-op</span>
-              <b>Play together</b>
+              <span class="eyebrow" data-i18n="menu.multi">Multiplayer · co-op</span>
+              <b data-i18n="menu.together">Play together</b>
               <span class="mteam" id="menuTeam"></span>
             </span>
-            <span class="btn"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg>Play</span>
+            <span class="btn"><svg viewBox="0 0 20 20"><path d="M6 4.2v11.6c0 .7.8 1.1 1.4.7l8.6-5.8c.5-.4.5-1.1 0-1.4L7.4 3.5c-.6-.4-1.4 0-1.4.7z" fill="currentColor"/></svg><span data-i18n="play">Play</span></span>
           </button>
-          <div class="msolo"><span class="mlabel">Solo</span><span id="soloCleared"></span></div>
+          <div class="msolo"><span class="mlabel" data-i18n="menu.solo">Solo</span><span id="soloCleared"></span></div>
           <div id="soloModes"></div>
         </div>
         <!-- Boots: the kinds of item and the skins on the left; the chosen pair on the right, alone
@@ -72,15 +72,15 @@
         <div class="pane" id="pBoots">
           <div class="bleft">
             <div class="kinds">
-              <button class="kind sel">Patterns</button>
-              <button class="kind" disabled>Colours<em>soon</em></button>
-              <button class="kind" disabled>Trails<em>soon</em></button>
+              <button class="kind sel" data-i18n="boots.patterns">Patterns</button>
+              <button class="kind" disabled><span data-i18n="boots.colours">Colours</span><em data-i18n="soon">soon</em></button>
+              <button class="kind" disabled><span data-i18n="boots.trails">Trails</span><em data-i18n="soon">soon</em></button>
               <span id="skCount"></span>
             </div>
             <div id="skinGrid"></div>
           </div>
           <div id="skinInfo">
-            <div class="pvseg"><button class="sel" id="pvSolo">Solo</button><button id="pvTeam">In a team</button></div>
+            <div class="pvseg"><button class="sel" id="pvSolo" data-i18n="boots.solo">Solo</button><button id="pvTeam" data-i18n="boots.inTeam">In a team</button></div>
             <canvas id="skinStage"></canvas>
             <span class="eyebrow" id="skTag"></span>
             <b id="skName"></b>
@@ -98,7 +98,7 @@
 
     <!-- choose a game mode: the list on the left, the chosen mode on the right -->
     <section class="screen top" id="sModes">
-      <div class="bar"><button class="back" id="bModesBack" aria-label="Back">‹</button><h2>Game modes</h2><div class="teamchip" id="modesTeam"></div></div>
+      <div class="bar"><button class="back" id="bModesBack" data-i18n-aria="back" aria-label="Back">‹</button><h2 data-i18n="modes.title">Game modes</h2><div class="teamchip" id="modesTeam"></div></div>
       <div class="split">
         <div id="modeList"></div>
         <div id="modeInfo">
@@ -109,9 +109,9 @@
             <p id="miAbout"></p>
             <div class="chips" id="miChips"></div>
             <div class="mstats">
-              <div><b id="miCleared">0/0</b><span>cleared</span></div>
+              <div><b id="miCleared">0/0</b><span data-i18n="cleared">cleared</span></div>
               <div><b id="miAttempts">0</b><span id="miAttemptsL">attempts</span></div>
-              <div><b id="miBest">–</b><span>best time</span></div>
+              <div><b id="miBest">–</b><span data-i18n="bestTime">best time</span></div>
             </div>
             <button class="btn" id="bModeSelect">Select</button>
           </div>
@@ -124,7 +124,7 @@
          the selected level and Play on the right -->
     <section class="screen top" id="sLevels">
       <div class="bar lvbar">
-        <button class="back" id="bLevelsBack" aria-label="Back">‹</button>
+        <button class="back" id="bLevelsBack" data-i18n-aria="back" aria-label="Back">‹</button>
         <h2 id="lvTitle">Levels</h2>
         <div class="teamchip" id="lvTeam"></div>
         <div class="lvblurb" id="lvBlurb"></div>
@@ -150,22 +150,22 @@
     <!-- co-op lobby: the team. You, then three slots for bots (later: friends). Then the same
          game modes and levels screens as solo, in co-op -->
     <section class="screen top" id="sRoom">
-      <div class="bar"><button class="back" id="bRoomBack" aria-label="Back">‹</button><h2>Co-op lobby</h2><div class="sub">2–4 players on one floor, as one team</div></div>
+      <div class="bar"><button class="back" id="bRoomBack" data-i18n-aria="back" aria-label="Back">‹</button><h2 data-i18n="coop.lobby">Co-op lobby</h2><div class="sub" data-i18n="coop.lobbySub">2–4 players on one floor, as one team</div></div>
       <div class="split">
         <div id="slotList">
           <div id="slots"></div>
-          <div class="hint">Tap a seat to add a bot or change its skill.</div>
+          <div class="hint" data-i18n="coop.tapSeat">Tap a seat to add a bot or change its skill.</div>
         </div>
         <div id="lobbyInfo">
           <canvas id="lobbyFloor"></canvas>
           <div class="info">
-            <div class="eyebrow">Your team</div>
+            <div class="eyebrow" data-i18n="coop.yourTeam">Your team</div>
             <h3 id="lbTitle">2 players</h3>
             <p id="lbAbout"></p>
             <div class="mstats">
-              <div><b id="lbLives">5</b><span>lives</span></div>
-              <div><b id="lbCleared">0/0</b><span>cleared</span></div>
-              <div><b id="lbBots">1</b><span>bots</span></div>
+              <div><b id="lbLives">5</b><span data-i18n="lives">lives</span></div>
+              <div><b id="lbCleared">0/0</b><span data-i18n="cleared">cleared</span></div>
+              <div><b id="lbBots">1</b><span data-i18n="bots">bots</span></div>
             </div>
             <button class="btn" id="bRoomNext">Choose a game</button>
           </div>
@@ -174,14 +174,14 @@
     </section>
 
     <section class="screen" id="sRoomOver">
-      <div class="eyebrow" id="roTag">Co-op</div>
+      <div class="eyebrow" id="roTag"></div>
       <h2 class="huge" id="roTitle">Cleared</h2>
       <div class="sub" id="roSub"></div>
       <div id="roPlayers"></div>
       <div class="stack">
-        <button class="btn big" id="bRoomAgain">Play again</button>
-        <button class="ghost" id="bRoomLevels">Levels</button>
-        <button class="ghost" id="bRoomLobby">Lobby</button>
+        <button class="btn big" id="bRoomAgain" data-i18n="playAgain">Play again</button>
+        <button class="ghost" id="bRoomLevels" data-i18n="levels">Levels</button>
+        <button class="ghost" id="bRoomLobby" data-i18n="coop.lobbyBtn">Lobby</button>
       </div>
     </section>
 
@@ -189,9 +189,9 @@
     <!-- How to play: four short lessons, each tried on a small board (howto.ts) -->
     <section class="screen" id="sHow">
       <div class="hwtop">
-        <i class="mdot"></i><h2>How to play</h2><span class="msub" id="hwSub"></span>
+        <i class="mdot"></i><h2 data-i18n="how.title">How to play</h2><span class="msub" id="hwSub"></span>
         <span class="grow"></span>
-        <button class="mhelp" id="bHowOk" aria-label="Close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+        <button class="mhelp" id="bHowOk" data-i18n-aria="close" aria-label="Close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
       </div>
       <div class="hwbody">
         <div class="hwleft">
@@ -210,28 +210,28 @@
     </section>
 
     <section class="screen" id="sPause">
-      <h2>Paused</h2>
+      <h2 data-i18n="pause.title">Paused</h2>
       <div class="sub" id="pauseName"></div>
       <div class="stack">
-        <button class="btn big" id="bResume">Resume</button>
-        <button class="ghost" id="bRestart">Restart</button>
-        <button class="ghost" id="bPauseLevels">Levels</button>
+        <button class="btn big" id="bResume" data-i18n="pause.resume">Resume</button>
+        <button class="ghost" id="bRestart" data-i18n="pause.restart">Restart</button>
+        <button class="ghost" id="bPauseLevels" data-i18n="levels">Levels</button>
       </div>
     </section>
 
     <section class="screen" id="sWin">
       <div class="eyebrow" id="winMode">Destination</div>
-      <h2 class="huge">Cleared</h2>
+      <h2 class="huge" data-i18n="win.title">Cleared</h2>
       <div class="sub" id="winName"></div>
       <div class="stats">
-        <div><b id="winSwings">0</b><span>presses</span></div>
-        <div><b id="winTime">0.0s</b><span>time</span></div>
-        <div><b id="winAttempts">1</b><span>attempts</span></div>
+        <div><b id="winSwings">0</b><span data-i18n="presses">presses</span></div>
+        <div><b id="winTime">0.0s</b><span data-i18n="time">time</span></div>
+        <div><b id="winAttempts">1</b><span data-i18n="attempts">attempts</span></div>
       </div>
       <div class="stack">
-        <button class="btn big" id="bNext">Next level</button>
-        <button class="ghost" id="bRetry">Retry</button>
-        <button class="ghost" id="bWinLevels">Levels</button>
+        <button class="btn big" id="bNext" data-i18n="win.next">Next level</button>
+        <button class="ghost" id="bRetry" data-i18n="win.retry">Retry</button>
+        <button class="ghost" id="bWinLevels" data-i18n="levels">Levels</button>
       </div>
     </section>
   </div>

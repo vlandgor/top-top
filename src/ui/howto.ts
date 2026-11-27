@@ -5,6 +5,7 @@ import { TICK_MS } from "../game/session";
 import { parseLevel } from "../levels/parse";
 import { drawDemo } from "../render/draw";
 import { $, screenOn, show } from "./menus";
+import { t } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // HOW TO PLAY — four short lessons, each tried on a small board with the real rules: the
@@ -22,35 +23,35 @@ interface Lesson {
 /** what the player has done on the board so far */
 interface Track { streak: number; lastBoot: Boot | -1; backs: number }
 
+/** a lesson's text in the current language (i18n: how.<id>...) */
+const words = (id: "walk" | "turn" | "edge" | "danger") => ({
+  get name(){ return t(`how.${id}`); },
+  get title(){ return t(`how.${id}.title`); },
+  get text(){ return t(`how.${id}.text`); },
+  get task(){ return t(`how.${id}.task`); },
+});
+
 const lesson = (id: string, map: string[], extra: Partial<LevelDef> = {}): LevelDef =>
   ({ id: `how-${id}`, name: id, mode: "destination", beat: 6, map, ...extra });
 
 const LESSONS: Lesson[] = [
   {
-    name: "Walk", title: "Left, right, left…",
-    text: "Each button swings its boot one tile around the other. Alternate them and the pair walks; the one you press first sets which way.",
-    task: "Reach the glowing tile",
+    ...words("walk"),
     def: lesson("walk", ["......", ".AB..G", "......"]),
     done: r => r.status === "won",
   },
   {
-    name: "Turn in place", title: "Same button, again and again",
-    text: "Pressing one button again and again keeps that boot circling the other: the pair turns on the spot.",
-    task: "Press the same button 4 times in a row",
+    ...words("turn"),
     def: lesson("turn", [".....", ".AB..", "....."]),
     done: (_r, t) => t.streak >= 4,
   },
   {
-    name: "The edge", title: "No room? Step back",
-    text: "The dashed tiles show where each button sends its boot. At the edge the boot steps back instead (↩), making room for the other one.",
-    task: "Walk to the edge and step back",
+    ...words("edge"),
     def: lesson("edge", ["......", "..AB..", "......"]),
     done: (_r, t) => t.backs > 0,
   },
   {
-    name: "Danger", title: "Red is deadly",
-    text: "Sentries step on the beat; the faint red tile is where they go next. Wait for a gap, then go.",
-    task: "Get past the sentry to the goal",
+    ...words("danger"),
     def: lesson("danger", ["......", "AB...G", "......"], { sentries: [{ path: "3,0 3,2", phase: 0 }] }),
     done: r => r.status === "won",
   },
@@ -92,17 +93,17 @@ function render(){
     b.onclick = () => { sfx("click"); goLesson(i); };
     steps.appendChild(b);
   });
-  $("hwSub").textContent = `Lesson ${at + 1} of ${LESSONS.length}`;
-  $("hwTag").textContent = `Lesson ${at + 1} · ${L.name}`;
+  $("hwSub").textContent = t("how.lessonOf", { a: at + 1, b: LESSONS.length });
+  $("hwTag").textContent = t("how.lessonTag", { n: at + 1, name: L.name });
   $("hwTitle").textContent = L.title;
   $("hwText").textContent = L.text;
-  $("hwTask").textContent = isDone ? "✓ Done" : `Try it: ${L.task.toLowerCase()}`;
+  $("hwTask").textContent = isDone ? t("how.done") : t("how.try", { task: L.task });
   $("hwTask").classList.toggle("ok", isDone);
   const next = $<HTMLButtonElement>("hwNext");
   next.style.display = isDone ? "" : "none";
-  next.textContent = last ? "Done" : "Next";
+  next.textContent = last ? t("how.finish") : t("how.next");
   $("hwSkip").style.display = isDone ? "none" : "";
-  $("hwSkip").textContent = last ? "Close" : "Skip ›";
+  $("hwSkip").textContent = last ? t("close") : t("how.skip");
 }
 
 /** a press of one boot on the lesson board */

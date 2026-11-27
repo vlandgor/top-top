@@ -47,6 +47,7 @@ On a phone: the button on each side of the board, or tap the left / right half o
 | `src/input/` | Buttons, screen halves and keyboard. |
 | `src/audio/` | Synthesised sound effects. |
 | `src/platform/` | Capacitor glue: the Android back button, app pause/resume, the dev channel. |
+| `src/i18n/` | Translations: one file per language, English the source; `t()` and `tn()` (plurals). |
 | `src/storage/` | The save (cleared levels, attempts, settings) in localStorage. |
 | `tools/` | The dev-app shell, the level solver CLI, and the icon art. |
 

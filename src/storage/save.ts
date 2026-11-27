@@ -16,6 +16,8 @@ export interface Save {
   roomSlots?: string[];
   /** the boot skin you wear (render/skins.ts) */
   skin?: string;
+  /** the language picked in Settings; left out, the phone's language (i18n) */
+  lang?: string;
   /** 0 = sound off */
   sfx?: number;
 }
@@ -29,10 +31,11 @@ function loadSave(): Save {
 }
 export function writeSave(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch { /* full or blocked */ } }
 export function resetSave(){
-  // settings and the boots you wear stay; progress goes
-  const { sfx, skin } = save;
+  // settings (sound, language) and the boots you wear stay; progress goes
+  const { sfx, skin, lang } = save;
   for (const k of Object.keys(save) as (keyof Save)[]) delete save[k];
   if (sfx !== undefined) save.sfx = sfx;
   if (skin !== undefined) save.skin = skin;
+  if (lang !== undefined) save.lang = lang;
   writeSave();
 }
