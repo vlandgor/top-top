@@ -370,27 +370,6 @@ export function drawLobbyFloor(c: CanvasRenderingContext2D, w: number, h: number
   ctx = mainCtx;
 }
 
-/** the main-menu logo: the two boots mid-step on three lit tiles */
-export function drawLogo(c: CanvasRenderingContext2D, t: number){
-  const W = c.canvas.width, H = c.canvas.height, s = 58;
-  c.clearRect(0, 0, W, H);
-  const ox = W / 2 - s * 1.5, oy = H / 2 - s * 0.5;
-  const pulse = Math.exp(-((t * 2) % 1) * 5);
-  for (let i = 0; i < 3; i++) {
-    c.beginPath(); c.roundRect(ox + i * s + 2, oy + 2, s - 4, s - 4, 9);
-    c.fillStyle = C.tile; c.fill(); c.strokeStyle = C.tileEdge; c.lineWidth = 1; c.stroke();
-    c.beginPath(); c.roundRect(ox + i * s + 11, oy + 11, s - 22, s - 22, 6);
-    c.fillStyle = rgba(C.teal, i === 1 ? 0.12 + 0.2 * pulse : 0.07 + 0.05 * pulse); c.fill();
-  }
-  // one boot planted on the middle tile, the other swinging around it between its neighbours
-  const px = ox + s * 1.5, py = oy + s * 0.5;
-  const sw = Math.sin(t * 2.4) * Math.PI / 4;
-  const mx = px + Math.cos(sw) * s, my = py + Math.sin(sw) * s;
-  const skin = mySkin();
-  drawBoot(c, px, py, 0, true, 40, { ...YOU_STYLE, glowSize: 8, skin });
-  drawBoot(c, mx, my, sw, false, 40, { ...YOU_STYLE, glowSize: 18, skin });
-}
-
 // ---- the customize screen -----------------------------------------------------------------
 /** your boots, in the game's teal, before a skin is put on */
 const YOU_STYLE: BootStyle = { body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: 0 };

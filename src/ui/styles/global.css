@@ -68,17 +68,72 @@ canvas{display:block}
   text-align:center;overflow:auto}
 .screen.on{display:flex}
 .screen{justify-content:safe center}
-.screen.row{flex-direction:row;gap:48px}
-/* the main menu never scrolls: on short screens (or with a large system font) the logo, title
-   and buttons shrink to fit instead */
-#sMenu{overflow:hidden}
-#sMenu .stack{gap:clamp(6px,2.4vh,10px)}
-#sMenu .btn.big,#sMenu .ghost{padding-top:clamp(8px,3vh,16px);padding-bottom:clamp(8px,3vh,16px)}
-#sMenu .title{font-size:clamp(26px,10vh,40px)}
-#sMenu .title small{margin-top:clamp(6px,2.4vh,12px)}
-#logoCv{height:clamp(70px,36vh,150px);width:auto}
-.brand{display:flex;flex-direction:column;align-items:center;gap:6px}
-.screen.row .stack{width:auto;min-width:260px}
+/* ---- the main menu: a tab rail on the left, the Play tab beside it. No boxes, like the
+   in-game HUD: things sit on the background, colour marks what matters, and the only filled
+   button is Play. It never scrolls: on short screens everything shrinks to fit ---- */
+#sMenu{flex-direction:row;align-items:stretch;justify-content:flex-start;gap:0;overflow:hidden;text-align:left;
+  --dimmer:#5f716e;--hair:#142024}
+#sMenu .grow{flex:1}
+.rail{position:relative;flex:none;width:clamp(58px,9vw,76px);display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.rail::after{content:"";position:absolute;right:0;top:10%;bottom:10%;width:1px;
+  background:linear-gradient(transparent,var(--line) 20%,var(--line) 80%,transparent)}
+.rlogo{font-size:clamp(9px,2.7vh,11px);font-weight:900;letter-spacing:.1em;line-height:1.1;text-align:center;color:#effffc;
+  text-shadow:0 0 10px rgba(25,227,200,.55);padding:clamp(2px,1.4vh,6px) 0 clamp(4px,2.6vh,12px)}
+.tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:clamp(2px,1vh,4px);background:none;border:0;
+  padding:clamp(4px,2vh,9px) 0;color:var(--dimmer);font:inherit;font-size:9.5px;font-weight:650;letter-spacing:.03em;cursor:pointer}
+.tab svg{width:clamp(16px,5vh,19px);height:clamp(16px,5vh,19px)}
+.tab.sel{color:var(--teal);text-shadow:0 0 12px rgba(25,227,200,.5)}
+.tab.sel svg{filter:drop-shadow(0 0 6px rgba(25,227,200,.6))}
+/* the selected tab: a short glowing rail at the edge, like the boot buttons in a level */
+.tab.sel::before{content:"";position:absolute;left:calc(-1 * var(--edge) + 1px);top:6px;bottom:6px;width:2px;border-radius:2px;
+  background:linear-gradient(transparent,var(--teal) 25%,var(--teal) 75%,transparent);box-shadow:0 0 10px var(--teal)}
+.tab:disabled{opacity:.45;cursor:default}
+.tab em{font-style:normal;font-size:7.5px;letter-spacing:.14em;text-transform:uppercase;margin-top:-2px}
+.mmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:clamp(4px,2.4vh,12px);padding-left:clamp(12px,2.6vw,20px)}
+/* the top line, laid out like the in-game HUD */
+.mtop{flex:none;display:flex;align-items:center;gap:10px;height:clamp(28px,9vh,36px)}
+.mdot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);flex:none}
+#sMenu .mtop h2{font-size:16px;font-weight:800}
+.msub{color:var(--dim);font-size:12.5px;margin-top:2px;white-space:nowrap}
+.me{display:flex;align-items:center;gap:8px;background:none;border:0;padding:4px;color:var(--dim);font:inherit;font-size:12.5px;
+  font-variant-numeric:tabular-nums;cursor:pointer}
+#meCv{width:28px;height:24px}
+.mhelp{width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:none;border:0;color:var(--dimmer);cursor:pointer}
+.mhelp svg{width:19px;height:19px}
+/* multiplayer: the lobby's floor with the team on it, fading into the background */
+.mplay{position:relative;flex:1;min-height:0;display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;
+  color:var(--txt);font:inherit;text-align:left;cursor:pointer}
+/* the floor sits between the title and Play, fading out at both sides */
+#menuFloor{position:absolute;top:0;left:33%;width:52%;height:100%;pointer-events:none;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 28%,#000 72%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 28%,#000 72%,transparent)}
+.mtext{position:relative;display:flex;flex-direction:column;margin-right:auto}
+.mtext .eyebrow{font-size:9.5px;color:var(--teal)}
+.mtext b{font-size:clamp(19px,6.4vh,24px);font-weight:850;line-height:1.15;margin-top:3px}
+.mteam{display:flex;align-items:center;gap:6px;margin-top:clamp(4px,2vh,8px);color:var(--dim);font-size:11.5px}
+.mteam i{width:9px;height:9px;border-radius:50%;background:var(--c);box-shadow:0 0 7px var(--c)}
+.mteam i.open{background:none;box-shadow:none;border:1.5px solid #34464a}
+.mteam span{margin-left:4px}
+.mplay .btn{position:relative;display:flex;align-items:center;gap:8px;padding:clamp(9px,3.4vh,13px) 26px;font-size:15px;
+  border-radius:12px;box-shadow:0 0 24px rgba(25,227,200,.3)}
+.mplay .btn svg{width:17px;height:17px}
+.mplay:active .btn{transform:scale(.97)}
+/* solo: the five modes in a row, the one you were playing picked out in its colour */
+.msolo{flex:none;display:flex;align-items:baseline;justify-content:space-between;color:var(--dim);font-size:11px;font-variant-numeric:tabular-nums}
+.mlabel{font-size:9.5px;font-weight:800;letter-spacing:.24em;text-transform:uppercase}
+#soloModes{flex:none;height:clamp(58px,19vh,80px);display:grid;grid-template-columns:repeat(5,1fr)}
+.smode{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:clamp(3px,1.4vh,6px);min-width:0;background:none;border:0;
+  border-left:1px solid var(--hair);padding:2px 12px;color:var(--txt);font:inherit;text-align:left;cursor:pointer}
+.smode:first-child{border-left:0;padding-left:0}
+.smode i{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 7px var(--c)}
+.smode b{font-size:clamp(12px,3.8vh,13.5px);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smode u{display:block;height:2px;border-radius:1px;background:#1b2a2e;overflow:hidden}
+.smode u::after{content:"";display:block;height:100%;width:var(--p);background:var(--c);box-shadow:0 0 6px var(--c)}
+.smode small{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+.smode em{font-style:normal;font-size:8px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-left:6px}
+.smode.next b{color:var(--c);text-shadow:0 0 12px color-mix(in srgb,var(--c) 45%,transparent)}
+.smode.next small{color:var(--c)}
+.smode:active{opacity:.7}
 .screen.top{justify-content:flex-start}
 .screen h2{margin:0;font-size:24px;font-weight:800;letter-spacing:.02em}
 .stack{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;margin-top:8px}
@@ -196,7 +251,6 @@ canvas{display:block}
 @media (orientation:portrait){ #rotate{display:flex} }
 
 /* ---- co-op ---- */
-#bCoop{display:flex;align-items:center;justify-content:center;gap:8px}
 em.new{font-style:normal;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
   border:1px solid var(--line);border-radius:6px;padding:1px 5px}
 #hTeam{display:none;align-items:center;gap:12px;font-variant-numeric:tabular-nums}

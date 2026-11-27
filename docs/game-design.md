@@ -87,7 +87,7 @@ own levels (`src/levels/rooms.ts`).
   two players and grow in proportion (8 for three, 10 for four). A pair that dies loses one,
   sits out 1 s, then comes back at its start once nothing will hit it there for 1.5 s. The
   run is lost when the lives run out (or, in Collect, the **clock**: `limit`, in beats).
-- **Flow:** **Co-op** on the main menu opens the lobby (the team: you plus three seats for
+- **Flow:** **Play together** on the main menu opens the lobby (the team: you plus three seats for
   bots), then the same **Game modes** and **Levels** screens as solo, showing the rooms, each
   mode's co-op rule and the team in the header (modes without a room yet say "soon"). Then a
   3-2-1 countdown → play → results (team time, lives left, each player's lights and falls),
@@ -132,15 +132,30 @@ positions. The lobby's open slots are where friends will join.
 
 ## Customize
 
-**Customize** on the main menu opens the boot skins: a grid of 12 on the left, the chosen pair
+**Boots** in the main menu's tab rail (or your boots in its top line) opens the boot skins: a grid of 12 on the left, the chosen pair
 walking on the right, with **Equip** (tapping the previewed skin again equips it too). A skin is
 the pattern printed on the boots; colour stays who you are (teal solo, your seat's colour in
 co-op) and the pattern is drawn in it, so every skin works for every player. In co-op each bot
 wears a different skin from yours, so pairs read apart by pattern as well as colour. Your skin
-also shows on the main-menu logo, and survives Reset progress.
+also shows in the main menu's top line, and survives Reset progress.
 
 Skins: Classic, Racer, Tiger, Polka, Checker, Zigzag, Camo, Stars, Flames, Circuit, Two-Tone,
 Galaxy (`src/render/skins.ts`). All are open for now; unlocking is still to decide.
+
+## Main menu
+
+Multiplayer is the main way to play, so the main menu leads with it. The style is the same as the
+in-game HUD: no boxes, things sit on the background, colour marks what matters, and the only
+filled button is Play.
+
+- **Tab rail** on the left: Play, Boots, Friends and Awards (shown, marked *soon*), and Settings
+  at the bottom. The selected tab glows, with a short rail at the screen edge like the boot
+  buttons in a level.
+- **Top line**, like the HUD: the tab's name, your boots and how many solo levels you've cleared
+  (tap them for Boots), and *How to play*.
+- **Play tab:** *Play together* on top, with the lobby's floor and team, opening the co-op lobby.
+  Below it, **Solo**: the five modes in a row, each with its progress; the mode you were last in
+  is picked out in its colour with its next level. Tapping a mode goes straight to its levels.
 
 ## Still open
 
@@ -148,7 +163,7 @@ Galaxy (`src/render/skins.ts`). All are open for now; unlocking is still to deci
   thing that blocks.
 
 - Waves: tuning, more levels, whether it needs a time limit.
-- Achievements screen.
+- Achievements screen and Friends (their tabs are on the main menu, marked soon).
 - Skins: how they unlock (levels cleared, achievements), more of them, maybe a colour choice solo.
 - Co-op: rules for the other modes (shared sequence, team survival, everyone to the goal),
   more rooms, lights and lives scaled by player count, versus rules, then online play.

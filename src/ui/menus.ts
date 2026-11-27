@@ -7,17 +7,20 @@ import { isDone, isOpen, nextLevel, pause, restart, resume, S, startLevel, TICK_
 import { newRun, progress } from "../game/rules";
 import { IS_DEV } from "../platform/dev";
 import { resetSave, save, writeSave } from "../storage/save";
-import { drawPreview } from "../render/draw";
+import { drawLobbyFloor, drawPreview, drawSkinThumb } from "../render/draw";
+import { mySkin } from "../render/skins";
 import { ACCENT } from "../render/theme";
-import { leaveMatch, M, pauseMatch, restartMatch, resumeMatch } from "../game/match";
+import { leaveMatch, M, PLAYER_COLORS, pauseMatch, restartMatch, resumeMatch } from "../game/match";
 import { drawSkins, goSkins, initSkins } from "./skins";
 import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
 // MENUS — one overlay, one screen at a time, plus the in-game HUD.
-//   solo:  main menu -> game modes (list + details) -> levels of that mode -> play
+//   main menu: a tab rail (Play, Boots, Friends and Awards still to come, Settings) and the Play
+//   tab: multiplayer on top, the five solo modes in a row below.
+//   solo:  main menu -> a mode's levels -> play (or Game modes, from the levels screen's back)
 //   co-op: main menu -> lobby (room.ts) -> game modes -> levels -> play
-//   main menu -> customize (skins.ts): the pattern on your boots
+//   main menu -> Boots (skins.ts): the pattern on your boots
 // The game modes and levels screens are shared: in co-op they list the rooms (src/levels/
 // rooms.ts) instead of the solo levels, explain each mode's co-op rule, show the team in the
 // header, and Play starts a room with the lobby's team.
@@ -61,9 +64,44 @@ function setTeamChips(){
   }
 }
 
+// ---- the main menu ----------------------------------------------------------------------------
 export function goMenu(){
   S.screen = "menu"; S.run = null; leaveMatch(); setAccent(ACCENT.destination);
+  renderMenu();
   show("sMenu");
+}
+
+/** the Play tab: the lobby's team on the multiplayer floor, and a column per solo mode */
+function renderMenu(){
+  const n = teamSize();
+  $("menuTeam").innerHTML = PLAYER_COLORS.map((c, i) => i < n ? `<i style="--c:${c}"></i>` : `<i class="open"></i>`).join("")
+    + `<span>${n === 1 ? "Just you" : `You and ${n - 1} ${n === 2 ? "bot" : "bots"}`} · up to 4</span>`;
+  let all = 0, cleared = 0;
+  const box = $("soloModes"); box.innerHTML = "";
+  for (const m of MODES) {
+    const lvls = levelsOf(m.id), c = lvls.filter(d => isDone(d.id)).length;
+    all += lvls.length; cleared += c;
+    // the mode you were last in shows where you are up to in it
+    const cur = m.id === soloMode, next = lvls.findIndex(d => !isDone(d.id) && isOpen(d));
+    const b = document.createElement("button");
+    b.className = "smode" + (cur ? " next" : "");
+    b.style.setProperty("--c", ACCENT[m.id]);
+    b.style.setProperty("--p", `${lvls.length ? (100 * c) / lvls.length : 0}%`);
+    b.innerHTML = `<i></i><b>${m.name}${m.wip ? "<em>new</em>" : ""}</b><u></u>`
+      + `<small>${cur && next >= 0 ? `Next · level ${next + 1}` : `${c} / ${lvls.length}`}</small>`;
+    b.onclick = () => { sfx("click"); soloMode = m.id; save.lastMode = m.id; writeSave(); goLevels(m.id, false); };
+    box.appendChild(b);
+  }
+  $("soloCleared").textContent = `${cleared} / ${all} cleared`;
+  $("meCleared").textContent = `${cleared}/${all}`;
+}
+
+/** every frame on the main menu: the multiplayer floor and your boots in the top line */
+function drawMenu(){
+  if (!screenOn("sMenu")) return;
+  const n = teamSize(), floor = fitCanvas("menuFloor"), me = fitCanvas("meCv");
+  if (floor) drawLobbyFloor(floor.c, floor.w, floor.h, [0, 1, 2, 3].map(i => i < n ? PLAYER_COLORS[i] : null), performance.now() / 1000);
+  if (me) drawSkinThumb(me.c, me.w, me.h, mySkin(), false);
 }
 
 // ---- game modes ---------------------------------------------------------------------------
@@ -143,20 +181,27 @@ function features(m: Mode): string[] {
   return out;
 }
 
-/** a canvas drawn at its CSS size, sharp on high-density screens */
-export function previewInto(id: string, p: { run: Run; t0: number }){
+/** a canvas sized to its CSS box, sharp on high-density screens; null while it has no size */
+function fitCanvas(id: string): { c: CanvasRenderingContext2D; w: number; h: number } | null {
   const cv = $<HTMLCanvasElement>(id);
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = cv.clientWidth, h = cv.clientHeight;
-  if (!w || !h) return;
+  if (!w || !h) return null;
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   const c = cv.getContext("2d")!;
   c.setTransform(dpr, 0, 0, dpr, 0, 0);
-  drawPreview(c, w, h, p.run, performance.now() / 1000 - p.t0, TICK_MS);
+  return { c, w, h };
 }
 
-/** every frame: the live preview on the modes screen, and the lobby's floor */
+/** a level's live preview, drawn into a canvas */
+export function previewInto(id: string, p: { run: Run; t0: number }){
+  const f = fitCanvas(id);
+  if (f) drawPreview(f.c, f.w, f.h, p.run, performance.now() / 1000 - p.t0, TICK_MS);
+}
+
+/** every frame: the main menu, the live preview on the modes screen, and the lobby's floor */
 export function drawPreviews(){
+  drawMenu();
   if (preview && screenOn("sModes")) previewInto("modePreview", preview);
   drawLobby();
   drawSkins();
@@ -344,9 +389,9 @@ export function initMenus(){
   S.onWin = onWin;
   initRoom();
   initSkins(goMenu);
-  on("bPlay", () => goModes(false));
   on("bCoop", goLobby);
   on("bSkins", goSkins);
+  on("bMe", goSkins);
   on("bRoomBack", goMenu);
   on("bHow", () => show("sHow"));
   on("bHowOk", goMenu);
