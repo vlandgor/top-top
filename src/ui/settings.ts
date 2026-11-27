@@ -5,7 +5,8 @@ import { IS_DEV } from "../platform/dev";
 import { drawSkinStage } from "../render/draw";
 import { mySkin } from "../render/skins";
 import { resetSave, writeSave } from "../storage/save";
-import { $, show } from "./menus";
+import { $ } from "./menus";
+import { openHowTo } from "./howto";
 
 // ---------------------------------------------------------------------------
 // SETTINGS — the main menu's Settings tab: its sections on the left, the open one on the right,
@@ -82,7 +83,7 @@ function wire(){
   const sfxSw = document.getElementById("optSfx");
   if (sfxSw) sfxSw.onclick = () => { setSound(!soundOn()); writeSave(); sfx("click"); render(); };
   const how = document.getElementById("setHow");
-  if (how) how.onclick = () => { sfx("click"); show("sHow"); };
+  if (how) how.onclick = () => { sfx("click"); openHowTo(); };
   const reset = document.getElementById("setReset");
   if (reset) reset.onclick = () => { sfx("click"); if (confirm("Reset all progress?")) { resetSave(); render(); } };
 }

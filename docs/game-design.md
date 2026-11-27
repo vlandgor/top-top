@@ -168,6 +168,23 @@ filled button is Play.
   switch, a link or a fact. Controls shows your boots between the two edge rails. New settings
   go into the section they belong to, or a new section (`src/ui/settings.ts`).
 
+## How to play
+
+Opened from the **?** in the main menu's top line or from Settings → Help; closing it goes back
+to the tab it was opened from. Four short lessons, each tried on a small board with the real
+rules and controls (the button on each side of the board, its left / right half, or the keys):
+
+| Lesson | Board | Done when |
+|---|---|---|
+| Walk | the pair and a goal | a boot reaches the goal (alternating walks; the first press sets the way) |
+| Turn in place | the pair in open floor | the same button pressed 4 times in a row |
+| The edge | the pair near the edge | a boot steps back at the edge |
+| Danger | a sentry between the pair and the goal | the goal is reached; a hit restarts the board |
+
+A lesson ticks off when it is done; **Next** moves on, **Skip** jumps ahead, and any lesson can
+be opened from the list. Nothing is saved: opening How to play again starts at the first
+lesson not done since the app started (`src/ui/howto.ts`).
+
 ## Still open
 
 - Obstacles from Chick Mates (trees, boxes, gates) are not in yet; the board edge is the only

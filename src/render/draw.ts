@@ -114,6 +114,23 @@ function drawBoard(){
   drawSentries(lv, beat, frac);
 }
 
+/**
+ * A small live demo of a level into any canvas: the board and its hazards at time `t`, where
+ * each button sends its boot, and the pair. For How to play; `r` is played by the caller.
+ */
+export function drawDemo(c: CanvasRenderingContext2D, w: number, h: number, r: Run, t: number, tickMs: number){
+  ctx = c;
+  ctx.clearRect(0, 0, w, h);
+  F = { b: r, tf: (t * 1000) / tickMs, now: t, live: false, picked: S.pickedAt };
+  L = layoutIn(r.lv, 4, 4, w - 8, h - 8, 64);
+  drawBoard();
+  const accent = ACCENT[r.lv.def.mode];
+  if (r.status === "play") drawNext(r.lv, r.boots, accent);
+  const skin = mySkin();
+  drawPair(r.lv, r.boots, null, [0, 0], () => ({ body: C.boot, edge: C.teal, detail: "#2a8f82", glow: C.teal, glowSize: L.s * 0.3, skin }));
+  ctx = mainCtx;
+}
+
 // ---- floor -------------------------------------------------------------------------------
 function drawFloor(lv: Level, frac: number, accent: string){
   const s = L.s, pulse = Math.exp(-frac * 5);        // every tile flashes a little on the beat

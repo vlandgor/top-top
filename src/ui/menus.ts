@@ -12,6 +12,7 @@ import { ACCENT } from "../render/theme";
 import { leaveMatch, M, PLAYER_COLORS, pauseMatch, restartMatch, resumeMatch } from "../game/match";
 import { drawBoots, enterBoots, initBoots } from "./skins";
 import { drawSettings, enterSettings } from "./settings";
+import { drawHowTo, initHowTo, openHowTo } from "./howto";
 import { drawLobby, enterRoom, goLobby, initRoom, roomBest, roomFacts, roomGoal, roomLevels, startRoom, syncRoomHud, teamChip, teamSize } from "./room";
 
 // ---------------------------------------------------------------------------
@@ -222,6 +223,7 @@ export function previewInto(id: string, p: { run: Run; t0: number }){
 /** every frame: the main menu, the live preview on the modes screen, and the lobby's floor */
 export function drawPreviews(){
   drawMenu();
+  drawHowTo();
   if (preview && screenOn("sModes")) previewInto("modePreview", preview);
   drawLobby();
 }
@@ -415,8 +417,9 @@ export function initMenus(){
   on("tBoots", () => goMenu("boots"));
   on("bMe", () => goMenu("boots"));
   on("bRoomBack", goMenu);
-  on("bHow", () => show("sHow"));
-  // How to play goes back to the tab it was opened from
+  initHowTo();
+  on("bHow", openHowTo);
+  // How to play closes back to the tab it was opened from
   on("bHowOk", () => goMenu(tab));
   on("tSet", () => goMenu("settings"));
   on("bModesBack", modesBack);

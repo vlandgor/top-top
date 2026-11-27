@@ -186,16 +186,27 @@
     </section>
 
     <!-- customize: the boot skins on the left, the chosen one walking on the right -->
+    <!-- How to play: four short lessons, each tried on a small board (howto.ts) -->
     <section class="screen" id="sHow">
-      <h2>How to play</h2>
-      <div class="howgrid">
-        <div class="key">L R</div><div>One button per boot. Pressing a boot <b>swings it one tile around the other</b>, which stays put</div>
-        <div class="key">↻ ↺</div><div>The left boot always turns <b>clockwise</b>, the right one <b>counterclockwise</b>. Alternate them to <b>walk</b></div>
-        <div class="key">↩</div><div>The dashed tiles show where each button sends its boot. If the <b>edge</b> is in the way, the boot <b>steps back</b> instead, making room for the other one</div>
-        <div class="key red">■</div><div>Red is deadly. Sentries step on the beat; big sweeps <b>glow first</b> and only kill when solid</div>
+      <div class="hwtop">
+        <i class="mdot"></i><h2>How to play</h2><span class="msub" id="hwSub"></span>
+        <span class="grow"></span>
+        <button class="mhelp" id="bHowOk" aria-label="Close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
       </div>
-      <div class="hint">Left side or A / ← presses the left boot. Right side or D / → the right one. R restarts, Esc pauses.</div>
-      <div class="stack"><button class="btn big" id="bHowOk">Got it</button></div>
+      <div class="hwbody">
+        <div class="hwleft">
+          <div id="hwSteps"></div>
+          <div class="hwlesson">
+            <span class="eyebrow" id="hwTag"></span>
+            <b id="hwTitle"></b>
+            <p id="hwText"></p>
+            <div class="hwrow"><span id="hwTask"></span><button class="hwskip" id="hwSkip">Skip ›</button><button class="btn" id="hwNext">Next</button></div>
+          </div>
+        </div>
+        <div class="hwstage" id="hwStage">
+          <span class="hwpad l">L</span><canvas id="hwCv"></canvas><span class="hwpad r">R</span>
+        </div>
+      </div>
     </section>
 
     <section class="screen" id="sPause">
